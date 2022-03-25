@@ -1,8 +1,5 @@
 name: ci/gh-actions/cli
-
 on: [push, pull_request]
-
-# The below variables reduce repetitions across similar targets
 env:
   REMOVE_BUNDLED_BOOST : rm -rf /usr/local/share/boost
   BUILD_DEFAULT_LINUX: |
@@ -15,7 +12,7 @@ env:
   CCACHE_SETTINGS: |
         ccache --max-size=150M
         ccache --set-config=compression=true
-
+        
 jobs:
   build-macos:
     runs-on: macOS-latest
