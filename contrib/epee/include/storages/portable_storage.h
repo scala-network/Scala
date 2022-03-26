@@ -29,6 +29,7 @@
 #pragma once 
 
 #include <type_traits>
+#include <boost/mpl/size.hpp>
 
 #include "misc_language.h"
 #include "portable_storage_base.h"
