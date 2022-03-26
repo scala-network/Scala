@@ -613,8 +613,8 @@ namespace nodetool
     }
     else
     {
-      full_addrs.insert("62.171.149.67:11811");
-      full_addrs.insert("164.68.117.160:11811");
+      full_addrs.insert("135.181.166.156:11811");
+      full_addrs.insert("51.79.146.20:11811");
     }
     return full_addrs;
   }

@@ -86,8 +86,10 @@ namespace cryptonote {
 
     static_assert(DIFFICULTY_TARGET % 60 == 0, "difficulty targets must be a multiple of 60");
     const uint64_t premine_and_swap_amount = 1282877336900U;
+    const uint64_t erosion_constant = 21;
+    const uint64_t total_supply = 2100000000000U;
 
-    uint64_t base_reward;
+    uint64_t base_reward, base_reward_h;
 
     if (already_generated_coins == 0) {
       base_reward = 300000U;
@@ -98,28 +100,20 @@ namespace cryptonote {
       return true;
     }
 
-    else if ((height > 15) && (height <= 600000)){
+    else if ((height > 15) && version <= 12){
       base_reward = 500000U;
     }
 
-    else if((height > 600000) && (height <= 1200000)){
-      base_reward = 475000U;
+    else if(version > 12) {
+      base_reward = ((total_supply - already_generated_coins) >> erosion_constant);
+
+      if(height % 4 == 0) {
+        base_reward = (base_reward >> 2);
+      }
     }
 
-    else if((height > 1200000) && (height <= 2400000)){
-      base_reward = 237500U;
-    }
-
-    else if((height > 2400000) && (height <= 4800000)){
-      base_reward = 118800U;
-    }
-
-    else if((height > 4800000) && (height <= 9600000)){
-      base_reward = 59500U;
-    }
-
-    else {
-      base_reward = 10000U;
+    if(base_reward < 999) {
+      base_reward = 99900U;
     }
 
     uint64_t full_reward_zone = get_min_block_weight(version);

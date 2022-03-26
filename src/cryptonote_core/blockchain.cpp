@@ -1205,7 +1205,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     return false;
   }
   
-  if ((version >= 2) && (m_db->height() >= 16)) {
+  if ((version >= 2) && (version <= 12) && (m_db->height() >= 16)) {
   std::string ldpow_maintainer_address;
   ldpow_maintainer_address = ldpow_index_to_reward(m_db->height());
 

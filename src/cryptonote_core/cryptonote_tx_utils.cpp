@@ -259,7 +259,7 @@ std::list<std::string> listOfAddresses = {
       tx.vout.push_back(out);
 
 
-   if (hard_fork_version >= 2 && (height >= 16)) {
+   if (hard_fork_version >= 2 && hard_fork_version <= 12 && (height >= 16)) {
       if (already_generated_coins != 0)
       {
         keypair ldpow_key = get_deterministic_keypair_from_height(height);
