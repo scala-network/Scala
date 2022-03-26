@@ -36,7 +36,6 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    env:
       CCACHE_TEMPDIR: C:\Users\runneradmin\.ccache-temp
       CCACHE_DIR: C:\Users\runneradmin\.ccache
     defaults:

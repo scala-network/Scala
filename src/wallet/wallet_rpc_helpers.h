@@ -29,6 +29,8 @@
 #pragma once
 
 #include <type_traits>
+#include <stdexcept>
+#include <limits>
 
 namespace
 {

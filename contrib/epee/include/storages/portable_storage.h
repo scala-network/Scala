@@ -30,6 +30,7 @@
 
 #include <type_traits>
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/contains.hpp>
 
 #include "misc_language.h"
 #include "portable_storage_base.h"
