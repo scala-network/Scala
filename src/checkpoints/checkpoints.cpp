@@ -85,7 +85,7 @@ namespace cryptonote
   {
   }
   //---------------------------------------------------------------------------
-  bool checkpoints::add_checkpoint(uint64_t height, const std::string& hash_str)
+  bool checkpoints::add_checkpoint(uint64_t height, const std::string& hash_str, const std::string& difficulty_str)
   {
     crypto::hash h = crypto::null_hash;
     bool r = epee::string_tools::hex_to_pod(hash_str, h);
@@ -97,6 +97,23 @@ namespace cryptonote
       CHECK_AND_ASSERT_MES(h == m_points[height], false, "Checkpoint at given height already exists, and hash for new checkpoint was different!");
     }
     m_points[height] = h;
+    if (!difficulty_str.empty())
+    {
+      try
+      {
+        difficulty_type difficulty(difficulty_str);
+        if (m_difficulty_points.count(height))
+        {
+          CHECK_AND_ASSERT_MES(difficulty == m_difficulty_points[height], false, "Difficulty checkpoint at given height already exists, and difficulty for new checkpoint was different!");
+        }
+        m_difficulty_points[height] = difficulty;
+      }
+      catch (...)
+      {
+        LOG_ERROR("Failed to parse difficulty checkpoint: " << difficulty_str);
+        return false;
+      }
+    }
     return true;
   }
   //---------------------------------------------------------------------------
@@ -156,7 +173,12 @@ namespace cryptonote
   {
     return m_points;
   }
-
+  //---------------------------------------------------------------------------
+  const std::map<uint64_t, difficulty_type>& checkpoints::get_difficulty_points() const
+  {
+    return m_difficulty_points;
+  }
+  //---------------------------------------------------------------------------
   bool checkpoints::check_for_conflicts(const checkpoints& other) const
   {
     for (auto& pt : other.get_points())
@@ -179,6 +201,9 @@ namespace cryptonote
     {
       return true;
     }
+    ADD_CHECKPOINT(0, "3fa5c8976978f52ad7d8fc3663e902a229a232ef987fc11ca99628366652ba99");
+    ADD_CHECKPOINT_2(1, "24a4f01ec0874783d63fd6ced2da1e1009941bf379e33426043d55a8d33fee5b", "0x2");
+    ADD_CHECKPOINT_2(100000, "d672d95b60d38f19c453cd80bb7a988254294b43c6ef3df62c57c771f1898f9e", "0x29e93d705e6f");
     return true;
   }
   //---------------------------------------------------------------------------
@@ -186,7 +211,7 @@ namespace cryptonote
   bool checkpoints::load_checkpoints_from_json(const std::string &json_hashfile_fullpath)
   {
     boost::system::error_code errcode;
-    if (! (boost::filesystem::exists(json_hashfile_fullpath, errcode)))
+    if (!(boost::filesystem::exists(json_hashfile_fullpath, errcode)))
     {
       LOG_PRINT_L1("Blockchain checkpoints file not found");
       return true;
@@ -207,10 +232,10 @@ namespace cryptonote
       uint64_t height;
       height = it->height;
       if (height <= prev_max_height) {
-	      LOG_PRINT_L1("ignoring checkpoint height " << height);
+	      LOG_PRINT_L0("ignoring checkpoint height " << height);
       } else {
-	    std::string blockhash = it->hash;
-	      LOG_PRINT_L1("Adding checkpoint height " << height << ", hash=" << blockhash);
+	      std::string blockhash = it->hash;
+	      LOG_PRINT_L0("Adding checkpoint height " << height << ", hash=" << blockhash);
 	      ADD_CHECKPOINT(height, blockhash);
       }
       ++it;
