@@ -1338,18 +1338,18 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   }
   
   if ((version >= 2) && (version <= 12) && (m_db->height() >= 16)) {
-  std::string ldpow_maintainer_address;
-  ldpow_maintainer_address = ldpow_index_to_reward(m_db->height());
+  std::string diardi_maintainer_address;
+  diardi_maintainer_address = diardi_index_to_reward(m_db->height());
 
   	if (already_generated_coins != 0){
-		uint64_t ldpow_reward = get_ldpow_reward(m_db->height(), base_reward);
-		if (b.miner_tx.vout.back().amount != ldpow_reward){
-		MERROR("LDpoW reward amount incorrect.  Should be: " << print_money(ldpow_reward) << ", is: " << print_money(b.miner_tx.vout.back().amount));
+		uint64_t diardi_reward = get_diardi_reward(m_db->height(), base_reward);
+		if (b.miner_tx.vout.back().amount != diardi_reward){
+		MERROR("Diardi V1 reward amount incorrect.  Should be: " << print_money(diardi_reward) << ", is: " << print_money(b.miner_tx.vout.back().amount));
 		return false;
 		}
 
-		if (!validate_ldpow_reward_key(m_db->height(), ldpow_maintainer_address, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
-        	MERROR("LdPoW reward public key incorrect.");
+		if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
+        	MERROR("Diardi V1 reward public key incorrect.");
         	return false;
 		}
 	 }

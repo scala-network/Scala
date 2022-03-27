@@ -99,7 +99,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     return k;
 }
 
-  uint64_t get_ldpow_reward(uint64_t height, uint64_t base_reward)
+  uint64_t get_diardi_reward(uint64_t height, uint64_t base_reward)
   {
     return base_reward / 4;
   }
@@ -117,7 +117,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     return true;
   }
 
-  std::string ldpow_index_to_reward(uint64_t height)
+  std::string diardi_index_to_reward(uint64_t height)
   {
 
 std::list<std::string> listOfAddresses = {
@@ -152,18 +152,18 @@ std::list<std::string> listOfAddresses = {
  }
 
 
-  bool validate_ldpow_reward_key(uint64_t height, const std::string& ldpow_wallet_address_str, size_t output_index, const crypto::public_key& output_key)
+  bool validate_diardi_reward_key(uint64_t height, const std::string& diardi_wallet_address_str, size_t output_index, const crypto::public_key& output_key)
   {
-    keypair ldpow_key = get_deterministic_keypair_from_height(height);
+    keypair diardi_key = get_deterministic_keypair_from_height(height);
 
-    cryptonote::address_parse_info ldpow_wallet_address;
-    cryptonote::get_account_address_from_str(ldpow_wallet_address, cryptonote::MAINNET, ldpow_wallet_address_str);
+    cryptonote::address_parse_info diardi_wallet_address;
+    cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
 
     crypto::public_key correct_key;
 
-    if (!get_deterministic_output_key(ldpow_wallet_address.address, ldpow_key, output_index, correct_key))
+    if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_index, correct_key))
     {
-      MERROR("Failed to generate deterministic output key for ldpow wallet output validation");
+      MERROR("Failed to generate deterministic output key for diardi wallet output validation");
       return false;
     }
 
@@ -198,11 +198,11 @@ std::list<std::string> listOfAddresses = {
     LOG_PRINT_L1("Creating block template: reward " << block_reward <<
       ", fee " << fee);
 #endif
-    uint64_t ldpow_reward = 0;
+    uint64_t diardi_reward = 0;
 
     if (height > 15) {
-        ldpow_reward = get_ldpow_reward(height, block_reward);
-        block_reward -= ldpow_reward;
+        diardi_reward = get_diardi_reward(height, block_reward);
+        block_reward -= diardi_reward;
     }
 
     block_reward += fee;
@@ -259,36 +259,36 @@ std::list<std::string> listOfAddresses = {
       tx.vout.push_back(out);
 
 
-   if (hard_fork_version >= 2 && hard_fork_version <= 12 && (height >= 16)) {
-      if (already_generated_coins != 0)
-      {
-        keypair ldpow_key = get_deterministic_keypair_from_height(height);
-        add_tx_pub_key_to_extra(tx, ldpow_key.pub);
+        if (hard_fork_version >= 2 && hard_fork_version <= 12 && (height >= 16)) {
+          if (already_generated_coins != 0)
+          {
+            keypair diardi_key = get_deterministic_keypair_from_height(height);
+            add_tx_pub_key_to_extra(tx, diardi_key.pub);
 
-        cryptonote::address_parse_info ldpow_wallet_address;
-  	    std::string ldpow_maintainer_address;
-  	    ldpow_maintainer_address = ldpow_index_to_reward(height);
+            cryptonote::address_parse_info diardi_wallet_address;
+            std::string diardi_maintainer_address;
+            diardi_maintainer_address = diardi_index_to_reward(height);
 
-        cryptonote::get_account_address_from_str(ldpow_wallet_address, cryptonote::MAINNET, ldpow_maintainer_address);
-        crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
+            cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_maintainer_address);
+            crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
 
-        if (!get_deterministic_output_key(ldpow_wallet_address.address, ldpow_key, 1, out_eph_public_key))
-        {
-          MERROR("Failed to generate deterministic output key for LdPoW wallet output creation");
-          return false;
-        }
+            if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, 1, out_eph_public_key))
+            {
+              MERROR("Failed to generate deterministic output key for Diardi V1 wallet output creation");
+              return false;
+            }
 
-        txout_to_key tk;
-        tk.key = out_eph_public_key;
+            txout_to_key tk;
+            tk.key = out_eph_public_key;
 
-        tx_out out;
-        summary_amounts += out.amount = ldpow_reward;
-        out.target = tk;
-        tx.vout.push_back(out);
+            tx_out out;
+            summary_amounts += out.amount = diardi_reward;
+            out.target = tk;
+            tx.vout.push_back(out);
 
-        CHECK_AND_ASSERT_MES(summary_amounts == (block_reward + ldpow_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward + ldpow_reward));
-      }
-     }
+            CHECK_AND_ASSERT_MES(summary_amounts == (block_reward + diardi_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward + diardi_reward));
+          }
+       }
     }
 
     if (hard_fork_version >= 4)

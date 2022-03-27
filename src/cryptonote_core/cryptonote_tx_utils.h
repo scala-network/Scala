@@ -39,10 +39,10 @@ namespace cryptonote
 {
   //---------------------------------------------------------------
   keypair get_deterministic_keypair_from_height(uint64_t height);
-  std::string ldpow_index_to_reward(uint64_t height);
-  uint64_t get_ldpow_reward(uint64_t height, uint64_t base_reward);
+  std::string diardi_index_to_reward(uint64_t height);
+  uint64_t get_diardi_reward(uint64_t height, uint64_t base_reward);
   bool get_deterministic_output_key(const account_public_address& address, const keypair& tx_key, size_t output_index, crypto::public_key& output_key);
-  bool validate_ldpow_reward_key(uint64_t height, const std::string& ldpow_wallet_address_str, size_t output_index, const crypto::public_key& output_key);
+  bool validate_diardi_reward_key(uint64_t height, const std::string& diardi_wallet_address_str, size_t output_index, const crypto::public_key& output_key);
 
   bool construct_miner_tx(size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce = blobdata(), size_t max_outs = 999, uint8_t hard_fork_version = 1);
 
