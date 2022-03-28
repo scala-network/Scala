@@ -170,13 +170,9 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
   //---------------------------------------------------------------
   std::list<std::string> diardi_addresses_v2(network_type nettype) {
     
-    std::list<std::string> mainnet_addresses = {
+    std::list<std::string> mainnet_addresses = {};
 
-    };
-
-    std::list<std::string> testnet_addresses = {
-
-    };
+    std::list<std::string> testnet_addresses = {};
 
     std::list <std::string> stagenet_addresses = {
       "StS1JMMB3v1j6fJ7t6Qph9Z7Yh6it9vKH3fzgQvhcuwPBr8JgaQeq7977WAia6iY7V5jyuVSC4CgbRtJvK9VvmXx9hPed1xzjb",
@@ -222,7 +218,6 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     #endif
 
     std::list<std::string> diardi_v2_addresses = diardi_addresses_v2(nettype);
-
     uint64_t maintainers_count = diardi_v2_addresses.size();
     uint64_t diardi_reward = 0;
 
@@ -234,9 +229,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     block_reward += fee;
 
     if((hard_fork_version > 12) && (height % 4 == 0)) {
-      LOG_PRINT_L0("Block Reward is -> " << block_reward << ", Maintainers count is -> " << maintainers_count);
       diardi_reward = block_reward / maintainers_count;
-      LOG_PRINT_L0("Calculated diardi v2 reward ->" << diardi_reward);
     }
 
     // from hard fork 2, we cut out the low significant digits. This makes the tx smaller, and
@@ -273,6 +266,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
 
     uint64_t summary_amounts = 0;
     if((hard_fork_version > 12) && (height % 4 == 0)) {
+
       cryptonote::address_parse_info diardi_wallet_address;
       std::string diardi_maintainer_address;
 
@@ -303,7 +297,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
         out.target = tk;
         tx.vout.push_back(out);
 
-        CHECK_AND_ASSERT_MES(summary_amounts == (block_reward + diardi_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward + diardi_reward));
+        //CHECK_AND_ASSERT_MES(summary_amounts == (block_reward + diardi_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward + diardi_reward));
         output_count++;
       }
     }
