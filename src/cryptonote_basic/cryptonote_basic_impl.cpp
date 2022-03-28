@@ -106,9 +106,6 @@ namespace cryptonote {
 
     else if(version > 12) {
       base_reward = ((total_supply - already_generated_coins) >> erosion_constant);
-      if(height % 4 == 0) {
-        base_reward = (base_reward >> 2);
-      }
     }
 
     else {
