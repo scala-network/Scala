@@ -229,7 +229,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     block_reward += fee;
 
     if((hard_fork_version > 12) && (height % 4 == 0)) {
-      diardi_reward = block_reward / maintainers_count;
+      diardi_reward = block_reward;
     }
 
     // from hard fork 2, we cut out the low significant digits. This makes the tx smaller, and
@@ -266,19 +266,17 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
 
     uint64_t summary_amounts = 0;
     if((hard_fork_version > 12) && (height % 4 == 0)) {
-
       cryptonote::address_parse_info diardi_wallet_address;
       std::string diardi_maintainer_address;
 
       keypair diardi_key = get_deterministic_keypair_from_height(height);
       add_tx_pub_key_to_extra(tx, diardi_key.pub);
-
-      uint64_t output_count = 0;
+      size_t output_count = 0;
       
-      for (auto it = diardi_v2_addresses.begin(); it != diardi_v2_addresses.end(); ++it) {
+      for (std::string addy : diardi_v2_addresses) {
         cryptonote::address_parse_info diardi_wallet_address;
         std::string diardi_maintainer_address;
-        diardi_maintainer_address = *it;
+        diardi_maintainer_address = addy;
 
         cryptonote::get_account_address_from_str(diardi_wallet_address, nettype, diardi_maintainer_address);
         crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
