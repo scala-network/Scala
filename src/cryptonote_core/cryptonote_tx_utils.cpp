@@ -228,10 +228,6 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
 
     block_reward += fee;
 
-    if((hard_fork_version > 12) && (height % 4 == 0)) {
-      diardi_reward = block_reward;
-    }
-
     // from hard fork 2, we cut out the low significant digits. This makes the tx smaller, and
     // keeps the paid amount almost the same. The unpaid remainder gets pushed back to the
     // emission schedule
@@ -258,11 +254,14 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
           out_amounts[n - 1] = out_amounts[n];
         out_amounts.pop_back();
       }
-    }
-    else
+    } else
     {
       CHECK_AND_ASSERT_MES(max_outs >= out_amounts.size(), false, "max_out exceeded");
     }
+
+    //if((hard_fork_version > 12) && (height % 4 == 0)) {
+    //  diardi_reward = block_reward;
+    //}
 
     uint64_t summary_amounts = 0;
     if((hard_fork_version > 12) && (height % 4 == 0)) {
@@ -291,7 +290,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
         tk.key = out_eph_public_key;
 
         tx_out out;
-        summary_amounts += out.amount = diardi_reward;
+        summary_amounts += out.amount = block_reward;
         out.target = tk;
         tx.vout.push_back(out);
 
