@@ -156,7 +156,21 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     keypair diardi_key = get_deterministic_keypair_from_height(height);
 
     cryptonote::address_parse_info diardi_wallet_address;
-    cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+    
+    switch(nettype) {
+        case STAGENET:
+          cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::STAGENET, diardi_wallet_address_str);
+          break;
+        case TESTNET:
+          cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::TESTNET, diardi_wallet_address_str);
+          break;
+        case MAINNET:
+          cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+          break;
+        default:
+          cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+          break;
+    }
 
     crypto::public_key correct_key;
 
@@ -165,6 +179,9 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
       MERROR("Failed to generate deterministic output key for diardi wallet output validation");
       return false;
     }
+
+    std::cout << "Correct key -> " << epee::string_tools::pod_to_hex(correct_key) << std::endl;
+    std::cout << "Output key -> " << epee::string_tools::pod_to_hex(output_key) << std::endl;
 
     return correct_key == output_key;
   }
@@ -190,7 +207,9 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
             return stagenet_addresses;
       case FAKECHAIN:
             return mainnet_addresses;
-      default: throw std::runtime_error("Invalid network type passed for getting Diardi v2 addresses");
+      default: 
+            return mainnet_addresses;
+            throw std::runtime_error("Invalid network type passed for getting Diardi v2 addresses");
     }
   }
   //---------------------------------------------------------------

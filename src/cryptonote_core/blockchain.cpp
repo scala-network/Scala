@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/format.hpp>
@@ -1348,11 +1349,51 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       return false;
       }
 
-      if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
-            MERROR("Diardi V1 reward public key incorrect.");
-            return false;
+      if(m_nettype == cryptonote::MAINNET) {
+        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
+              MERROR("Diardi V1 reward public key incorrect.");
+              return false;
+        }
+      } else {
+        return true;
       }
     }
+  }
+
+  if((version >= 13) && (m_db->height() % 4 == 0)) {
+    if(already_generated_coins != 0) {
+      std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+      std::string vM;
+
+      for(auto const& sM : diardi_miners_list) {
+        std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
+        if(validate_diardi_reward_key(m_db->height(), sM, 0, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+        {
+          vM = sM;
+          break;
+        }
+      }
+
+      if(vM.empty()) {
+        MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
+        return false;
+      }
+
+      uint64_t pDh = m_db->height() - 4;
+
+      crypto::hash oDh = crypto::null_hash;
+      oDh = m_db->get_block_hash_from_height(pDh);
+
+      cryptonote::block oDb;
+      bool oOb = false;
+
+      bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+      if(getOldBlock) {
+        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size(), boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+          MERROR("You're not supposed to mine this block since you mined the last diardi block!");
+        }
+      }
+    } 
   }
 
   if(version > 12 && (m_db->height() % 4 == 0)) {
