@@ -31,6 +31,7 @@
 
 #include <unordered_set>
 #include <random>
+#include <iostream>
 #include "include_base_utils.h"
 #include "string_tools.h"
 using namespace epee;
@@ -175,16 +176,20 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     std::list<std::string> testnet_addresses = {};
 
     std::list <std::string> stagenet_addresses = {
-      "StS1JMMB3v1j6fJ7t6Qph9Z7Yh6it9vKH3fzgQvhcuwPBr8JgaQeq7977WAia6iY7V5jyuVSC4CgbRtJvK9VvmXx9hPed1xzjb",
-      "StS1GAzLmPDfh2E8Eyx5gU4HogKxhUho7baoZtJ8iaxWD3pP4zLCrJEYnqjqpM1aCXUqijbFnfqA7dZu18iSD7Rr7zZxi3UqYT"
+      "StS1WiJmb8mdJKw35hbgagdDm3P8Bm7nZHu3nJMmM7wkGeyHxY3AgDFLfE3rr6aErjUWm4zbXtFVNMSXMQgUCgKg5USPHqYJkd",
+      "StS1HSmWVg1QQ3xx1iCK933tgLddWW2yQb6k84zuoZdL3PzvMUdfMrrbyEDkydtX1hYX5S7G8Rz5MGuKMcCZ7nwv2k71DWxccJ"
     };
 
     switch (nettype)
     {
-      case MAINNET: return mainnet_addresses;
-      case TESTNET: return testnet_addresses;
-      case STAGENET: return stagenet_addresses;
-      case FAKECHAIN: return mainnet_addresses;
+      case MAINNET:
+            return mainnet_addresses;
+      case TESTNET:
+            return testnet_addresses;
+      case STAGENET:
+            return stagenet_addresses;
+      case FAKECHAIN:
+            return mainnet_addresses;
       default: throw std::runtime_error("Invalid network type passed for getting Diardi v2 addresses");
     }
   }
@@ -258,48 +263,43 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     {
       CHECK_AND_ASSERT_MES(max_outs >= out_amounts.size(), false, "max_out exceeded");
     }
-
-    //if((hard_fork_version > 12) && (height % 4 == 0)) {
-    //  diardi_reward = block_reward;
-    //}
-
     uint64_t summary_amounts = 0;
-    if((hard_fork_version > 12) && (height % 4 == 0)) {
-      cryptonote::address_parse_info diardi_wallet_address;
-      std::string diardi_maintainer_address;
+    if((hard_fork_version >= 13) && (height % 4 == 0)) {
+      bool is_correct_miner = false;
+      for(auto const& diardi_miner : diardi_v2_addresses) {
+            cryptonote::address_parse_info diardi_wallet_address;
+            std::string diardi_maintainer_address;
+            diardi_maintainer_address = diardi_miner;
 
-      keypair diardi_key = get_deterministic_keypair_from_height(height);
-      add_tx_pub_key_to_extra(tx, diardi_key.pub);
-      size_t output_count = 0;
-      
-      for (std::string addy : diardi_v2_addresses) {
-        cryptonote::address_parse_info diardi_wallet_address;
-        std::string diardi_maintainer_address;
-        diardi_maintainer_address = addy;
-
-        cryptonote::get_account_address_from_str(diardi_wallet_address, nettype, diardi_maintainer_address);
-        crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
-
-        if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_count, out_eph_public_key))
-        {
-          MERROR("Failed to generate deterministic output key for Diardi V2 wallet output creation");
-          return false;
-        }
-
-        txout_to_key tk;
-        tk.key = out_eph_public_key;
-
-        tx_out out;
-        summary_amounts += out.amount = block_reward;
-        out.target = tk;
-        tx.vout.push_back(out);
-
-        //CHECK_AND_ASSERT_MES(summary_amounts == (block_reward + diardi_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward + diardi_reward));
-        output_count++;
+            cryptonote::get_account_address_from_str(diardi_wallet_address, nettype, diardi_maintainer_address);
+            
+            if(diardi_wallet_address.address.m_view_public_key == miner_address.m_view_public_key) {
+              is_correct_miner = true;
+              break;
+            }
       }
-    }
 
-    else {
+      if(!is_correct_miner) {
+        MERROR("Miner address for Diardi block wrong!");
+        return false;
+      }
+
+      crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
+      crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
+      bool r = crypto::generate_key_derivation(miner_address.m_view_public_key, txkey.sec, derivation);
+      CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to generate_key_derivation(" << miner_address.m_view_public_key << ", " << txkey.sec << ")");
+
+      r = crypto::derive_public_key(derivation, 0, miner_address.m_spend_public_key, out_eph_public_key);
+      CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to derive_public_key(" << derivation << ", " << 0 << ", "<< miner_address.m_spend_public_key << ")");
+
+      txout_to_key tk_min;
+      tk_min.key = out_eph_public_key;
+
+      tx_out out_zero;
+      summary_amounts += out_zero.amount = block_reward;
+      out_zero.target = tk_min;
+      tx.vout.push_back(out_zero);
+    } else {
       for (size_t no = 0; no < out_amounts.size(); no++)
       {
           crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
