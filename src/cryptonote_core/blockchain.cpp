@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/format.hpp>
@@ -829,7 +830,7 @@ bool Blockchain::get_block_by_hash(const crypto::hash &h, block &blk, bool *orph
 difficulty_type Blockchain::get_difficulty_for_next_block()
 {
 
-  uint64_t current_height = m_db->height() + 1;
+  uint64_t current_height = m_db->height() + 2;
   uint8_t hard_fork_version = get_ideal_hard_fork_version(current_height);
 
   if((current_height % 4 == 0) && hard_fork_version > 12) {
@@ -1344,15 +1345,55 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       if (already_generated_coins != 0){
       uint64_t diardi_reward = get_diardi_reward(m_db->height(), base_reward);
       if (b.miner_tx.vout.back().amount != diardi_reward){
-      MERROR("Diardi V1 reward amount incorrect.  Should be: " << print_money(diardi_reward) << ", is: " << print_money(b.miner_tx.vout.back().amount));
-      return false;
+        MERROR("Diardi V1 reward amount incorrect.  Should be: " << print_money(diardi_reward) << ", is: " << print_money(b.miner_tx.vout.back().amount));
+        return false;
       }
 
-      if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
-            MERROR("Diardi V1 reward public key incorrect.");
-            return false;
+      if(m_nettype == cryptonote::MAINNET) {
+        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
+              MERROR("Diardi V1 reward public key incorrect.");
+              return false;
+        }
+      } else {
+        return true;
       }
     }
+  }
+
+  if((version >= 13) && (m_db->height() % 4 == 0)) {
+    if(already_generated_coins != 0) {
+      std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+      std::string vM;
+
+      for(auto const& sM : diardi_miners_list) {
+        std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
+        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+        {
+          vM = sM;
+          break;
+        }
+      }
+
+      if(vM.empty()) {
+        MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
+        return false;
+      }
+
+      uint64_t pDh = m_db->height() - 4;
+
+      crypto::hash oDh = crypto::null_hash;
+      oDh = m_db->get_block_hash_from_height(pDh);
+
+      cryptonote::block oDb;
+      bool oOb = false;
+
+      bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+      if(getOldBlock) {
+        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size(), boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+          MERROR("You're not supposed to mine this block since you mined the last diardi block!");
+        }
+      }
+    } 
   }
 
   if(version > 12 && (m_db->height() % 4 == 0)) {
@@ -1642,7 +1683,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   //make blocks coin-base tx looks close to real coinbase tx to get truthful blob weight
   uint8_t hf_version = b.major_version;
   size_t max_outs = hf_version >= 4 ? 1 : 11;
-  bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
+  bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
   CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, first chance");
   size_t cumulative_weight = txs_weight + get_transaction_weight(b.miner_tx);
 #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
@@ -1651,7 +1692,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
 #endif
   for (size_t try_count = 0; try_count != 10; ++try_count)
   {
-    r = construct_miner_tx(height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
+    r = construct_miner_tx(height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
 
     CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, second chance");
     size_t coinbase_weight = get_transaction_weight(b.miner_tx);
