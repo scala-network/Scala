@@ -214,111 +214,68 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
   }
   //---------------------------------------------------------------
   bool construct_miner_tx(size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version, network_type nettype) {
-    tx.vin.clear();
-    tx.vout.clear();
-    tx.extra.clear();
+    if(hard_fork_version <= 12){
+      tx.vin.clear();
+      tx.vout.clear();
+      tx.extra.clear();
 
-    keypair txkey = keypair::generate(hw::get_device("default"));
-    add_tx_pub_key_to_extra(tx, txkey.pub);
-    if(!extra_nonce.empty())
-      if(!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
+      keypair txkey = keypair::generate(hw::get_device("default"));
+      add_tx_pub_key_to_extra(tx, txkey.pub);
+      if(!extra_nonce.empty())
+        if(!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
+          return false;
+      if (!sort_tx_extra(tx.extra, tx.extra))
         return false;
-    if (!sort_tx_extra(tx.extra, tx.extra))
-      return false;
 
-    txin_gen in;
-    in.height = height;
+      txin_gen in;
+      in.height = height;
 
-    uint64_t block_reward;
-    if(!get_block_reward(median_weight, current_block_weight, already_generated_coins, block_reward, hard_fork_version, height))
-    {
-      LOG_PRINT_L0("Block is too big");
-      return false;
-    }
-
-    #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
-        LOG_PRINT_L1("Creating block template: reward " << block_reward <<
-          ", fee " << fee);
-    #endif
-
-    std::list<std::string> diardi_v2_addresses = diardi_addresses_v2(nettype);
-    uint64_t maintainers_count = diardi_v2_addresses.size();
-    uint64_t diardi_reward = 0;
-
-    if (height > 15 && hard_fork_version <= 12) {
-        diardi_reward = get_diardi_reward(height, block_reward);
-        block_reward -= diardi_reward;
-    }
-
-    block_reward += fee;
-
-    // from hard fork 2, we cut out the low significant digits. This makes the tx smaller, and
-    // keeps the paid amount almost the same. The unpaid remainder gets pushed back to the
-    // emission schedule
-    // from hard fork 4, we use a single "dusty" output. This makes the tx even smaller,
-    // and avoids the quantization. These outputs will be added as rct outputs with identity
-    // masks, to they can be used as rct inputs.
-    if (hard_fork_version >= 2 && hard_fork_version < 4) {
-      block_reward = block_reward - block_reward % ::config::BASE_REWARD_CLAMP_THRESHOLD;
-    }
-
-    std::vector<uint64_t> out_amounts;
-    decompose_amount_into_digits(block_reward, hard_fork_version >= 2 ? 0 : ::config::DEFAULT_DUST_THRESHOLD,
-      [&out_amounts](uint64_t a_chunk) { out_amounts.push_back(a_chunk); },
-      [&out_amounts](uint64_t a_dust) { out_amounts.push_back(a_dust); });
-
-    CHECK_AND_ASSERT_MES(1 <= max_outs, false, "max_out must be non-zero");
-    if (height == 0 || hard_fork_version >= 4)
-    {
-      // the genesis block was not decomposed, for unknown reasons
-      while (max_outs < out_amounts.size())
+      uint64_t block_reward;
+      if(!get_block_reward(median_weight, current_block_weight, already_generated_coins, block_reward, hard_fork_version, height))
       {
-        out_amounts[1] += out_amounts[0];
-        for (size_t n = 1; n < out_amounts.size(); ++n)
-          out_amounts[n - 1] = out_amounts[n];
-        out_amounts.pop_back();
-      }
-    } else
-    {
-      CHECK_AND_ASSERT_MES(max_outs >= out_amounts.size(), false, "max_out exceeded");
-    }
-    uint64_t summary_amounts = 0;
-    if((hard_fork_version >= 13) && (height % 4 == 0)) {
-      bool is_correct_miner = false;
-      for(auto const& diardi_miner : diardi_v2_addresses) {
-            cryptonote::address_parse_info diardi_wallet_address;
-            std::string diardi_maintainer_address;
-            diardi_maintainer_address = diardi_miner;
-
-            cryptonote::get_account_address_from_str(diardi_wallet_address, nettype, diardi_maintainer_address);
-            
-            if(diardi_wallet_address.address.m_view_public_key == miner_address.m_view_public_key) {
-              is_correct_miner = true;
-              break;
-            }
-      }
-
-      if(!is_correct_miner) {
-        MERROR("Miner address for Diardi block wrong!");
+        LOG_PRINT_L0("Block is too big");
         return false;
       }
 
-      crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
-      crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
-      bool r = crypto::generate_key_derivation(miner_address.m_view_public_key, txkey.sec, derivation);
-      CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to generate_key_derivation(" << miner_address.m_view_public_key << ", " << txkey.sec << ")");
+      #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
+          LOG_PRINT_L1("Creating block template: reward " << block_reward <<
+            ", fee " << fee);
+      #endif
 
-      r = crypto::derive_public_key(derivation, 0, miner_address.m_spend_public_key, out_eph_public_key);
-      CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to derive_public_key(" << derivation << ", " << 0 << ", "<< miner_address.m_spend_public_key << ")");
+      uint64_t diardi_reward;
 
-      txout_to_key tk_min;
-      tk_min.key = out_eph_public_key;
+      if (height > 15 && hard_fork_version <= 12) {
+          diardi_reward = get_diardi_reward(height, block_reward);
+          block_reward -= diardi_reward;
+      }
 
-      tx_out out_zero;
-      summary_amounts += out_zero.amount = block_reward;
-      out_zero.target = tk_min;
-      tx.vout.push_back(out_zero);
-    } else {
+      block_reward += fee;
+
+      if (hard_fork_version >= 2 && hard_fork_version < 4) {
+        block_reward = block_reward - block_reward % ::config::BASE_REWARD_CLAMP_THRESHOLD;
+      }
+
+      std::vector<uint64_t> out_amounts;
+      decompose_amount_into_digits(block_reward, hard_fork_version >= 2 ? 0 : ::config::DEFAULT_DUST_THRESHOLD,
+        [&out_amounts](uint64_t a_chunk) { out_amounts.push_back(a_chunk); },
+        [&out_amounts](uint64_t a_dust) { out_amounts.push_back(a_dust); });
+
+      CHECK_AND_ASSERT_MES(1 <= max_outs, false, "max_out must be non-zero");
+      if (height == 0 || hard_fork_version >= 4)
+      {
+        // the genesis block was not decomposed, for unknown reasons
+        while (max_outs < out_amounts.size())
+        {
+          out_amounts[1] += out_amounts[0];
+          for (size_t n = 1; n < out_amounts.size(); ++n)
+            out_amounts[n - 1] = out_amounts[n];
+          out_amounts.pop_back();
+        }
+      } else {
+        CHECK_AND_ASSERT_MES(max_outs >= out_amounts.size(), false, "max_out exceeded");
+      }
+
+      uint64_t summary_amounts = 0;
       for (size_t no = 0; no < out_amounts.size(); no++)
       {
           crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
@@ -367,23 +324,141 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
                 CHECK_AND_ASSERT_MES(summary_amounts == (block_reward + diardi_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward + diardi_reward));
               }
           }
+       }
+        if (hard_fork_version >= 4){
+          tx.version = 2;
+        } else {
+          tx.version = 1;
         }
+
+        tx.unlock_time = height + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW;
+        tx.vin.push_back(in);
+        tx.invalidate_hashes();
+        return true;
     }
 
-    if (hard_fork_version >= 4)
-      tx.version = 2;
-    else
-      tx.version = 1;
+    if(hard_fork_version >= 13) {
+      cryptonote::address_parse_info diardi_miner_address;
+      cryptonote::address_parse_info temp_miner_address;
 
-    //lock
-    tx.unlock_time = height + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW;
-    tx.vin.push_back(in);
+      std::string sA;
 
-    tx.invalidate_hashes();
+      if(height % 4 == 0){
+        for (const auto &tA : diardi_addresses_v2(nettype)){
+            cryptonote::get_account_address_from_str(temp_miner_address, nettype, tA);
+          if(temp_miner_address.address.m_view_public_key != miner_address.m_view_public_key){
+              continue;
+          } else {
+              diardi_miner_address = temp_miner_address;
+              sA = tA;
+              break;
+          }
+        }
 
-    //LOG_PRINT("MINER_TX generated ok, block_reward=" << print_money(block_reward) << "("  << print_money(block_reward - fee) << "+" << print_money(fee)
-    //  << "), current_block_size=" << current_block_size << ", already_generated_coins=" << already_generated_coins << ", tx_id=" << get_transaction_hash(tx), LOG_LEVEL_2);
-    return true;
+        if(diardi_miner_address.address.m_view_public_key != miner_address.m_view_public_key){
+          MGINFO("You can't mine this block!");
+          return false;
+        }
+      }
+
+      tx.vin.clear();
+      tx.vout.clear();
+      tx.extra.clear();
+
+      keypair txkey = keypair::generate(hw::get_device("default"));
+      add_tx_pub_key_to_extra(tx, txkey.pub);
+      if(!extra_nonce.empty())
+        if(!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
+          return false;
+      if (!sort_tx_extra(tx.extra, tx.extra))
+        return false;
+
+      txin_gen in;
+      in.height = height;
+
+      uint64_t block_reward;
+      if(!get_block_reward(median_weight, current_block_weight, already_generated_coins, block_reward, hard_fork_version, height))
+      {
+          LOG_PRINT_L0("Block is too big");
+          return false;
+      }
+
+      #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
+            LOG_PRINT_L1("Creating block template: reward " << block_reward <<
+            ", fee " << fee);
+      #endif
+
+      block_reward += fee;
+      if (hard_fork_version >= 2 && hard_fork_version < 4) {
+        block_reward = block_reward - block_reward % ::config::BASE_REWARD_CLAMP_THRESHOLD;
+      }
+
+
+      std::vector<uint64_t> out_amounts;
+      decompose_amount_into_digits(block_reward, hard_fork_version >= 2 ? 0 : ::config::DEFAULT_DUST_THRESHOLD,
+        [&out_amounts](uint64_t a_chunk) { out_amounts.push_back(a_chunk); },
+        [&out_amounts](uint64_t a_dust) { out_amounts.push_back(a_dust); });
+
+        CHECK_AND_ASSERT_MES(1 <= max_outs, false, "max_out must be non-zero");
+        if (height == 0 || hard_fork_version >= 4)
+        {
+          // the genesis block was not decomposed, for unknown reasons
+          while (max_outs < out_amounts.size())
+          {
+            out_amounts[1] += out_amounts[0];
+            for (size_t n = 1; n < out_amounts.size(); ++n)
+              out_amounts[n - 1] = out_amounts[n];
+            out_amounts.pop_back();
+          }
+        } else
+        {
+          CHECK_AND_ASSERT_MES(max_outs >= out_amounts.size(), false, "max_out exceeded");
+        }
+      uint64_t summary_amounts = 0;
+      for (size_t no = 0; no < out_amounts.size(); no++)
+      {
+          crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
+          crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
+
+          bool r;
+
+          if((height % 4) != 0){
+                r = crypto::generate_key_derivation(miner_address.m_view_public_key, txkey.sec, derivation);
+                CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to generate_key_derivation(" << miner_address.m_view_public_key << ", " << txkey.sec << ")");
+                r = crypto::derive_public_key(derivation, no, miner_address.m_spend_public_key, out_eph_public_key);
+                CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to derive_public_key(" << derivation << ", " << no << ", "<< miner_address.m_spend_public_key << ")");
+          } else {
+                keypair diardi_key = get_deterministic_keypair_from_height(height);
+                add_tx_pub_key_to_extra(tx, diardi_key.pub);
+
+                if (!get_deterministic_output_key(diardi_miner_address.address, diardi_key, 1, out_eph_public_key))
+                {
+                  MERROR("Failed to generate deterministic output key for diardi wallet output creation");
+                  return false;
+                }
+          }
+
+          txout_to_key tk;
+          tk.key = out_eph_public_key;
+          tx_out out;
+          summary_amounts += out.amount = out_amounts[no];
+          out.target = tk;
+          tx.vout.push_back(out);
+      }
+
+      CHECK_AND_ASSERT_MES(summary_amounts == (block_reward), false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal total block_reward = " << (block_reward));
+
+      if (hard_fork_version >= 4) {
+        tx.version = 2;
+      } else {
+        tx.version = 1;
+      }
+
+      tx.unlock_time = height + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW;
+      tx.vin.push_back(in);
+      tx.invalidate_hashes();
+      return true;
+    }
   }
   //---------------------------------------------------------------
   crypto::public_key get_destination_view_key_pub(const std::vector<tx_destination_entry> &destinations, const boost::optional<cryptonote::account_public_address>& change_addr)
