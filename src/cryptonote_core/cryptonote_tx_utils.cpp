@@ -172,7 +172,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
           break;
     }
 
-    crypto::public_key correct_key;
+    crypto::public_key correct_key = AUTO_VAL_INIT(out_eph_public_key);
 
     if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_index, correct_key))
     {
@@ -342,8 +342,8 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
       cryptonote::address_parse_info temp_miner_address;
 
       std::string sA;
-
-      if(height % 4 == 0){
+      bool isDiardiBlock = height % 4 == 0;
+      if(isDiardiBlock){
         for (const auto &tA : diardi_addresses_v2(nettype)){
             cryptonote::get_account_address_from_str(temp_miner_address, nettype, tA);
           if(temp_miner_address.address.m_view_public_key != miner_address.m_view_public_key){
@@ -365,8 +365,14 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
       tx.vout.clear();
       tx.extra.clear();
 
-      keypair txkey = keypair::generate(hw::get_device("default"));
-      add_tx_pub_key_to_extra(tx, txkey.pub);
+      if(isDiardiBlock) {
+        // Need to revalidate this part
+        add_tx_pub_key_to_extra(tx, miner_address.m_view_public_key);
+      } else {
+        keypair txkey = keypair::generate(hw::get_device("default"));
+        add_tx_pub_key_to_extra(tx, txkey.pub);
+      }
+      
       if(!extra_nonce.empty())
         if(!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
           return false;

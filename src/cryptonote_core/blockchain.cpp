@@ -1350,7 +1350,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
 
       if(m_nettype == cryptonote::MAINNET) {
-        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
+        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
               MERROR("Diardi V1 reward public key incorrect.");
               return false;
         }
@@ -1367,7 +1367,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
 
       for(auto const& sM : diardi_miners_list) {
         std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
-        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
         {
           vM = sM;
           break;
