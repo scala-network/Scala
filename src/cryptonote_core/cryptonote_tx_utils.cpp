@@ -420,24 +420,11 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
           crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
           crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
 
-          bool r;
-
-          if((height % 4) != 0){
-                r = crypto::generate_key_derivation(miner_address.m_view_public_key, txkey.sec, derivation);
+          bool r = crypto::generate_key_derivation(miner_address.m_view_public_key, txkey.sec, derivation);
                 CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to generate_key_derivation(" << miner_address.m_view_public_key << ", " << txkey.sec << ")");
                 r = crypto::derive_public_key(derivation, no, miner_address.m_spend_public_key, out_eph_public_key);
                 CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to derive_public_key(" << derivation << ", " << no << ", "<< miner_address.m_spend_public_key << ")");
-          } else {
-                keypair diardi_key = get_deterministic_keypair_from_height(height);
-                add_tx_pub_key_to_extra(tx, diardi_key.pub);
-
-                if (!get_deterministic_output_key(diardi_miner_address.address, diardi_key, 1, out_eph_public_key))
-                {
-                  MERROR("Failed to generate deterministic output key for diardi wallet output creation");
-                  return false;
-                }
-          }
-
+         
           txout_to_key tk;
           tk.key = out_eph_public_key;
           tx_out out;
