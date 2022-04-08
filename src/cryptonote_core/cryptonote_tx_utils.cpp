@@ -172,7 +172,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
           break;
     }
 
-    crypto::public_key correct_key = AUTO_VAL_INIT(out_eph_public_key);
+    crypto::public_key correct_key;// = AUTO_VAL_INIT(out_eph_public_key);
 
     if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_index, correct_key))
     {
@@ -364,15 +364,15 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
       tx.vin.clear();
       tx.vout.clear();
       tx.extra.clear();
-
+      keypair txkey;
       if(isDiardiBlock) {
         // Need to revalidate this part
-        add_tx_pub_key_to_extra(tx, miner_address.m_view_public_key);
+        txkey = get_deterministic_keypair_from_height(height);
       } else {
-        keypair txkey = keypair::generate(hw::get_device("default"));
-        add_tx_pub_key_to_extra(tx, txkey.pub);
+        txkey = keypair::generate(hw::get_device("default"));
       }
-      
+      add_tx_pub_key_to_extra(tx, txkey.pub);
+
       if(!extra_nonce.empty())
         if(!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
           return false;
