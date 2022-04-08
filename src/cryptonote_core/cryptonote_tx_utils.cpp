@@ -181,9 +181,6 @@ namespace cryptonote
       return false;
     }
 
-    std::cout << "Correct key -> " << epee::string_tools::pod_to_hex(correct_key) << std::endl;
-    std::cout << "Output key -> " << epee::string_tools::pod_to_hex(output_key) << std::endl;
-
     return correct_key == output_key;
   }
   //---------------------------------------------------------------

@@ -1366,7 +1366,6 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       std::string vM;
 
       for(auto const& sM : diardi_miners_list) {
-        std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
         if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
         {
           vM = sM;
