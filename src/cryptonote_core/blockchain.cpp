@@ -830,10 +830,11 @@ bool Blockchain::get_block_by_hash(const crypto::hash &h, block &blk, bool *orph
 difficulty_type Blockchain::get_difficulty_for_next_block()
 {
 
-  uint64_t current_height = m_db->height() + 2;
+  uint64_t current_height = m_db->height();
   uint8_t hard_fork_version = get_ideal_hard_fork_version(current_height);
 
   if((current_height % 4 == 0) && hard_fork_version > 12) {
+    std::cout << "Current height is " << current_height << std::endl;
     difficulty_type diardi_difficulty = get_diardi_difficulty(hard_fork_version);
     if(diardi_difficulty != 0) {
       return diardi_difficulty;
