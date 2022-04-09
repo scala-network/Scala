@@ -173,7 +173,7 @@ keypair get_deterministic_keypair_from_height(uint64_t height)
     }
 
     crypto::public_key correct_key;
-    correct_key = AUTO_VAL_INIT(correct_key);
+    //correct_key = AUTO_VAL_INIT(correct_key);
 
     if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_index, correct_key))
     {

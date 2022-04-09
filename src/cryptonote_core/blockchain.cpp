@@ -1366,8 +1366,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       std::string vM;
 
       for(auto const& sM : diardi_miners_list) {
-        std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
-        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
         {
           vM = sM;
           break;
@@ -1381,15 +1380,20 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
 
       uint64_t pDh = m_db->height() - 4;
 
+      std::cout << "pDh is " << pDh << std::endl;
+
       crypto::hash oDh = crypto::null_hash;
       oDh = m_db->get_block_hash_from_height(pDh);
 
       cryptonote::block oDb;
       bool oOb = false;
+      
+      std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
+      std::cout << "-4th block VOUT size -> " << oDb.miner_tx.vout.size() << std::endl;
 
       bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
       if(getOldBlock) {
-        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size(), boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
           MERROR("You're not supposed to mine this block since you mined the last diardi block!");
         }
       }
