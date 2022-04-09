@@ -1359,7 +1359,11 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
     }
   }
+  if(version >= 13 && m_db->height() % 4 == 0){
+    std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+    std::string vM;
 
+<<<<<<< HEAD
   if((version >= 13) && (m_db->height() % 4 == 0)) {
     if(already_generated_coins != 0) {
       std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
@@ -1371,15 +1375,24 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
           vM = sM;
           break;
         }
+=======
+    for(std::string const& sM : diardi_miners_list) {
+      if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+      {
+        vM = sM;
+        break;
+>>>>>>> 923a5024473c6f028a8f0cd12fa104d7603267b0
       }
+    }
 
-      if(vM.empty()) {
-        MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
-        return false;
-      }
+    if(vM.empty()) {
+      MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
+      return false;
+    }
 
-      uint64_t pDh = m_db->height() - 4;
+    uint64_t pDh = m_db->height() - 4;
 
+<<<<<<< HEAD
       std::cout << "pDh is " << pDh << std::endl;
 
       crypto::hash oDh = crypto::null_hash;
@@ -1396,14 +1409,22 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
         if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
           MERROR("You're not supposed to mine this block since you mined the last diardi block!");
         }
+=======
+    crypto::hash oDh = crypto::null_hash;
+    oDh = m_db->get_block_hash_from_height(pDh);
+
+    cryptonote::block oDb;
+    bool oOb = false;
+
+    bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+    if(getOldBlock) {
+      if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size(), boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+        MERROR("You're not supposed to mine this block since you mined the last diardi block!");
+>>>>>>> 923a5024473c6f028a8f0cd12fa104d7603267b0
       }
-    } 
+    }
   }
-
-  if(version > 12 && (m_db->height() % 4 == 0)) {
-     LOG_PRINT_L0(b.miner_tx.vout.size() << "-> Is the Output size!");
-  }
-
+    
   if(base_reward + fee < money_in_use)
   {
     MERROR_VER("coinbase transaction spend too much money (" << print_money(money_in_use) << "). Block reward is " << print_money(base_reward + fee) << "(" << print_money(base_reward) << "+" << print_money(fee) << "), cumulative_block_weight " << cumulative_block_weight);
