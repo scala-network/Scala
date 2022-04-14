@@ -1301,6 +1301,47 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
 
   return true;
 }
+
+bool Blockchain::validate_miner_diardiV2(const block& b) {
+  uint8_t version = b.major_version;
+  bool isDiardiBlock = (version >= 13 && m_db->height() % 4 == 0);
+  if (!isDiardiBlock) return true;
+
+  std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+  std::string vM;
+  public_key diardiKey;
+  for(auto const& sM : diardi_miners_list) {
+    public_key pKey = boost::get<txout_to_key>(b.miner_tx.vout.back().target).key;
+    if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size() - 1, pKey, m_nettype)) 
+    {
+      vM = sM;
+      diardiKey = pKey;
+      break;
+    }
+  }
+
+  if(vM.empty()) {
+    return false;
+  }
+
+  uint64_t pDh = m_db->height() - 4;
+
+  crypto::hash oDh = crypto::null_hash;
+  oDh = m_db->get_block_hash_from_height(pDh);
+
+  cryptonote::block oDb;
+  bool oOb = false;
+
+  bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+
+  if(!getOldBlock) return true;
+
+  if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+    return false;
+  }
+
+  return true;  
+}
 //------------------------------------------------------------------
 // This function validates the miner transaction reward
 bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_block_weight, uint64_t fee, uint64_t& base_reward, uint64_t already_generated_coins, bool &partial_block_reward, uint8_t version)
@@ -1391,11 +1432,12 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
 
     bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
     if(getOldBlock) {
-        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
-          MERROR("You're not supposed to mine this block since you mined the last diardi block!");
-        }
+      if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+        MERROR("You're not supposed to mine this block since you mined the last diardi block!");
+        return false;
       }
     }
+   }
     
   if(base_reward + fee < money_in_use)
   {
@@ -4322,6 +4364,13 @@ bool Blockchain::add_new_block(const block& bl, block_verification_context& bvc)
     bvc.m_already_exists = true;
     m_blocks_txs_check.clear();
     return false;
+  }
+
+  if(!validate_miner_diardiV2(bl)) {
+    std::cout << "Checking diardi failed" << std::endl;
+    bvc.m_added_to_main_chain = false;
+    m_blocks_txs_check.clear();
+    return true;
   }
 
   //check that block refers to chain tail
