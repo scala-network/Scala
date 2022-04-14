@@ -1393,6 +1393,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     if(getOldBlock) {
         if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
           MERROR("You're not supposed to mine this block since you mined the last diardi block!");
+          return false;
         }
       }
     }
