@@ -830,7 +830,7 @@ bool Blockchain::get_block_by_hash(const crypto::hash &h, block &blk, bool *orph
 difficulty_type Blockchain::get_difficulty_for_next_block()
 {
 
-  uint64_t current_height = m_db->height() + 2;
+  uint64_t current_height = m_db->height();
   uint8_t hard_fork_version = get_ideal_hard_fork_version(current_height);
 
   if((current_height % 4 == 0) && hard_fork_version > 12) {
@@ -1350,7 +1350,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
 
       if(m_nettype == cryptonote::MAINNET) {
-        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
+        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
               MERROR("Diardi V1 reward public key incorrect.");
               return false;
         }
@@ -1359,47 +1359,44 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
     }
   }
+  if(version >= 13 && m_db->height() % 4 == 0){
+    std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+    std::string vM;
 
-  if((version >= 13) && (m_db->height() % 4 == 0)) {
-    if(already_generated_coins != 0) {
-      std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
-      std::string vM;
-
-      for(auto const& sM : diardi_miners_list) {
-        std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
-        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size(), boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+    for(auto const& sM : diardi_miners_list) {
+        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
         {
           vM = sM;
           break;
         }
-      }
+    }
 
-      if(vM.empty()) {
-        MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
-        return false;
-      }
+    if(vM.empty()) {
+      MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
+      return false;
+    }
 
-      uint64_t pDh = m_db->height() - 4;
+    uint64_t pDh = m_db->height() - 4;
 
-      crypto::hash oDh = crypto::null_hash;
-      oDh = m_db->get_block_hash_from_height(pDh);
+    std::cout << "pDh is " << pDh << std::endl;
 
-      cryptonote::block oDb;
-      bool oOb = false;
+    crypto::hash oDh = crypto::null_hash;
+    oDh = m_db->get_block_hash_from_height(pDh);
 
-      bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
-      if(getOldBlock) {
-        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size(), boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+    cryptonote::block oDb;
+    bool oOb = false;
+      
+    std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
+    std::cout << "-4th block VOUT size -> " << oDb.miner_tx.vout.size() << std::endl;
+
+    bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+    if(getOldBlock) {
+        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
           MERROR("You're not supposed to mine this block since you mined the last diardi block!");
         }
       }
-    } 
-  }
-
-  if(version > 12 && (m_db->height() % 4 == 0)) {
-     LOG_PRINT_L0(b.miner_tx.vout.size() << "-> Is the Output size!");
-  }
-
+    }
+    
   if(base_reward + fee < money_in_use)
   {
     MERROR_VER("coinbase transaction spend too much money (" << print_money(money_in_use) << "). Block reward is " << print_money(base_reward + fee) << "(" << print_money(base_reward) << "+" << print_money(fee) << "), cumulative_block_weight " << cumulative_block_weight);
