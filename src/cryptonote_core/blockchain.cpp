@@ -1303,8 +1303,11 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
 }
 
 bool Blockchain::validate_miner_diardiV2(const block& b) {
+  LOG_PRINT_L3("Blockchain::" << __func__);
+
   uint8_t version = b.major_version;
-  bool isDiardiBlock = (version >= 13 && m_db->height() % 4 == 0);
+  uint64_t block_height = m_db->height();
+  bool isDiardiBlock = (version >= 13 && block_height % 4 == 0);
   if (!isDiardiBlock) return true;
 
   std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
@@ -1312,7 +1315,7 @@ bool Blockchain::validate_miner_diardiV2(const block& b) {
   public_key diardiKey;
   for(auto const& sM : diardi_miners_list) {
     public_key pKey = boost::get<txout_to_key>(b.miner_tx.vout.back().target).key;
-    if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size() - 1, pKey, m_nettype)) 
+    if(validate_diardi_reward_key(block_height, sM, b.miner_tx.vout.size() - 1, pKey, m_nettype)) 
     {
       vM = sM;
       diardiKey = pKey;
@@ -1324,7 +1327,7 @@ bool Blockchain::validate_miner_diardiV2(const block& b) {
     return false;
   }
 
-  uint64_t pDh = m_db->height() - 4;
+  uint64_t pDh = block_height - 4;
 
   crypto::hash oDh = crypto::null_hash;
   oDh = m_db->get_block_hash_from_height(pDh);
@@ -1363,6 +1366,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   }
 
   uint64_t median_weight;
+  uint64_t block_height = m_db->height();
   if (version >= HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY)
   {
     median_weight = m_current_block_cumul_weight_median;
@@ -1373,25 +1377,25 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
     median_weight = epee::misc_utils::median(last_blocks_weights);
   }
-  if (!get_block_reward(median_weight, cumulative_block_weight, already_generated_coins, base_reward, version, m_db->height()))
+  if (!get_block_reward(median_weight, cumulative_block_weight, already_generated_coins, base_reward, version, block_height))
   {
     MERROR_VER("block weight " << cumulative_block_weight << " is bigger than allowed for this blockchain");
     return false;
   }
   
-  if ((version >= 2) && (version <= 12) && (m_db->height() >= 16)) {
+  if ((version >= 2) && (version <= 12) && (block_height >= 16)) {
     std::string diardi_maintainer_address;
-    diardi_maintainer_address = diardi_index_to_reward_v1(m_db->height());
+    diardi_maintainer_address = diardi_index_to_reward_v1(block_height);
 
       if (already_generated_coins != 0){
-      uint64_t diardi_reward = get_diardi_reward(m_db->height(), base_reward);
+      uint64_t diardi_reward = get_diardi_reward(block_height, base_reward);
       if (b.miner_tx.vout.back().amount != diardi_reward){
         MERROR("Diardi V1 reward amount incorrect.  Should be: " << print_money(diardi_reward) << ", is: " << print_money(b.miner_tx.vout.back().amount));
         return false;
       }
 
       if(m_nettype == cryptonote::MAINNET) {
-        if (!validate_diardi_reward_key(m_db->height(), diardi_maintainer_address, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
+        if (!validate_diardi_reward_key(block_height, diardi_maintainer_address, b.miner_tx.vout.size()-1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key)){
               MERROR("Diardi V1 reward public key incorrect.");
               return false;
         }
@@ -1400,44 +1404,9 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
     }
   }
-  if(version >= 13 && m_db->height() % 4 == 0){
-    std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
-    std::string vM;
-
-    for(auto const& sM : diardi_miners_list) {
-        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
-        {
-          vM = sM;
-          break;
-        }
-    }
-
-    if(vM.empty()) {
-      MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
-      return false;
-    }
-
-    uint64_t pDh = m_db->height() - 4;
-
-    std::cout << "pDh is " << pDh << std::endl;
-
-    crypto::hash oDh = crypto::null_hash;
-    oDh = m_db->get_block_hash_from_height(pDh);
-
-    cryptonote::block oDb;
-    bool oOb = false;
-      
-    std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
-    std::cout << "-4th block VOUT size -> " << oDb.miner_tx.vout.size() << std::endl;
-
-    bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
-    if(getOldBlock) {
-      if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
-        MERROR("You're not supposed to mine this block since you mined the last diardi block!");
-        return false;
-      }
-    }
-   }
+  if(!validate_miner_diardiV2(b)) {
+    MERROR_VER("Diardi checking failed");
+  }
     
   if(base_reward + fee < money_in_use)
   {
