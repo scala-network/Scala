@@ -234,7 +234,7 @@ static void rx_initdata(randomx_cache *rs_cache, const int miners, const uint64_
 }
 
 void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const char *seedhash, const void *data, size_t length,
-  char *hash, int miners, int is_alt) {
+  char *hash, int miners, int is_alt, bool is_diardi) {
   uint64_t s_height = rx_seedheight(mainheight);
   int toggle = (s_height & get_seedhash_epoch_blocks()) != 0;
   randomx_flags flags = enabled_flags() & ~disabled_flags();
@@ -338,7 +338,7 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
   /* mainchain users can run in parallel */
   if (!is_alt)
     CTHR_MUTEX_UNLOCK(rx_sp->rs_mutex);
-  randomx_calculate_hash(rx_vm, data, length, hash, false);
+  randomx_calculate_hash(rx_vm, data, length, hash, is_diardi);
   /* altchain slot users always get fully serialized */
   if (is_alt)
     CTHR_MUTEX_UNLOCK(rx_sp->rs_mutex);
