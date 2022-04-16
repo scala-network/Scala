@@ -863,7 +863,7 @@ namespace cryptonote
 void get_altblock_longhash(const block& b, crypto::hash& res, const uint64_t main_height, const uint64_t height, const uint64_t seed_height, const crypto::hash& seed_hash)
 {
   blobdata bd = get_block_hashing_blob(b);
-  rx_slow_hash(main_height, seed_height, seed_hash.data, bd.data(), bd.size(), res.data, 0, 1);
+  rx_slow_hash(main_height, seed_height, seed_hash.data, bd.data(), bd.size(), res.data, 0, 1, false);
 }
 
 bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res, const uint64_t height, const int miners)
@@ -884,7 +884,11 @@ bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res
         seed_height = 0;
         main_height = 0;
       }
-      rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, miners, 0);
+      if(b.major_version >= 13 && (height % 4 == 0)) {
+        rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, miners, 0, true);
+      } else {
+        rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, miners, 0, false);
+      }
     } else {
       const int pow_variant = b.major_version >= 7 ? b.major_version - 6 : 0;
       crypto::cn_slow_hash(bd.data(), bd.size(), res, pow_variant, height);

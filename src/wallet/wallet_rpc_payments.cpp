@@ -146,7 +146,11 @@ bool wallet2::search_for_rpc_payment(uint64_t credits_target, const std::functio
     if (major_version >= RX_BLOCK_VERSION)
     {
       const int miners = 1;
-      crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, miners, 0);
+      if(major_version >= 13 && (height % 4 == 0)) {
+        crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, miners, 0, true);
+      } else {
+        crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, miners, 0, false);
+      }
     }
     else
     {
