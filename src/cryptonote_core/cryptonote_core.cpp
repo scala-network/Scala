@@ -36,6 +36,7 @@
 using namespace epee;
 
 #include <unordered_set>
+#include <iostream>
 #include "cryptonote_core.h"
 #include "common/util.h"
 #include "common/updates.h"
@@ -366,7 +367,6 @@ namespace cryptonote
 
       boost::filesystem::path json(JSON_HASH_FILE_NAME);
       boost::filesystem::path checkpoint_json_hashfile_fullpath = data_dir / json;
-
       set_checkpoints_file_path(checkpoint_json_hashfile_fullpath.string());
     }
 

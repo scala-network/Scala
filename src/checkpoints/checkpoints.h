@@ -36,6 +36,7 @@
 #include "cryptonote_config.h"
 #include "net/http_client.h"
 #include "cryptonote_basic/difficulty.h"
+#include "diardi/diardi.h"
 
 #define ADD_CHECKPOINT(h, hash)  CHECK_AND_ASSERT(add_checkpoint(h,  hash), false);
 #define ADD_CHECKPOINT_2(h, hash, difficulty)  CHECK_AND_ASSERT(add_checkpoint(h,  hash, difficulty), false);
@@ -200,5 +201,6 @@ namespace cryptonote
   private:
     std::map<uint64_t, crypto::hash> m_points; //!< the checkpoints container
     std::map<uint64_t, difficulty_type> m_difficulty_points; //!< the difficulty checkpoints container
+
   };
 }

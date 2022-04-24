@@ -1,4 +1,3 @@
-# Copyright (c) 2014-2019, The Monero Project
 # Copyright (c) 2018-2020, The Scala Network
 #
 # All rights reserved.
@@ -27,40 +26,24 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if(APPLE)
-  if(DEPENDS)
-    list(APPEND EXTRA_LIBRARIES "-framework Foundation -framework ApplicationServices -framework AppKit -framework IOKit")
-  else()
-    find_library(IOKIT_LIBRARY IOKit)
-    mark_as_advanced(IOKIT_LIBRARY)
-    list(APPEND EXTRA_LIBRARIES ${IOKIT_LIBRARY})
-  endif()
-endif()
+set(diardi_sources
+  diardi.cpp)
 
-set(checkpoints_sources
-  checkpoints.cpp)
+set(diardi_headers
+  diardi.h)
 
-set(checkpoints_headers)
+set(diardi_private_headers)
 
-set(checkpoints_private_headers
-  checkpoints.h)
+scala_private_headers(diardi
+  ${hardforks_private_headers})
+scala_add_library(diardi
+  ${diardi_sources}
+  ${diardi_headers}
+  ${diardi_private_headers})
 
-scala_private_headers(checkpoints
-  ${checkpoints_private_headers})
-scala_add_library(checkpoints
-  ${checkpoints_sources}
-  ${checkpoints_headers}
-  ${checkpoints_private_headers})
-target_link_libraries(checkpoints
+target_link_libraries(diardi
   PUBLIC
-    diardi
     common
-    cncrypto
-    ${Boost_DATE_TIME_LIBRARY}
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_SERIALIZATION_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
+    version
   PRIVATE
     ${EXTRA_LIBRARIES})
