@@ -34,11 +34,13 @@
 #include "string_tools.h"
 #include "storages/portable_storage_template_helper.h" // epee json include
 #include "serialization/keyvalue_serialization.h"
+
 #include <vector>
 #include <boost/random.hpp>
 #include <iostream>
 #include <ctime>
 #include <cstdint>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <boost/algorithm/string.hpp>
@@ -64,9 +66,11 @@ namespace cryptonote
   {
     uint64_t height; //!< the height of the checkpoint
     std::string hash; //!< the hash for the checkpoint
+    std::string c_difficulty; //!< the difficulty for the checkpoint
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(height)
           KV_SERIALIZE(hash)
+          KV_SERIALIZE(c_difficulty)
         END_KV_SERIALIZE_MAP()
   };
 
@@ -79,6 +83,8 @@ namespace cryptonote
           KV_SERIALIZE(hashlines)
         END_KV_SERIALIZE_MAP()
   };
+
+  Diardi diardi_;
 
   //---------------------------------------------------------------------------
   checkpoints::checkpoints()
@@ -193,17 +199,23 @@ namespace cryptonote
   //---------------------------------------------------------------------------
   bool checkpoints::init_default_checkpoints(network_type nettype)
   {
+    MGINFO("Downloading checkpoints from IPFS might take a while...");
+    bool downloadCompleted = diardi_.get_checkpoints(nettype);
+
+    if (!downloadCompleted)
+    {
+      LOG_ERROR("Failed to download checkpoints from diardi");
+    }
+
     if (nettype == TESTNET)
     {
       return true;
     }
+
     if (nettype == STAGENET)
     {
       return true;
     }
-    ADD_CHECKPOINT(0, "3fa5c8976978f52ad7d8fc3663e902a229a232ef987fc11ca99628366652ba99");
-    ADD_CHECKPOINT_2(1, "24a4f01ec0874783d63fd6ced2da1e1009941bf379e33426043d55a8d33fee5b", "0x2");
-    ADD_CHECKPOINT_2(100000, "d672d95b60d38f19c453cd80bb7a988254294b43c6ef3df62c57c771f1898f9e", "0x29e93d705e6f");
     return true;
   }
   //---------------------------------------------------------------------------
@@ -221,24 +233,27 @@ namespace cryptonote
 
     uint64_t prev_max_height = get_max_height();
     LOG_PRINT_L1("Hard-coded max checkpoint height is " << prev_max_height);
-    t_hash_json hashes;
-    if (!epee::serialization::load_t_from_json_file(hashes, json_hashfile_fullpath))
-    {
-      MERROR("Error loading checkpoints from " << json_hashfile_fullpath);
-      return false;
-    }
-    for (std::vector<t_hashline>::const_iterator it = hashes.hashlines.begin(); it != hashes.hashlines.end(); )
-    {
+
+    std::ifstream checkpoints_file(json_hashfile_fullpath);
+    if(checkpoints_file) {
+      std::stringstream buffer;
+      buffer << checkpoints_file.rdbuf();
+      checkpoints_file.close();
+
+      ptree stree;
+      read_json(buffer, stree);
+
       uint64_t height;
-      height = it->height;
-      if (height <= prev_max_height) {
-	      LOG_PRINT_L0("ignoring checkpoint height " << height);
-      } else {
-	      std::string blockhash = it->hash;
-	      LOG_PRINT_L0("Adding checkpoint height " << height << ", hash=" << blockhash);
-	      ADD_CHECKPOINT(height, blockhash);
+      std::string hash;
+      std::string c_difficulty;
+
+      BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, stree) {
+        hash = v.second.get<std::string>("hash");
+        height = v.second.get<uint64_t>("height");
+        c_difficulty = v.second.get<std::string>("c_difficulty");
+
+        ADD_CHECKPOINT(height, hash);
       }
-      ++it;
     }
 
     return true;

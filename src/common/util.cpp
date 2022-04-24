@@ -575,28 +575,28 @@ std::string get_nix_version_display_string()
 
 
 
-#ifdef WIN32
-  std::string get_special_folder_path(int nfolder, bool iscreate)
-  {
-    WCHAR psz_path[MAX_PATH] = L"";
-
-    if (SHGetSpecialFolderPathW(NULL, psz_path, nfolder, iscreate))
+  #ifdef WIN32
+    std::string get_special_folder_path(int nfolder, bool iscreate)
     {
-      try
-      {
-        return string_tools::utf16_to_utf8(psz_path);
-      }
-      catch (const std::exception &e)
-      {
-        MERROR("utf16_to_utf8 failed: " << e.what());
-        return "";
-      }
-    }
+      WCHAR psz_path[MAX_PATH] = L"";
 
-    LOG_ERROR("SHGetSpecialFolderPathW() failed, could not obtain requested path.");
-    return "";
-  }
-#endif
+      if (SHGetSpecialFolderPathW(NULL, psz_path, nfolder, iscreate))
+      {
+        try
+        {
+          return string_tools::utf16_to_utf8(psz_path);
+        }
+        catch (const std::exception &e)
+        {
+          MERROR("utf16_to_utf8 failed: " << e.what());
+          return "";
+        }
+      }
+
+      LOG_ERROR("SHGetSpecialFolderPathW() failed, could not obtain requested path.");
+      return "";
+    }
+  #endif
   
   std::string get_default_data_dir()
   {
@@ -608,17 +608,17 @@ std::string get_nix_version_display_string()
     // Unix & Mac: ~/.CRYPTONOTE_NAME
     std::string config_folder;
 
-#ifdef WIN32
-    config_folder = get_special_folder_path(CSIDL_COMMON_APPDATA, true) + "\\" + CRYPTONOTE_NAME;
-#else
-    std::string pathRet;
-    char* pszHome = getenv("HOME");
-    if (pszHome == NULL || strlen(pszHome) == 0)
-      pathRet = "/";
-    else
-      pathRet = pszHome;
-    config_folder = (pathRet + "/." + CRYPTONOTE_NAME);
-#endif
+    #ifdef WIN32
+        config_folder = get_special_folder_path(CSIDL_COMMON_APPDATA, true) + "\\" + CRYPTONOTE_NAME;
+    #else
+        std::string pathRet;
+        char* pszHome = getenv("HOME");
+        if (pszHome == NULL || strlen(pszHome) == 0)
+          pathRet = "/";
+        else
+          pathRet = pszHome;
+        config_folder = (pathRet + "/." + CRYPTONOTE_NAME);
+    #endif
 
     return config_folder;
   }
