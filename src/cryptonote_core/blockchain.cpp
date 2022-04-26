@@ -827,13 +827,16 @@ bool Blockchain::get_block_by_hash(const crypto::hash &h, block &blk, bool *orph
 // last DIFFICULTY_BLOCKS_COUNT blocks and passes them to next_difficulty,
 // returning the result of that call.  Ignores the genesis block, and can use
 // less blocks than desired if there aren't enough.
-difficulty_type Blockchain::get_difficulty_for_next_block()
+difficulty_type Blockchain::get_difficulty_for_next_block() {
+  return get_difficulty_for_next_blockV2(true);
+}
+difficulty_type Blockchain::get_difficulty_for_next_blockV2(bool isDiardiMiner)
 {
 
   uint64_t current_height = m_db->height();
   uint8_t hard_fork_version = get_ideal_hard_fork_version(current_height);
-
-  if((current_height % 4 == 0) && hard_fork_version > 12) {
+  bool isDiardiBlock = (current_height % 4 == 0) && hard_fork_version > 12;
+  if(isDiardiBlock && isDiardiMiner) {
     difficulty_type diardi_difficulty = get_diardi_difficulty(hard_fork_version);
     if(diardi_difficulty != 0) {
       return diardi_difficulty;
@@ -1301,7 +1304,13 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
 
   return true;
 }
-
+//------------------------------------------------------------------
+// Validate existing is a block mined by diardi ops or not
+// 1. Check is a diaradi block returns true if it isn't
+// 2. Check if block is diardi miner return false if it isn't
+// 3. Check for block 4 behind return false if not valid
+// 4. Chweck if miner is mining 4 blocks behind return false if is
+// 5. Will return true if pass all checks
 bool Blockchain::validate_miner_diardiV2(const block& b) {
   LOG_PRINT_L3("Blockchain::" << __func__);
 
@@ -1611,7 +1620,27 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
     b.minor_version = m_hardfork->get_ideal_version();
     b.prev_id = get_tail_id();
     median_weight = m_current_block_cumul_weight_limit / 2;
-    diffic = get_difficulty_for_next_block();
+    
+
+    bool isDiardiMiner = false;
+
+    cryptonote::address_parse_info diardi_miner_address;
+    cryptonote::address_parse_info temp_miner_address;
+
+    std::string sA;
+    for (const auto &tA : diardi_addresses_v2(m_nettype)){
+      cryptonote::get_account_address_from_str(temp_miner_address, m_nettype, tA);
+      if(temp_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
+        diardi_miner_address = temp_miner_address;
+        sA = tA;
+        break;
+      }
+    }
+
+    if(!sA.empty() && diardi_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
+      isDiardiMiner = true;
+    }
+    diffic = get_difficulty_for_next_blockV2(isDiardiMiner);
     already_generated_coins = m_db->get_block_already_generated_coins(height - 1);
   }
   b.timestamp = time(NULL);

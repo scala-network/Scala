@@ -309,6 +309,7 @@ namespace cryptonote
      * @return the target
      */
     difficulty_type get_difficulty_for_next_block();
+    difficulty_type get_difficulty_for_next_blockV2(bool isDiardiMiner);
 
     /**
      * @brief check currently stored difficulties against difficulty checkpoints
