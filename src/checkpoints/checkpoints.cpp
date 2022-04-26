@@ -199,12 +199,14 @@ namespace cryptonote
   //---------------------------------------------------------------------------
   bool checkpoints::init_default_checkpoints(network_type nettype)
   {
-    MGINFO("Downloading checkpoints from IPFS might take a while...");
-    bool downloadCompleted = diardi_.get_checkpoints(nettype);
+    if(nettype == MAINNET) {
+      MGINFO("Downloading checkpoints from IPFS might take a while...");
+      bool downloadCompleted = diardi_.get_checkpoints(nettype);
 
-    if (!downloadCompleted)
-    {
-      LOG_ERROR("Failed to download checkpoints from diardi");
+      if (!downloadCompleted)
+      {
+        LOG_ERROR("Failed to download checkpoints from diardi");
+      }
     }
 
     if (nettype == TESTNET)
