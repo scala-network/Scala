@@ -4365,7 +4365,6 @@ bool Blockchain::add_new_block(const block& bl, block_verification_context& bvc)
   }
 
   if(!validate_miner_diardiV2(bl)) {
-    std::cout << "Checking diardi failed" << std::endl;
     bvc.m_added_to_main_chain = false;
     m_blocks_txs_check.clear();
     return true;
