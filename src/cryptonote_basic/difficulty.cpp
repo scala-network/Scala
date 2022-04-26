@@ -330,7 +330,7 @@ namespace cryptonote {
       }
 
       else if(version > 12) {
-        next_diff = 1920000;
+        next_diff = 288000;
       }
 
       else {
