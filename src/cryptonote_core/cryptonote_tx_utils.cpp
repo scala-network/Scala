@@ -188,7 +188,24 @@ namespace cryptonote
 
     std::list<std::string> mainnet_addresses = {};
 
-    std::list<std::string> testnet_addresses = {};
+    std::list<std::string> testnet_addresses = {
+      "Tsz4uLn6eYA3Vs9qBwzj1bjBbaLo6bDJvic2V98XYTw1dFRqorWuAfqVJyF6SoTEXYExg2CFHtRxVAneseg6vX2q5vwB3M5Lw4",
+      "Tsz4nfQcFzkYX89Pzu5PGtfyoBots2znrHhEtABG722Z9CgR2HqEUGnLpmUtxg8yPCcWyL8QshUmx1RwspdjzvxT6P1JedujkZ",
+      "Tsz5CaLFvHqXFyVcduLo3uRpS6f62V2KrMSJoNDp5RQzEZR6epAUVTXWw8iCCNhNjJNgkzvTY6o6fad6bdKERQJp3M9h2D7gEZ",
+      "Tsz54KHNJktgRgCDCu3MWN68UMsYrHQaA8UNtmscwAruYGJegqa4HdyAZypHLMMQ4hABwkizuZTCzZkWn72656z73NjVYUv341",
+      "Tsz4pWGEwu2QLrhvx7C6BQa6AEWKZNxNoc5JdaE5Zz8M6uRPWdTVGg8JvsWNs6ND4AcSLPeq25FdiKN1tiQnnRfz4WpiTWyJQj",
+      "Tsz52554WARgC7TAXdjwc8fonhqvwZrJZHfodMjrFUXjN4V4HgUsxWRP43ewHP1xUzKobQeG16doP2FRzgY1e7t13BhbxrpkvM",
+      "Tsz59GHF37MdL8W2AjaKt2fvMxHtEH6MsbVGxEK83CgBYSdTmy2h16YSYT3yXBF8veQZJAthJ9XPjRfJCKuRkGeg5NXJNiMDiN",
+      "Tsz4w1Htw6r3MoHsdjrqjfLB3bMtUSoRo1SbymB3mqNzBvkbqJFxPpbHcjoPhoCHQngxwDAXEmLeFM928DeXyt7D7E23S5mfRj",
+      "Tsz4y7AAWjCYSbfFXKUaQzQbkcdKUPss7S6MhBTfhNMXbvdpwK52owr2Bhv79hx9QkWnsCpBM9VaQQ9PJc1KVHQA3PebXLPxFW",
+      "Tsz54JzNaNTd3kW3e77bTUK1rbopZDcfjeZ2wAKADpPbZijvCCAddNJbmzLzSRmkuqAi9CecgqZVXFaWhux2hUNS9RouVUyKX7",
+      "Tsz4qnWzDpAeNapoPmqkREahWBiYGs6Mv5CUVtuade75Up4aMReQAtE2H4XAFsXg5A4vUu4V1pnLZfZyyfaMusTa3X4d1t5876",
+      "Tsz4vSPKeGKNTm3P8um1en9hTDXLAyEpFbZidfUsGPvy8HXAJf6kngv3gqZAYv6JDEDPU5DLFQPbJBXehMQaB2Kk952FawM5oE",
+      "Tsz4yPHeoKxBgDcsYv5b1RWgunxcSSWpXbHzdyumtvXM21Njv7jGk5f8EE8uZBQRqAGDsMspwTdx3HWj2kwGfHsw8Dp76q1uT9",
+      "Tsz5AFwuJuC8AjW75hPPbCWdhuq8eKK7WaAdmeQt6eQfSR9jegU9kfi79TpVZmwPNzQ6QdbNe3AMuctRLYxYZMci7f9UUTMk5a",
+      "Tsz4m7rn4urPP7moCFnGP7HDGy3vyo1DyfusZfZG163BXf2YxrcvRbc6sB6qoFD4WV7KYBs7PXPmb6aD94JW35Z14ntreSVRNW",
+      "Tsz4q7M96fzJpcGw9cWQiYKvCGdsTANi83eGBdtMDwVuPGuXvHh87uUKgetvv6cNbyAg9d2MPLpt1TstQyLnQLGD5fkA43VMWR"
+    };
 
     std::list <std::string> stagenet_addresses = {
       "StS1WiJmb8mdJKw35hbgagdDm3P8Bm7nZHu3nJMmM7wkGeyHxY3AgDFLfE3rr6aErjUWm4zbXtFVNMSXMQgUCgKg5USPHqYJkd",
@@ -198,15 +215,15 @@ namespace cryptonote
     switch (nettype)
     {
       case MAINNET:
-      return mainnet_addresses;
+        return mainnet_addresses;
       case TESTNET:
-      return testnet_addresses;
+        return testnet_addresses;
       case STAGENET:
-      return stagenet_addresses;
+        return stagenet_addresses;
       case FAKECHAIN:
-      return mainnet_addresses;
+        return mainnet_addresses;
       default: 
-      return mainnet_addresses;
+        return mainnet_addresses;
       throw std::runtime_error("Invalid network type passed for getting Diardi v2 addresses");
     }
   }
