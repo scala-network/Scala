@@ -1,3 +1,4 @@
+
 # Scala
 
 [<img src="https://scalaproject.io/img/card.jpg">](https://scalaproject.io)
@@ -88,11 +89,11 @@ FreeBSD 12.1 one-liner required to build dependencies:
 
 Clone recursively to pull-in needed submodule(s):
 
-`$ git clone --recursive https://github.com/scala-network/scala`
+`$ git clone --recursive https://github.com/scala-network/scala-v8.1 scala` 
 
 If you already have a repo cloned, initialize and update:
 
-`$ cd scala && git submodule init && git submodule update`
+`$ cd scala && git git submodule update --init --recursive`
 
 ### Build instructions
 
@@ -201,7 +202,7 @@ Binaries for Windows are built on Windows using the MinGW toolchain within [MSYS
 * To git clone, run:
 
   ```bash
-  git clone --recursive https://github.com/scala-network/scala.git
+  git clone --recursive https://github.com/scala-network/scala-v8.1.git scala
   ```
 
 **Building**
@@ -212,7 +213,7 @@ Binaries for Windows are built on Windows using the MinGW toolchain within [MSYS
   cd scala
   ```
 
-* If you would like a specific [version/tag](https://github.com/scala-project/scala/tags), do a git checkout for that version. eg. 'v7.5.0'. If you don't care about the version and just want binaries from master, skip this step:
+* If you would like a specific [version/tag](https://github.com/scala-project/scala-v8.1/tags), do a git checkout for that version. eg. 'v7.5.0'. If you don't care about the version and just want binaries from master, skip this step:
 
   ```bash
   git checkout v7.5.0
@@ -240,7 +241,7 @@ A lot more information about the project is available on the [wiki](https://wiki
 
 ## Licenses
 
-Copyright (c) 2018-2021 The Scala Network.
+Copyright (c) 2018-2022 The Scala Network.
 
 Copyright (c) 2014-2021 The Monero Project. 
 

@@ -1,0 +1,138 @@
+name: ci/gh-actions/release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  create-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.step_upload_url.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Scala ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body_path: CHANGELOG.md
+      - id: step_upload_url
+        run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
+
+  build-all:
+    needs: create-release
+    runs-on: ubuntu-18.04
+    env:
+      CCACHE_COMPRESS: 1
+      CCACHE_TEMPDIR: /tmp/.ccache-temp
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - name: "win-x86_64"
+            host: "x86_64-w64-mingw32"
+            packages: "cmake python3 g++-mingw-w64-x86-64 qttools5-dev-tools"
+          - name: "linux-x86_64"
+            host: "x86_64-unknown-linux-gnu"
+            packages: "gperf cmake python3-zmq libdbus-1-dev libharfbuzz-dev"
+          - name: "macOS-x86_64"
+            host: "x86_64-apple-darwin11"
+            packages: "cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python3-setuptools-git"
+            osx_sdk: "10.11"
+    name: ${{ matrix.toolchain.name }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: ccache
+      uses: actions/cache@v2
+      with:
+        path: |
+            ~/.ccache
+            contrib/depends/built
+            contrib/depends/sdk-sources
+        key: ccache-${{ matrix.toolchain.host }}-${{ github.sha }}
+        restore-keys: ccache-${{ matrix.toolchain.host }}-
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: install dependencies
+      run: sudo apt update; sudo apt -y install build-essential libtool cmake autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache ${{ matrix.toolchain.packages }}
+    - name: prepare apple-darwin11
+      if: ${{ matrix.toolchain.host == 'x86_64-apple-darwin11' }}
+      run: |
+        mkdir -p contrib/depends/SDKs contrib/depends/sdk-sources
+        if [ ! -f contrib/depends/sdk-sources/MacOSX${{ matrix.toolchain.osx_sdk }}.sdk.tar.gz ]; then curl --location --fail https://bitcoincore.org/depends-sources/sdks/MacOSX${{ matrix.toolchain.osx_sdk }}.sdk.tar.gz -o contrib/depends/sdk-sources/MacOSX${{ matrix.toolchain.osx_sdk }}.sdk.tar.gz; fi
+        if [ -f contrib/depends/sdk-sources/MacOSX${{ matrix.toolchain.osx_sdk }}.sdk.tar.gz ]; then tar -C contrib/depends/SDKs -xf contrib/depends/sdk-sources/MacOSX${{ matrix.toolchain.osx_sdk }}.sdk.tar.gz; fi
+    - name: prepare w64-mingw32
+      if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32' || matrix.toolchain.host == 'i686-w64-mingw32' }}
+      run: |
+        sudo update-alternatives --set ${{ matrix.toolchain.host }}-g++ $(which ${{ matrix.toolchain.host }}-g++-posix)
+        sudo update-alternatives --set ${{ matrix.toolchain.host }}-gcc $(which ${{ matrix.toolchain.host }}-gcc-posix)
+    - name: build
+      run: |
+        ccache --max-size=150M
+        make depends target=${{ matrix.toolchain.host }} -j2
+    
+    - uses: actions/upload-artifact@v2
+      if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32' || matrix.toolchain.host == 'x86_64-apple-darwin11' || matrix.toolchain.host == 'x86_64-unknown-linux-gnu' }}
+      with:
+        name: ${{ matrix.toolchain.name }}
+        path: |
+          /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
+    - name: Get latest release version number
+      id: get_version
+      uses: battila7/get-version-action@v2
+    - name: Package for Windows
+      if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32'}}
+      run: |
+        zip -rj scala-${{ steps.get_version.outputs.version }}-win-x64.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
+    - name: Package for Linux
+      if: ${{ matrix.toolchain.host == 'x86_64-unknown-linux-gnu'}}
+      run: |
+        zip -rj scala-${{ steps.get_version.outputs.version }}-linux-x64.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
+    - name: Package for macOS
+      if: ${{ matrix.toolchain.host == 'x86_64-apple-darwin11'}}
+      run: |
+        zip -rj scala-${{ steps.get_version.outputs.version }}-macOS-x64.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
+    - name: Release for Windows
+      if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32'}}
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./scala-${{ steps.get_version.outputs.version }}-win-x64.zip
+          asset_name: scala-${{ steps.get_version.outputs.version }}-win-x64.zip
+          asset_content_type: application/zip
+    - name: Release for Linux
+      if: ${{ matrix.toolchain.host == 'x86_64-unknown-linux-gnu'}}
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./scala-${{ steps.get_version.outputs.version }}-linux-x64.zip
+          asset_name: scala-${{ steps.get_version.outputs.version }}-linux-x64.zip
+          asset_content_type: application/zip
+    - name: Release for macOS
+      if: ${{ matrix.toolchain.host == 'x86_64-apple-darwin11'}}
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./scala-${{ steps.get_version.outputs.version }}-macOS-x64.zip
+          asset_name: scala-${{ steps.get_version.outputs.version }}-macOS-x64.zip
+          asset_content_type: application/zip
