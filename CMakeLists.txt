@@ -241,6 +241,7 @@ if(CHECK_SUBMODULES)
     check_submodule(external/rapidjson)
     check_submodule(external/trezor-common)
     check_submodule(external/randomx)
+    check_submodule(external/felidae)
   endif()
 endif()
 

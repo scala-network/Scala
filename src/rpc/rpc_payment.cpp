@@ -237,7 +237,7 @@ namespace cryptonote
       const crypto::hash &seed_hash = is_current ? info.seed_hash : info.previous_seed_hash;
       const uint64_t height = cryptonote::get_block_height(block);
       if(block.major_version >= 13 && (height % 4 == 0)) {
-        crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, 0, 0, true);
+        crypto::felidae_hash(hashing_blob.data(), hashing_blob.size(), hash.data, 1);
       } else {
         crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, 0, 0, false);
       }

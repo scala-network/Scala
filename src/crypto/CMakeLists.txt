@@ -56,6 +56,7 @@ list(APPEND crypto_sources CryptonightR_template.S)
 endif()
 
 include_directories(${RANDOMX_INCLUDE})
+include_directories(${FELIDAE_INCLUDE})
 
 set(crypto_headers)
 
@@ -91,6 +92,7 @@ target_link_libraries(cncrypto
   PUBLIC
     epee
     randomx
+    felidae
     ${Boost_SYSTEM_LIBRARY}
     ${SODIUM_LIBRARY}
   PRIVATE

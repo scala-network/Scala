@@ -829,16 +829,8 @@ bool Blockchain::get_block_by_hash(const crypto::hash &h, block &blk, bool *orph
 // less blocks than desired if there aren't enough.
 difficulty_type Blockchain::get_difficulty_for_next_block()
 {
-
   uint64_t current_height = m_db->height();
   uint8_t hard_fork_version = get_ideal_hard_fork_version(current_height);
-
-  if((current_height % 4 == 0) && hard_fork_version > 12) {
-    difficulty_type diardi_difficulty = get_diardi_difficulty(hard_fork_version);
-    if(diardi_difficulty != 0) {
-      return diardi_difficulty;
-    }
-  }
 
   if (m_fixed_difficulty)
   {
@@ -865,16 +857,21 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   top_hash = get_tail_id(height); // get it again now that we have the lock
   ++height; // top block height to blockchain height
 
-  // Reset network hashrate to 1.0 MH/s when V7 goes live
+  // Mainnet will start with 1 MH/s
   if (m_nettype == MAINNET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
     return (difficulty_type)120000000;
   }
 
-  // ND: Speedup
-  // 1. Keep a list of the last 735 (or less) blocks that is used to compute difficulty,
-  //    then when the next block difficulty is queried, push the latest height data and
-  //    pop the oldest one from the list. This only requires 1x read per height instead
-  //    of doing 735 (DIFFICULTY_BLOCKS_COUNT).
+  // Stagenet will start with difficulty of 1 KH/s
+  if (m_nettype == STAGENET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
+    return (difficulty_type)40000;
+  }
+
+  // Testnet will start with difficulty of 16 KH/s
+  if (m_nettype == STAGENET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
+    return (difficulty_type)1920000;
+  }
+
   if (m_timestamps_and_difficulties_height != 0 && ((height - m_timestamps_and_difficulties_height) == 1) && m_timestamps.size() >= DIFFICULTY_BLOCKS_COUNT)
   {
     uint64_t index = height - 1;
@@ -908,11 +905,11 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
       timestamps.push_back(m_db->get_block_timestamp(offset));
       difficulties.push_back(m_db->get_block_cumulative_difficulty(offset));
     }
-
     m_timestamps_and_difficulties_height = height;
     m_timestamps = timestamps;
     m_difficulties = difficulties;
   }
+  
   size_t target = get_difficulty_target();
   difficulty_type diff = next_difficulty(timestamps, difficulties, target);
 
@@ -1377,18 +1374,11 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     }
 
     uint64_t pDh = m_db->height() - 4;
-
-    std::cout << "pDh is " << pDh << std::endl;
-
     crypto::hash oDh = crypto::null_hash;
     oDh = m_db->get_block_hash_from_height(pDh);
 
     cryptonote::block oDb;
     bool oOb = false;
-      
-    std::cout << "VOUT size -> " << b.miner_tx.vout.size() << std::endl;
-    std::cout << "-4th block VOUT size -> " << oDb.miner_tx.vout.size() << std::endl;
-
     bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
     if(getOldBlock) {
         if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {

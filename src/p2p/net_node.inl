@@ -605,7 +605,7 @@ namespace nodetool
     if (nettype == cryptonote::TESTNET)
     {
       /* Wanna be a testnet node seed? Contact hayzam on discord */
-      full_addrs.insert("65.21.221.7:22821"); /* Scala's Official Testnet node */
+      full_addrs.insert("65.21.221.2:22821"); /* Scala's Official Testnet node */
       full_addrs.insert("46.4.116.181:22821"); /* Hayzam's Node */
     }
     else if (nettype == cryptonote::STAGENET)

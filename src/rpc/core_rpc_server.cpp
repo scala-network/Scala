@@ -1263,15 +1263,17 @@ namespace cryptonote
       res.address = get_account_address_as_str(nettype(), false, lMiningAdr);
     const uint8_t major_version = m_core.get_blockchain_storage().get_current_hard_fork_version();
     const unsigned variant = major_version >= 7 ? major_version - 6 : 0;
-    switch (variant)
-    {
-      case 0: res.pow_algorithm = "Cryptonight"; break;
-      case 1: res.pow_algorithm = "CNv1 (Cryptonight variant 1)"; break;
-      case 2: case 3: res.pow_algorithm = "CNv2 (Cryptonight variant 2)"; break;
-      case 4: case 5: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
-      case 6: res.pow_algorithm = "RandomX"; break;
-      default: res.pow_algorithm = "I'm not sure actually"; break;
+    uint64_t current_height = m_core.get_current_blockchain_height();
+
+    if(variant == 6) {
+      res.pow_algorithm = "Panthera";
+    } else if((current_height % 4 == 0) && major_version >= 13) {
+      res.pow_algorithm = "Felidae";
+    } else {
+      res.pow_algorithm = "I'm not sure actually";
     }
+
+
     if (res.is_background_mining_enabled)
     {
       res.bg_idle_threshold = lMiner.get_idle_threshold();
