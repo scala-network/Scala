@@ -24,9 +24,9 @@ namespace cryptonote {
         if(nettype == MAINNET) {
             path = default_directory + "/" + "checkpoints.json";
         } else if(nettype == TESTNET) {
-            path = default_directory + "/" + "testnet-checkpoints.json";
+            path = default_directory + "/testnet/" + "checkpoints.json";
         } else if(nettype == STAGENET) {
-            path = default_directory + "/" + "stagenet-checkpoints.json";
+            path = default_directory + "/stagenet/" + "checkpoints.json";
         } else {
             throw std::runtime_error("Invalid network type");
         }
@@ -68,7 +68,6 @@ namespace cryptonote {
 
         std::vector<std::string> records = tools::DNSResolver::instance().get_txt_record(dns_name, available, valid);
         std::string ipfs_path = records[0];
-
         boost::replace_all(ipfs_path, "dnslink=\"/ipfs/", "");
         boost::replace_all(ipfs_path, "\"", "");
 
