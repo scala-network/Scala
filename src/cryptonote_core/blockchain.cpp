@@ -868,7 +868,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   }
 
   // Testnet will start with difficulty of 16 KH/s
-  if (m_nettype == STAGENET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
+  if (m_nettype == TESTNET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
     return (difficulty_type)1920000;
   }
 
