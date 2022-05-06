@@ -42,7 +42,7 @@ const uint64_t mainnet_hard_fork_version_1_till = 1;
 const hardfork_t testnet_hard_forks[] = {
   { 1, 1, 0, 1341378000 },
   { 12, 2, 0, 1582125473 },
-  { 13, 100, 0, 1582125474 },
+  { 13, 150, 0, 1582125474 },
 };
 const size_t num_testnet_hard_forks = sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]);
 const uint64_t testnet_hard_fork_version_1_till = 624633;

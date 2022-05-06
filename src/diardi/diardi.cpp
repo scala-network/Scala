@@ -57,11 +57,11 @@ namespace cryptonote {
         static const char* dns_name;
         
         if(nettype == MAINNET) {
-            dns_name = "_dnslink.dynamic-checkpoints-mainnet.scalaproject.io";;
+            dns_name = "_dnslink.dynamic-checkpoints-mainnet.scalaproject.io";
         } else if(nettype == TESTNET) {
-            dns_name = "_dnslink.dynamic-checkpoints-testnet.scalaproject.io";;
+            dns_name = "_dnslink.dynamic-checkpoints-testnet.scalaproject.io";
         } else if(nettype == STAGENET) {
-            dns_name = "_dnslink.dynamic-checkpoints-stagenet.scalaproject.io";;
+            dns_name = "_dnslink.dynamic-checkpoints-stagenet.scalaproject.io";
         } else {
             throw std::runtime_error("Invalid network type");
         }
