@@ -1898,24 +1898,28 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     memset(proof_of_work.data, 0xff, sizeof(proof_of_work.data));
     if (b.major_version >= RX_BLOCK_VERSION)
     {
-      crypto::hash seedhash = null_hash;
-      uint64_t seedheight = rx_seedheight(bei.height);
-      // seedblock is on the alt chain somewhere
-      if (alt_chain.size() && alt_chain.front().height <= seedheight)
-      {
-        for (auto it=alt_chain.begin(); it != alt_chain.end(); it++)
+      if(b.major_version < 13 || (b.major_version >= 13 && (bei.height % 4 != 0))) {
+        crypto::hash seedhash = null_hash;
+        uint64_t seedheight = rx_seedheight(bei.height);
+        // seedblock is on the alt chain somewhere
+        if (alt_chain.size() && alt_chain.front().height <= seedheight)
         {
-          if (it->height == seedheight+1)
+          for (auto it=alt_chain.begin(); it != alt_chain.end(); it++)
           {
-            seedhash = it->bl.prev_id;
-            break;
+            if (it->height == seedheight+1)
+            {
+              seedhash = it->bl.prev_id;
+              break;
+            }
           }
+        } else
+        {
+          seedhash = get_block_id_by_height(seedheight);
         }
-      } else
-      {
-        seedhash = get_block_id_by_height(seedheight);
+        get_altblock_longhash(bei.bl, proof_of_work, get_current_blockchain_height(), bei.height, seedheight, seedhash);
+      } else {
+        get_block_longhash(this, bei.bl, proof_of_work, bei.height, 0);
       }
-      get_altblock_longhash(bei.bl, proof_of_work, get_current_blockchain_height(), bei.height, seedheight, seedhash);
     } else
     {
       get_block_longhash(this, bei.bl, proof_of_work, bei.height, 0);
