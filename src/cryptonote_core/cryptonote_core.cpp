@@ -356,18 +356,21 @@ namespace cryptonote
 
     auto data_dir = boost::filesystem::path(m_config_folder);
 
-    if (m_nettype == MAINNET)
+    if (m_nettype == MAINNET || m_nettype == TESTNET)
     {
       cryptonote::checkpoints checkpoints;
       if (!checkpoints.init_default_checkpoints(m_nettype))
       {
         throw std::runtime_error("Failed to initialize checkpoints");
       }
+      
       set_checkpoints(std::move(checkpoints));
 
-      boost::filesystem::path json(JSON_HASH_FILE_NAME);
-      boost::filesystem::path checkpoint_json_hashfile_fullpath = data_dir / json;
-      set_checkpoints_file_path(checkpoint_json_hashfile_fullpath.string());
+      if(m_nettype == MAINNET) {
+        boost::filesystem::path json(JSON_HASH_FILE_NAME);
+        boost::filesystem::path checkpoint_json_hashfile_fullpath = data_dir / json;
+        set_checkpoints_file_path(checkpoint_json_hashfile_fullpath.string());
+      }
     }
 
 
