@@ -1277,6 +1277,25 @@ namespace cryptonote
     return p;
   }
   //---------------------------------------------------------------
+  crypto::hash get_sig_data(const block& b)
+  {
+    crypto::hash sig_data;
+    blobdata blob = get_block_hashing_blob_sig_data(b);
+    crypto::cn_fast_hash(blob.data(), blob.size(), sig_data);
+    return sig_data;
+  }
+  //---------------------------------------------------------------
+  blobdata get_block_hashing_blob_sig_data(const block& b)
+  {
+    block_header tmp = static_cast<const block_header&>(b);
+    memset(&tmp.signature, 0, sizeof(tmp.signature));
+    blobdata blob = t_serializable_object_to_blob(tmp);
+    crypto::hash tree_root_hash = get_tx_tree_hash(b);
+    blob.append(reinterpret_cast<const char*>(&tree_root_hash), sizeof(tree_root_hash));
+    blob.append(tools::get_varint_data(b.tx_hashes.size()+1));
+    return blob;
+  }
+  //---------------------------------------------------------------
   std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off)
   {
     std::vector<uint64_t> res = off;

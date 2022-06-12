@@ -1215,7 +1215,7 @@ namespace cryptonote
     }
     if(!miner.start(info.address, static_cast<size_t>(req.threads_count), req.do_background_mining, req.ignore_battery))
     {
-      res.status = "Failed, mining not started";
+      res.status = "Failed, mining not started.";
       LOG_PRINT_L0(res.status);
       return true;
     }
@@ -1862,6 +1862,10 @@ namespace cryptonote
         return false;
       }
       b.nonce = req.starting_nonce;
+      if (b.major_version >= HF_VERSION_DIARDI_V2)
+      {
+          b.signature = {};
+      }
       miner::find_nonce_for_given_block([this](const cryptonote::block &b, uint64_t height, unsigned int threads, crypto::hash &hash) {
         return cryptonote::get_block_longhash(&(m_core.get_blockchain_storage()), b, hash, height, threads);
       }, b, template_res.difficulty, template_res.height);

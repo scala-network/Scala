@@ -159,21 +159,20 @@ namespace cryptonote
     
     switch(nettype) {
       case STAGENET:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::STAGENET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::STAGENET, diardi_wallet_address_str);
+        break;
       case TESTNET:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::TESTNET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::TESTNET, diardi_wallet_address_str);
+        break;
       case MAINNET:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+        break;
       default:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+        break;
     }
 
     crypto::public_key correct_key;
-    //correct_key = AUTO_VAL_INIT(correct_key);
 
     if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_index, correct_key))
     {
@@ -212,7 +211,7 @@ namespace cryptonote
     };
 
     std::list <std::string> stagenet_addresses = {
-      "StS1WiJmb8mdJKw35hbgagdDm3P8Bm7nZHu3nJMmM7wkGeyHxY3AgDFLfE3rr6aErjUWm4zbXtFVNMSXMQgUCgKg5USPHqYJkd",
+      "StS1CakgFXn2vf2saXhskTUyNtKfUxsVxLUECjXB2cfZFQnvs58sedvBR9nezLJinQ3AFuPYLhmTVXgeGuNm8vTAAYvdgmL2gD",
       "StS1HSmWVg1QQ3xx1iCK933tgLddWW2yQb6k84zuoZdL3PzvMUdfMrrbyEDkydtX1hYX5S7G8Rz5MGuKMcCZ7nwv2k71DWxccJ"
     };
 
@@ -232,7 +231,7 @@ namespace cryptonote
     }
   }
   //---------------------------------------------------------------
-  bool construct_miner_tx(size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version, network_type nettype) {
+  bool construct_miner_tx(const keypair& txkey, size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version, network_type nettype) {
     tx.vin.clear();
     tx.vout.clear();
     tx.extra.clear();
@@ -260,12 +259,12 @@ namespace cryptonote
       }
     }
 
-    keypair txkey;
+    keypair txkey_2;
     if(isDiardiBlock) {
         // Need to revalidate this part
-      txkey = get_deterministic_keypair_from_height(height);
+      txkey_2 = get_deterministic_keypair_from_height(height);
     } else {
-      txkey = keypair::generate(hw::get_device("default"));
+      txkey_2 = keypair::generate(hw::get_device("default"));
     }
 
     add_tx_pub_key_to_extra(tx, txkey.pub);

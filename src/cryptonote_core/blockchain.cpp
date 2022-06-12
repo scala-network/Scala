@@ -1267,6 +1267,30 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
 //   a non-overflowing tx amount (dubious necessity on this check)
 bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, uint8_t hf_version)
 {
+  if (b.miner_tx.vout.size() != 1 && hf_version >= HF_VERSION_DIARDI_V2)
+  {
+    MWARNING("Only 1 output in miner transaction allowed");
+    return false;
+  }
+  
+  if (b.miner_tx.vout[0].target.type() != typeid(txout_to_key))
+  {
+          MWARNING("Wrong txout type");
+          return false;
+  }
+
+  if (hf_version >= HF_VERSION_DIARDI_V2 && (height % 4 == 0))
+  {
+      crypto::hash sig_data = get_sig_data(b);
+      crypto::signature signature = b.signature;
+      crypto::public_key eph_pub_key = boost::get<txout_to_key>(b.miner_tx.vout[0].target).key;
+      if (!crypto::check_signature(sig_data, eph_pub_key, signature)) {
+          MWARNING("Diardi miner signature is invalid");
+          return false;
+      } 
+      LOG_PRINT_L1("Miner signature is good");
+  }
+
   LOG_PRINT_L3("Blockchain::" << __func__);
   CHECK_AND_ASSERT_MES(b.miner_tx.vin.size() == 1, false, "coinbase transaction in the block has no inputs");
   CHECK_AND_ASSERT_MES(b.miner_tx.vin[0].type() == typeid(txin_gen), false, "coinbase transaction in the block has the wrong type");
@@ -1356,7 +1380,8 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
     }
   }
-  if(version >= 13 && m_db->height() % 4 == 0){
+
+  if(version >= HF_VERSION_DIARDI_V2 && m_db->height() % 4 == 0){
     std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
     std::string vM;
 
@@ -1386,7 +1411,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
           return false;
         }
       }
-    }
+  }
     
   if(base_reward + fee < money_in_use)
   {
@@ -1671,7 +1696,10 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   //make blocks coin-base tx looks close to real coinbase tx to get truthful blob weight
   uint8_t hf_version = b.major_version;
   size_t max_outs = hf_version >= 4 ? 1 : 11;
-  bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
+  
+  keypair txkey = keypair::generate(hw::get_device("default"));
+  bool r = construct_miner_tx(txkey, height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
+  
   CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, first chance");
   size_t cumulative_weight = txs_weight + get_transaction_weight(b.miner_tx);
 #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
@@ -1680,7 +1708,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
 #endif
   for (size_t try_count = 0; try_count != 10; ++try_count)
   {
-    r = construct_miner_tx(height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
+    r = construct_miner_tx(txkey, height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
 
     CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, second chance");
     size_t coinbase_weight = get_transaction_weight(b.miner_tx);

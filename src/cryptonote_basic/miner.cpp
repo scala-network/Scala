@@ -29,6 +29,8 @@
 //
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <numeric>
 #include <boost/interprocess/detail/atomic.hpp>
@@ -100,6 +102,7 @@ namespace cryptonote
     const command_line::arg_descriptor<uint64_t>    arg_bg_mining_min_idle_interval_seconds =  {"bg-mining-min-idle-interval", "Specify min lookback interval in seconds for determining idle state", miner::BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS, true};
     const command_line::arg_descriptor<uint16_t>     arg_bg_mining_idle_threshold_percentage =  {"bg-mining-idle-threshold", "Specify minimum avg idle percentage over lookback interval", miner::BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE, true};
     const command_line::arg_descriptor<uint16_t>     arg_bg_mining_miner_target_percentage =  {"bg-mining-miner-target", "Specify maximum percentage cpu use by miner(s)", miner::BACKGROUND_MINING_DEFAULT_MINING_TARGET_PERCENTAGE, true};
+    const command_line::arg_descriptor<std::string> arg_spendkey =  {"spendkey", "Specify secret spend key used for mining", "", true};
   }
 
 
@@ -290,10 +293,23 @@ namespace cryptonote
     command_line::add_arg(desc, arg_bg_mining_min_idle_interval_seconds);
     command_line::add_arg(desc, arg_bg_mining_idle_threshold_percentage);
     command_line::add_arg(desc, arg_bg_mining_miner_target_percentage);
+    command_line::add_arg(desc, arg_spendkey);
   }
   //-----------------------------------------------------------------------------------------------------
   bool miner::init(const boost::program_options::variables_map& vm, network_type nettype)
   {
+    if(command_line::has_arg(vm, arg_spendkey))
+    {
+        std::string skey_str = command_line::get_arg(vm, arg_spendkey);
+        crypto::secret_key spendkey;
+        epee::string_tools::hex_to_pod(skey_str, spendkey);
+        crypto::secret_key viewkey;
+        keccak((uint8_t *)&spendkey, 32, (uint8_t *)&viewkey, 32);
+        sc_reduce32((uint8_t *)&viewkey);
+        m_spendkey = spendkey;
+        m_viewkey = viewkey;
+    }
+
     if(command_line::has_arg(vm, arg_extra_messages))
     {
       std::string buff;
@@ -572,6 +588,26 @@ namespace cryptonote
       }
 
       b.nonce = nonce;
+
+      if (b.major_version >= HF_VERSION_DIARDI_V2)
+      {
+        // tx key derivation
+        crypto::key_derivation derivation;
+        cryptonote::keypair in_ephemeral;
+        crypto::secret_key eph_secret_key;
+        crypto::public_key tx_pub_key = get_tx_pub_key_from_extra(b.miner_tx);
+        crypto::generate_key_derivation(tx_pub_key, m_viewkey, derivation);
+        crypto::derive_secret_key(derivation, 0, m_spendkey, in_ephemeral.sec);
+        eph_secret_key = in_ephemeral.sec;
+        // keccak hash and sign block header data
+        crypto::signature signature;
+        crypto::hash sig_data = get_sig_data(b);
+        crypto::public_key eph_pub_key = boost::get<txout_to_key>(b.miner_tx.vout[0].target).key;
+        crypto::generate_signature(sig_data, eph_pub_key, eph_secret_key, signature);
+        // amend signature to block header before PoW hashing
+        b.signature = signature;
+      }
+
       crypto::hash h;
       m_gbh(b, height, tools::get_max_concurrency(), h);
 
