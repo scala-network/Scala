@@ -186,7 +186,7 @@ namespace cryptonote
   std::list<std::string> diardi_addresses_v2(network_type nettype) {
 
     std::list<std::string> mainnet_addresses = {};
-
+    
     std::list<std::string> testnet_addresses = {
       "Tsz4xmjxX77UGd2PR9iqnMiYRyzN8TJx1XFk42i5TqDsQEezdr2LCWaLrAzQx73pL9gieyZRT5vkUeWunGeoM9yq3E1PUAFpjz",
       "Tsz4rcTEbg1RMVfhwBzoSoMsVRGdCbuxDf7yyW7MqJ1TbVBenV3w4hz71Fwjw3pg1DGPzsG33Pr7tfC7LLCEiWJm2YBgWdce2x",
@@ -231,7 +231,7 @@ namespace cryptonote
     }
   }
   //---------------------------------------------------------------
-  bool construct_miner_tx(const keypair& txkey, size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version, network_type nettype) {
+  bool construct_miner_tx(size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version, network_type nettype) {
     tx.vin.clear();
     tx.vout.clear();
     tx.extra.clear();
@@ -259,12 +259,11 @@ namespace cryptonote
       }
     }
 
-    keypair txkey_2;
+    keypair txkey;
     if(isDiardiBlock) {
-        // Need to revalidate this part
-      txkey_2 = get_deterministic_keypair_from_height(height);
+      txkey = get_deterministic_keypair_from_height(height);
     } else {
-      txkey_2 = keypair::generate(hw::get_device("default"));
+      txkey = keypair::generate(hw::get_device("default"));
     }
 
     add_tx_pub_key_to_extra(tx, txkey.pub);
