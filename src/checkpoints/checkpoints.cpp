@@ -210,11 +210,9 @@ namespace cryptonote
     }
     if (nettype == TESTNET)
     {
-      ADD_CHECKPOINT(0, "eb093694aef3a0fba15e64ff70260d04b65dfbf7b198e54936e99c9151c53e72");
-      ADD_CHECKPOINT(5, "76fde0bdd2e19069683ab6f501f63ea1de381c3ebd49dc9defade997d9520b5a");
-      ADD_CHECKPOINT(10, "afe215421f19c734c0e7c5ec73ea3b8dd61adb03771c918a7cefb4431d91ceb1");
-      ADD_CHECKPOINT(15, "db6c41bd1553010f3faa3ed403d0437f3ff37b3bd8e5ec1429a18e3fea2c81a4");
-      ADD_CHECKPOINT(19, "6d8fc42c2e4a3990123af19d9ebb0713711f7facb8bbc657f473a61bd7968973");
+      ADD_CHECKPOINT(0,eb093694aef3a0fba15e64ff70260d04b65dfbf7b198e54936e99c9151c53e72);
+      ADD_CHECKPOINT(5,3be192a55b3b4d7896d1a07fdebb04634f5cce85f6b9536cf4353c35c087cfb0);
+      ADD_CHECKPOINT(15,ff2d2f5ffe5ef3443ff9d6f5330bff05f03cdd8de2ba6e54fc01110d0fa2b9a5);
       return true;
     }
     if (nettype == STAGENET)
