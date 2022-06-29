@@ -548,6 +548,8 @@ namespace cryptonote
     block b;
     slow_hash_allocate_state();
     ++m_threads_active;
+    uint64_t last_found = 0;
+
     while(!m_stop)
     {
       if(m_pausers_count)//anti split workaround
@@ -578,6 +580,22 @@ namespace cryptonote
         CRITICAL_REGION_END();
         local_template_ver = m_template_no;
         nonce = m_starter_nonce + th_local_index;
+
+        if(b.major_version >= HF_VERSION_DIARDI_V2) {
+            if(last_found % 4 == 0 && last_found != 0 && height % 4 == 0) {
+              LOG_PRINT_L1("We mined the last diardi block, skipping this one");
+              break;
+            }
+            
+            if(height % 4 == 0) {
+              crypto::signature signature;
+              crypto::hash sig_data = get_sig_data(height);
+              crypto::public_key m_pspendkey;
+              crypto::secret_key_to_public_key(m_spendkey, m_pspendkey);
+              crypto::generate_signature(sig_data, m_pspendkey, m_spendkey, signature);
+              b.signature = signature;
+            }
+         }
       }
 
       if(!local_template_ver)//no any set_block_template call
@@ -588,26 +606,6 @@ namespace cryptonote
       }
 
       b.nonce = nonce;
-
-      if (b.major_version >= HF_VERSION_DIARDI_V2)
-      {
-        // tx key derivation
-        crypto::key_derivation derivation;
-        cryptonote::keypair in_ephemeral;
-        crypto::secret_key eph_secret_key;
-        crypto::public_key tx_pub_key = get_tx_pub_key_from_extra(b.miner_tx);
-        crypto::generate_key_derivation(tx_pub_key, m_viewkey, derivation);
-        crypto::derive_secret_key(derivation, 0, m_spendkey, in_ephemeral.sec);
-        eph_secret_key = in_ephemeral.sec;
-        // keccak hash and sign block header data
-        crypto::signature signature;
-        crypto::hash sig_data = get_sig_data(b);
-        crypto::public_key eph_pub_key = boost::get<txout_to_key>(b.miner_tx.vout[0].target).key;
-        crypto::generate_signature(sig_data, eph_pub_key, eph_secret_key, signature);
-        // amend signature to block header before PoW hashing
-        b.signature = signature;
-      }
-
       crypto::hash h;
       m_gbh(b, height, tools::get_max_concurrency(), h);
 
@@ -616,6 +614,7 @@ namespace cryptonote
         //we lucky!
         ++m_config.current_extra_message_index;
         MGINFO_GREEN("Found block " << get_block_hash(b) << " at height " << height << " for difficulty: " << local_diff);
+        last_found = height;
         cryptonote::block_verification_context bvc;
         if(!m_phandler->handle_block_found(b, bvc) || !bvc.m_added_to_main_chain)
         {

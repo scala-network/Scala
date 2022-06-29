@@ -184,9 +184,9 @@ namespace cryptonote
   }
   //---------------------------------------------------------------
   std::list<std::string> diardi_addresses_v2(network_type nettype) {
-
+  
     std::list<std::string> mainnet_addresses = {};
-    
+  
     std::list<std::string> testnet_addresses = {
       "Tsz4xmjxX77UGd2PR9iqnMiYRyzN8TJx1XFk42i5TqDsQEezdr2LCWaLrAzQx73pL9gieyZRT5vkUeWunGeoM9yq3E1PUAFpjz",
       "Tsz4rcTEbg1RMVfhwBzoSoMsVRGdCbuxDf7yyW7MqJ1TbVBenV3w4hz71Fwjw3pg1DGPzsG33Pr7tfC7LLCEiWJm2YBgWdce2x",
@@ -211,8 +211,8 @@ namespace cryptonote
     };
 
     std::list <std::string> stagenet_addresses = {
-      "StS1CakgFXn2vf2saXhskTUyNtKfUxsVxLUECjXB2cfZFQnvs58sedvBR9nezLJinQ3AFuPYLhmTVXgeGuNm8vTAAYvdgmL2gD",
-      "StS1HSmWVg1QQ3xx1iCK933tgLddWW2yQb6k84zuoZdL3PzvMUdfMrrbyEDkydtX1hYX5S7G8Rz5MGuKMcCZ7nwv2k71DWxccJ"
+      "StS1CakgFXn2vf2saXhskTUyNtKfUxsVxLUECjXB2cfZFQnvs58sedvBR9nezLJinQ3AFuPYLhmTVXgeGuNm8vTAAYvdgmL2gD:0a415c86190b8268ed7eb4d1a0a73bda2dc703659f746672ad0f59ab3056272a",
+      "StS1ZyTrhb7AmQpHHPXMn7c6DyjvT75HSJTSQg7zSf4ZGuZRfMjku51aE2w96ZbCvPPE7ncKMjPfhSZFTvPdVw9i6T4dXMeijh:c7dc4f18a23a62a36d81187f98d1ca2fb98f1aaf79685c909ff3d1529e5f18ce"
     };
 
     switch (nettype)
@@ -244,10 +244,12 @@ namespace cryptonote
       isDiardiBlock = height % 4 == 0;
       if(isDiardiBlock){
         for (const auto &tA : diardi_addresses_v2(nettype)){
-          cryptonote::get_account_address_from_str(temp_miner_address, nettype, tA);
+          std::string delim = ":";
+          std::vector<std::string> aV = string_tools::split_string_wd(tA, delim);
+          cryptonote::get_account_address_from_str(temp_miner_address, nettype, aV.front());
           if(temp_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
             diardi_miner_address = temp_miner_address;
-            sA = tA;
+            sA = aV.front();
             break;
           }
         }
@@ -928,5 +930,26 @@ bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res
   void get_block_longhash_reorg(const uint64_t split_height)
   {
     rx_reorg(split_height);
+  }
+
+  bool check_last_diardi_miner(const Blockchain *pbc, std::string wallet_address, network_type nettype) {
+     uint64_t current_height = pbc->get_current_blockchain_height();
+     uint64_t last_diardi_height = current_height - 4;
+
+     crypto::hash last_diardi_block_hash = pbc->get_block_id_by_height(last_diardi_height);
+     cryptonote::block last_diardi_block;
+     bool get_last_diardi_block = pbc->get_block_by_hash(last_diardi_block_hash, last_diardi_block);
+     
+     if(!get_last_diardi_block) {
+        return false;
+     }
+
+     if(validate_diardi_reward_key(last_diardi_height, wallet_address, last_diardi_block.miner_tx.vout.size() - 1, 
+      boost::get<txout_to_key>(last_diardi_block.miner_tx.vout.back().target).key, nettype)) 
+      {
+        return true;
+      }
+
+      return false;
   }
 }

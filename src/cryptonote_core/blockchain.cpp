@@ -1281,14 +1281,28 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
 
   if (hf_version >= HF_VERSION_DIARDI_V2 && (height % 4 == 0))
   {
-      crypto::hash sig_data = get_sig_data(b);
+      crypto::hash sig_data = get_sig_data(height);
       crypto::signature signature = b.signature;
-      crypto::public_key eph_pub_key = boost::get<txout_to_key>(b.miner_tx.vout[0].target).key;
-      if (!crypto::check_signature(sig_data, eph_pub_key, signature)) {
-          MWARNING("Diardi miner signature is invalid");
+      std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+      
+      bool sC = false;
+
+      for(auto const& sM : diardi_miners_list) {
+          std::string delim = ":";
+          std::vector<std::string> aV = epee::string_tools::split_string_wd(sM, delim);
+          std::string vK = aV.back();
+          crypto::public_key o_pspendkey;
+          epee::string_tools::hex_to_pod(vK, o_pspendkey);
+          if (crypto::check_signature(sig_data, o_pspendkey, signature)) {
+             sC = true;
+             break;
+          }
+      }
+
+      if (!sC) {
+          LOG_PRINT_L0("Wrong Diardi miner signature");
           return false;
-      } 
-      LOG_PRINT_L1("Miner signature is good");
+      }
   }
 
   LOG_PRINT_L3("Blockchain::" << __func__);
@@ -1386,31 +1400,41 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     std::string vM;
 
     for(auto const& sM : diardi_miners_list) {
-        if(validate_diardi_reward_key(m_db->height(), sM, b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
+        std::string delim = ":";
+        std::vector<std::string> aV = epee::string_tools::split_string_wd(sM, delim);
+        if(validate_diardi_reward_key(m_db->height(), aV.front(), b.miner_tx.vout.size() - 1, boost::get<txout_to_key>(b.miner_tx.vout.back().target).key, m_nettype)) 
         {
-          vM = sM;
+          vM = aV.front();
           break;
         }
     }
 
     if(vM.empty()) {
-      MERROR("Diardi V2 reward public key incorrect. (Address is not valid)");
+      MERROR("Diardi v2 reward public key incorrect. (Address is not valid)");
       return false;
     }
 
-    uint64_t pDh = m_db->height() - 4;
-    crypto::hash oDh = crypto::null_hash;
-    oDh = m_db->get_block_hash_from_height(pDh);
+      /*
+          uint64_t pDh = m_db->height() - 4;
+          crypto::hash oDh = crypto::null_hash;
+          oDh = m_db->get_block_hash_from_height(pDh);
 
-    cryptonote::block oDb;
-    bool oOb = false;
-    bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
-    if(getOldBlock) {
-        if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
-          MERROR("You're not supposed to mine this block since you mined the last diardi block!");
-          return false;
-        }
-      }
+          cryptonote::block oDb;
+          bool oOb = false;
+          bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+          if(getOldBlock) {
+              if(validate_diardi_reward_key(pDh, vM, oDb.miner_tx.vout.size() - 1, boost::get<txout_to_key>(oDb.miner_tx.vout.back().target).key, m_nettype)) {
+                MERROR("You're not supposed to mine this block since you mined the last diardi block!");
+                return false;
+              }
+          }
+      */
+
+     bool mineLast = check_last_diardi_miner(this, vM, m_nettype);
+     if(mineLast == true) {
+      LOG_PRINT_L1("You're not supposed to mine this block since you mined the last diardi block!");
+      return false;
+     }
   }
     
   if(base_reward + fee < money_in_use)

@@ -1277,11 +1277,12 @@ namespace cryptonote
     return p;
   }
   //---------------------------------------------------------------
-  crypto::hash get_sig_data(const block& b)
+  crypto::hash get_sig_data(uint64_t height)
   {
     crypto::hash sig_data;
-    blobdata blob = get_block_hashing_blob_sig_data(b);
-    crypto::cn_fast_hash(blob.data(), blob.size(), sig_data);
+    unsigned char input[sizeof(height)];
+    memcpy(input, &height, sizeof(height));
+    crypto::felidae_hash(input, sizeof(input), sig_data.data, 1);
     return sig_data;
   }
   //---------------------------------------------------------------

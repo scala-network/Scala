@@ -121,7 +121,7 @@ namespace cryptonote
   bool calculate_block_hash(const block& b, crypto::hash& res, const blobdata *blob = NULL);
   bool get_block_hash(const block& b, crypto::hash& res);
   crypto::hash get_block_hash(const block& b);
-  crypto::hash get_sig_data(const block& b);
+  crypto::hash get_sig_data(uint64_t height);
   blobdata get_block_hashing_blob_sig_data(const block& b);
   bool parse_and_validate_block_from_blob(const blobdata& b_blob, block& b, crypto::hash *block_hash);
   bool parse_and_validate_block_from_blob(const blobdata& b_blob, block& b);

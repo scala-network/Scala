@@ -43,6 +43,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/utility/string_ref.hpp>
+#include <boost/algorithm/string.hpp>
 #include "misc_log_ex.h"
 #include "storages/parserse_base_utils.h"
 #include "hex.h"
@@ -124,6 +125,8 @@ POP_WARNINGS
 	}
 	//----------------------------------------------------------------------------
 	std::string get_ip_string_from_int32(uint32_t ip);
+  //----------------------------------------------------------------------------
+  std::vector<std::string> split_string_wd(const std::string str_, const std::string delim_);
 	//----------------------------------------------------------------------------
 	bool get_ip_int32_from_string(uint32_t& ip, const std::string& ip_str);
   //----------------------------------------------------------------------------
