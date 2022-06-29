@@ -1408,8 +1408,6 @@ namespace cryptonote
     //anyway - update miner template
     update_miner_block_template();
     m_miner.resume();
-
-
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
     if(bvc.m_added_to_main_chain)
     {

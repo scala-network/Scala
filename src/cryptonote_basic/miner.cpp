@@ -548,8 +548,6 @@ namespace cryptonote
     block b;
     slow_hash_allocate_state();
     ++m_threads_active;
-    uint64_t last_found = 0;
-
     while(!m_stop)
     {
       if(m_pausers_count)//anti split workaround
@@ -582,12 +580,6 @@ namespace cryptonote
         nonce = m_starter_nonce + th_local_index;
 
         if(b.major_version >= HF_VERSION_DIARDI_V2) {
-            if(last_found % 4 == 0 && last_found != 0 && height % 4 == 0) {
-              LOG_PRINT_L1("We mined the last diardi block, skipping this one");
-              misc_utils::sleep_no_w(300000);
-              continue;
-            }
-            
             if(height % 4 == 0) {
               crypto::signature signature;
               crypto::hash sig_data = get_sig_data(height);
@@ -615,7 +607,6 @@ namespace cryptonote
         //we lucky!
         ++m_config.current_extra_message_index;
         MGINFO_GREEN("Found block " << get_block_hash(b) << " at height " << height << " for difficulty: " << local_diff);
-        last_found = height;
         cryptonote::block_verification_context bvc;
         if(!m_phandler->handle_block_found(b, bvc) || !bvc.m_added_to_main_chain)
         {
