@@ -584,7 +584,8 @@ namespace cryptonote
         if(b.major_version >= HF_VERSION_DIARDI_V2) {
             if(last_found % 4 == 0 && last_found != 0 && height % 4 == 0) {
               LOG_PRINT_L1("We mined the last diardi block, skipping this one");
-              break;
+              misc_utils::sleep_no_w(300000);
+              continue;
             }
             
             if(height % 4 == 0) {
