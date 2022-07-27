@@ -185,7 +185,9 @@ namespace cryptonote
   bool miner::on_idle()
   {
     m_update_block_template_interval.do_call([&](){
-      if(is_mining())request_block_template();
+      if(is_mining()){
+        request_block_template();
+      }
       return true;
     });
 
@@ -604,7 +606,6 @@ namespace cryptonote
 
       if(check_hash(h, local_diff))
       {
-        //we lucky!
         ++m_config.current_extra_message_index;
         MGINFO_GREEN("Found block " << get_block_hash(b) << " at height " << height << " for difficulty: " << local_diff);
         cryptonote::block_verification_context bvc;

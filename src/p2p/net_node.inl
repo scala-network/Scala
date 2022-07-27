@@ -610,7 +610,6 @@ namespace nodetool
     }
     else if (nettype == cryptonote::STAGENET)
     {
-      full_addrs.insert("46.59.70.196:38080"); /* Thanks EdiZ! */
       full_addrs.insert("46.4.116.181:38080");
     }
     else if (nettype == cryptonote::FAKECHAIN)
