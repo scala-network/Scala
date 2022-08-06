@@ -1312,7 +1312,7 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
 }
 //------------------------------------------------------------------
 // This function validates the miner transaction reward
-bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_block_weight, uint64_t fee, uint64_t& base_reward, uint64_t already_generated_coins, bool &partial_block_reward, uint8_t version)
+bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_block_weight, uint64_t fee, uint64_t& base_reward, uint64_t already_generated_coins, bool &partial_block_reward, uint8_t version, bool &last_diardi_mined)
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
   //validate reward
@@ -1404,6 +1404,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
 
      bool mineLast = check_last_diardi_miner(this, vM, m_nettype);
      if(mineLast == true) {
+      last_diardi_mined = true;
       LOG_PRINT_L1("You're not supposed to mine this block since you mined the last diardi block!");
       return false;
      }
@@ -4106,10 +4107,15 @@ leave:
   TIME_MEASURE_START(vmt);
   uint64_t base_reward = 0;
   uint64_t already_generated_coins = blockchain_height ? m_db->get_block_already_generated_coins(blockchain_height - 1) : 0;
-  if(!validate_miner_transaction(bl, cumulative_block_weight, fee_summary, base_reward, already_generated_coins, bvc.m_partial_block_reward, m_hardfork->get_current_version()))
+  bool last_diardi_mined = false;
+  if(!validate_miner_transaction(bl, cumulative_block_weight, fee_summary, base_reward, already_generated_coins, bvc.m_partial_block_reward, m_hardfork->get_current_version(), last_diardi_mined))
   {
-    MERROR_VER("Block with id: " << id << " has incorrect miner transaction");
-    bvc.m_verifivation_failed = true;
+    if(last_diardi_mined) {
+      bvc.m_last_diardi_mined = true;
+    } else {
+      MERROR_VER("Block with id: " << id << " has incorrect miner transaction");
+      bvc.m_verifivation_failed = true;
+    }
     return_tx_to_pool(txs);
     goto leave;
   }

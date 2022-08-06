@@ -72,6 +72,7 @@ namespace cryptonote
     uint32_t get_threads_count() const;
     void send_stop_signal();
     bool stop();
+    void stop_mining_for(uint64_t seconds);
     bool is_mining() const;
     const account_public_address& get_mining_address() const;
     bool on_idle();

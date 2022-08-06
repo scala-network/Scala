@@ -538,6 +538,15 @@ namespace cryptonote
       MDEBUG("MINING RESUMED");
   }
   //-----------------------------------------------------------------------------------------------------
+  void miner::stop_mining_for(uint64_t seconds)
+  {
+    CRITICAL_REGION_LOCAL(m_miners_count_lock);
+    MGINFO("Mining paused for " << seconds << " seconds, since we mined the last diardi block");
+    ++m_pausers_count;
+    misc_utils::sleep_no_w(seconds * 1000);
+    --m_pausers_count;
+  }
+  //-----------------------------------------------------------------------------------------------------
   bool miner::worker_thread()
   {
     uint32_t th_local_index = boost::interprocess::ipcdetail::atomic_inc32(&m_thread_index);

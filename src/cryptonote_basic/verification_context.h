@@ -60,6 +60,7 @@ namespace cryptonote
   {
     bool m_added_to_main_chain;
     bool m_verifivation_failed; //bad block, should drop connection
+    bool m_last_diardi_mined;
     bool m_marked_as_orphaned;
     bool m_already_exists;
     bool m_partial_block_reward;
