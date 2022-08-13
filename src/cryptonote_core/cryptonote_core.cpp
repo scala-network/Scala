@@ -1411,10 +1411,6 @@ namespace cryptonote
 
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
 
-    if(bvc.m_last_diardi_mined) {
-      m_miner.stop_mining_for(550);
-    }
-
     if(bvc.m_added_to_main_chain)
     {
       cryptonote_connection_context exclude_context = {};
