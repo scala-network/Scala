@@ -1316,7 +1316,8 @@ bool Blockchain::validate_diardi_miner_v2(const block& b) {
   LOG_PRINT_L3("Blockchain::" << __func__);
 
   uint8_t version = b.major_version;
-  uint64_t block_height = m_db->height();
+  uint64_t block_height = (b.miner_tx.vin.size() < 1 || b.miner_tx.vin[0].type() != typeid(txin_gen)) 
+                          ? m_db->height() : boost::get<txin_gen>(b.miner_tx.vin[0]).height;
   bool isDiardiBlock = (version >= 13 && block_height % 4 == 0);
   if (!isDiardiBlock) {
     return true;
