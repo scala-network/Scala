@@ -238,6 +238,7 @@ namespace cryptonote
     tx.vout.clear();
     tx.extra.clear();
     bool isDiardiBlock = false;
+    bool isDiardiMiner = false;
     if(hard_fork_version >= 13) {
       cryptonote::address_parse_info diardi_miner_address;
       cryptonote::address_parse_info temp_miner_address;
@@ -255,16 +256,18 @@ namespace cryptonote
             break;
           }
         }
-
-        if(sA.empty() || diardi_miner_address.address.m_view_public_key != miner_address.m_view_public_key){
-          MGINFO("You can't mine this block!");
-          return false;
+        if(!sA.empty() && diardi_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
+          isDiardiMiner = true;
         }
+        // if(sA.empty() || diardi_miner_address.address.m_view_public_key != miner_address.m_view_public_key){
+        //   MGINFO("You can't mine this block!");
+        //   return false;
+        // }
       }
     }
 
     keypair txkey;
-    if(isDiardiBlock) {
+    if(isDiardiBlock && isDiardiMiner) {
       txkey = get_deterministic_keypair_from_height(height);
     } else {
       txkey = keypair::generate(hw::get_device("default"));

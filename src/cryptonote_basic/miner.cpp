@@ -114,6 +114,7 @@ namespace cryptonote
     m_phandler(phandler),
     m_gbh(gbh),
     m_height(0),
+    m_last_mined(0),
     m_threads_active(0),
     m_pausers_count(0),
     m_threads_total(0),
@@ -609,6 +610,10 @@ namespace cryptonote
         continue;
       }
 
+      if(m_last_mined == height) {
+        continue;
+      }
+
       b.nonce = nonce;
       crypto::hash h;
       m_gbh(b, height, tools::get_max_concurrency(), h);
@@ -616,6 +621,7 @@ namespace cryptonote
       if(check_hash(h, local_diff))
       {
         ++m_config.current_extra_message_index;
+        m_last_mined = height;
         MGINFO_GREEN("Found block " << get_block_hash(b) << " at height " << height << " for difficulty: " << local_diff);
         cryptonote::block_verification_context bvc;
         if(!m_phandler->handle_block_found(b, bvc) || !bvc.m_added_to_main_chain)

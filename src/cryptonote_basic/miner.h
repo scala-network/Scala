@@ -128,6 +128,7 @@ namespace cryptonote
     std::atomic<uint32_t> m_starter_nonce;
     difficulty_type m_diffic;
     uint64_t m_height;
+    uint64_t m_last_mined;
     volatile uint32_t m_thread_index; 
     volatile uint32_t m_threads_total;
     std::atomic<uint32_t> m_threads_active;
