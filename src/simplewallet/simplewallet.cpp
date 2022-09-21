@@ -6246,10 +6246,10 @@ void simple_wallet::check_for_inactivity_lock(bool user)
 {
   if (m_locked)
   {
-#ifdef HAVE_READLINE
-    PAUSE_READLINE();
-    rdln::clear_screen();
-#endif
+    #ifdef HAVE_READLINE
+        PAUSE_READLINE();
+        rdln::clear_screen();
+    #endif
     tools::clear_screen();
     m_in_command = true;
     if (!user)

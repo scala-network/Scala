@@ -15,3 +15,6 @@
 [submodule "external/trezor-common"]
 	path = external/trezor-common
 	url = https://github.com/trezor/trezor-common.git
+[submodule "external/felidae"]
+	path = external/felidae
+	url = https://github.com/scala-network/felidae

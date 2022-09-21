@@ -1305,6 +1305,16 @@ namespace cryptonote
     bool validate_miner_diardiV2(const block& b);
 
     /**
+     * @brief Verifies if the diardi miner for the block is valid
+     *
+     *
+     * @param b the block containing the miner transaction
+     *
+     * @return false if the diardi miner verification fails, otherwise true
+     */
+
+    bool validate_diardi_miner_v2(const block& b);
+    /**
      * @brief validates a miner (coinbase) transaction
      *
      * This function makes sure that the miner calculated his reward correctly

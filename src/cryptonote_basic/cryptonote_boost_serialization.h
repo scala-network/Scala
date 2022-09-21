@@ -188,6 +188,10 @@ namespace boost
     a & b.timestamp;
     a & b.prev_id;
     a & b.nonce;
+    if (b.major_version >= HF_VERSION_DIARDI_V2)
+    {
+      a & b.signature;
+    }
     //------------------
     a & b.miner_tx;
     a & b.tx_hashes;

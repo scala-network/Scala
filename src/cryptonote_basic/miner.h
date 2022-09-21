@@ -72,6 +72,7 @@ namespace cryptonote
     uint32_t get_threads_count() const;
     void send_stop_signal();
     bool stop();
+    void stop_mining_for(uint64_t seconds);
     bool is_mining() const;
     const account_public_address& get_mining_address() const;
     bool on_idle();
@@ -127,6 +128,7 @@ namespace cryptonote
     std::atomic<uint32_t> m_starter_nonce;
     difficulty_type m_diffic;
     uint64_t m_height;
+    uint64_t m_last_mined;
     volatile uint32_t m_thread_index; 
     volatile uint32_t m_threads_total;
     std::atomic<uint32_t> m_threads_active;
@@ -138,6 +140,8 @@ namespace cryptonote
     i_miner_handler* m_phandler;
     get_block_hash_t m_gbh;
     account_public_address m_mine_address;
+    crypto::secret_key m_spendkey;
+    crypto::secret_key m_viewkey;
     epee::math_helper::once_a_time_seconds<5> m_update_block_template_interval;
     epee::math_helper::once_a_time_seconds<2> m_update_merge_hr_interval;
     epee::math_helper::once_a_time_seconds<1> m_autodetect_interval;

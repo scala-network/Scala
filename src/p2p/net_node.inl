@@ -605,18 +605,19 @@ namespace nodetool
     if (nettype == cryptonote::TESTNET)
     {
       /* Wanna be a testnet node seed? Contact hayzam on discord */
-      full_addrs.insert("65.21.221.7:22821"); /* Scala's Official Testnet node */
+      full_addrs.insert("65.21.221.2:22821"); /* Scala's Official Testnet node */
       full_addrs.insert("46.4.116.181:22821"); /* Hayzam's Node */
     }
     else if (nettype == cryptonote::STAGENET)
-    {}
+    {
+      full_addrs.insert("46.4.116.181:38080");
+    }
     else if (nettype == cryptonote::FAKECHAIN)
     {}
     else
     {
-      full_addrs.insert("135.181.166.156:11811"); /* Scala Official Seed */
-      full_addrs.insert("51.79.146.20:11811");
-      full_addrs.insert("46.4.116.181:11811"); /* Hayzam's Node */
+      full_addrs.insert("135.181.166.155:11811"); /* Scala Official Seed */
+      full_addrs.insert("51.79.146.20:11811"); /* Remote Four */
     }
     return full_addrs;
   }

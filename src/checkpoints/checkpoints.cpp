@@ -208,15 +208,13 @@ namespace cryptonote
         LOG_ERROR("Failed to download checkpoints from diardi");
       }
     }
-
     if (nettype == TESTNET)
     {
-      ADD_CHECKPOINT(0, "eb093694aef3a0fba15e64ff70260d04b65dfbf7b198e54936e99c9151c53e72");
-      ADD_CHECKPOINT(20, "b4892b84f5e99d5f9997ee616d0f6f2505994bb33bd82f36b56ad4dbae50b78a");
-      ADD_CHECKPOINT(40, "f101deeffe6fdff8ab824ecb2eb2634c7385031ab136dcb697186294cde330f2");
+      ADD_CHECKPOINT(0,"eb093694aef3a0fba15e64ff70260d04b65dfbf7b198e54936e99c9151c53e72");
+      ADD_CHECKPOINT(5,"3be192a55b3b4d7896d1a07fdebb04634f5cce85f6b9536cf4353c35c087cfb0");
+      ADD_CHECKPOINT(15,"ff2d2f5ffe5ef3443ff9d6f5330bff05f03cdd8de2ba6e54fc01110d0fa2b9a5");
       return true;
     }
-
     if (nettype == STAGENET)
     {
       return true;

@@ -278,6 +278,7 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::b
   INSERT_INTO_JSON_OBJECT(dest, timestamp, b.timestamp);
   INSERT_INTO_JSON_OBJECT(dest, prev_id, b.prev_id);
   INSERT_INTO_JSON_OBJECT(dest, nonce, b.nonce);
+  INSERT_INTO_JSON_OBJECT(dest, signature, b.signature);
   INSERT_INTO_JSON_OBJECT(dest, miner_tx, b.miner_tx);
   INSERT_INTO_JSON_OBJECT(dest, tx_hashes, b.tx_hashes);
 
@@ -297,6 +298,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::block& b)
   GET_FROM_JSON_OBJECT(val, b.timestamp, timestamp);
   GET_FROM_JSON_OBJECT(val, b.prev_id, prev_id);
   GET_FROM_JSON_OBJECT(val, b.nonce, nonce);
+  GET_FROM_JSON_OBJECT(val, b.signature, signature);
   GET_FROM_JSON_OBJECT(val, b.miner_tx, miner_tx);
   GET_FROM_JSON_OBJECT(val, b.tx_hashes, tx_hashes);
 }

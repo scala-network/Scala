@@ -175,6 +175,7 @@
 #define HF_VERSION_REJECT_SIGS_IN_COINBASE      12
 #define HF_VERSION_ENFORCE_MIN_AGE              12
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 12
+#define HF_VERSION_DIARDI_V2                    13 
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        8
 
@@ -244,7 +245,7 @@ namespace config
     uint16_t const RPC_DEFAULT_PORT = 22822;
     uint16_t const ZMQ_RPC_DEFAULT_PORT = 22823;
     boost::uuids::uuid const NETWORK_ID = {{
-                0x12 ,0x30, 0xEA, 0x71 , 0x61, 0xEA , 0x41, 0xFB, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x11
+                0x12 ,0x30, 0xEA, 0xFB , 0x61, 0xEA , 0x41, 0xFB, 0x17, 0xA1, 0xEA, 0x82, 0x16, 0xA1, 0xA1, 0xA1
     }}; // Bender's daydream
 
     std::string const GENESIS_TX =

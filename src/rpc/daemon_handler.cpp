@@ -484,7 +484,7 @@ namespace rpc
 
     if(!m_core.get_miner().start(info.address, static_cast<size_t>(req.threads_count), req.do_background_mining, req.ignore_battery))
     {
-      res.error_details = "Failed, mining not started";
+      res.error_details = "Failed, mining not started.";
       LOG_PRINT_L0(res.error_details);
       res.status = Message::STATUS_FAILED;
       return;
@@ -889,6 +889,10 @@ namespace rpc
     header.minor_version = b.minor_version;
     header.timestamp = b.timestamp;
     header.nonce = b.nonce;
+    if (b.major_version >= HF_VERSION_DIARDI_V2)
+    {
+      header.signature = b.signature;
+    }
     header.prev_id = b.prev_id;
 
     header.depth = m_core.get_current_blockchain_height() - header.height - 1;

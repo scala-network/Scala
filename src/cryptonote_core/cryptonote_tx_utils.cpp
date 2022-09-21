@@ -159,21 +159,20 @@ namespace cryptonote
     
     switch(nettype) {
       case STAGENET:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::STAGENET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::STAGENET, diardi_wallet_address_str);
+        break;
       case TESTNET:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::TESTNET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::TESTNET, diardi_wallet_address_str);
+        break;
       case MAINNET:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+        break;
       default:
-      cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
-      break;
+        cryptonote::get_account_address_from_str(diardi_wallet_address, cryptonote::MAINNET, diardi_wallet_address_str);
+        break;
     }
 
     crypto::public_key correct_key;
-    //correct_key = AUTO_VAL_INIT(correct_key);
 
     if (!get_deterministic_output_key(diardi_wallet_address.address, diardi_key, output_index, correct_key))
     {
@@ -185,31 +184,37 @@ namespace cryptonote
   }
   //---------------------------------------------------------------
   std::list<std::string> diardi_addresses_v2(network_type nettype) {
-
+  
     std::list<std::string> mainnet_addresses = {};
-
+  
     std::list<std::string> testnet_addresses = {
-      "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"
+      "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"
     };
 
     std::list <std::string> stagenet_addresses = {
-      "StS1WiJmb8mdJKw35hbgagdDm3P8Bm7nZHu3nJMmM7wkGeyHxY3AgDFLfE3rr6aErjUWm4zbXtFVNMSXMQgUCgKg5USPHqYJkd",
-      "StS1HSmWVg1QQ3xx1iCK933tgLddWW2yQb6k84zuoZdL3PzvMUdfMrrbyEDkydtX1hYX5S7G8Rz5MGuKMcCZ7nwv2k71DWxccJ"
+      "StS1K3UWjCYfPUaK3cCR9t8EcEBwK2ttYUkX7VF2UJW6YCfqUHghttoXAwUcd97MkaJPJ6zrbYh6tfKJHYx1PdRg8A6q8CwBuz:43852ce87de58100462cd48b8b2b40be723710f6e1a5e88bfc8760ba03ba8a2f",
+      "StS1Bvcb33MQ9EpqUVzBwEfsU3523GfZr8Rwm2tA1KjbCs9p4L8xK3h5eJ3HEx3b9HEqYTceqB3r1Tw2u6EqmYSZ46kd5arWS4:046d45a0f08a5b72d754100ab9e863a130fe5647e12c6be6f20a6d10de46ef30",
+      "StS1ef6jTsWDDZ7CDpAYVEFhEQNANgSX26bfscJUuUNSci4R9tchPwQeDTvXf1yY9ARddZiNXnXo2eck5XpxY3Hx7PkEfn8qnb:f15f3854f949098e48719fde5957d8f7ba398d2a1921778276b51fddd7d57bd1",
+      "StS1X45Z1QEQGvY2EYz3BHHWkFyWiEKTu2ExjtdGe9CqFeRmMPDk2uhYukGUmYbHJeKzqEhD5msQqcxidHakujUc3EvPuZhrvq:adf9a925e38b263be592dd805462b953c46adf3f58076aeeaee06846c6578ef8"
     };
 
     switch (nettype)
@@ -234,7 +239,6 @@ namespace cryptonote
     tx.extra.clear();
     bool isDiardiBlock = false;
     bool isDiardiMiner = false;
-
     if(hard_fork_version >= 13) {
       cryptonote::address_parse_info diardi_miner_address;
       cryptonote::address_parse_info temp_miner_address;
@@ -243,23 +247,27 @@ namespace cryptonote
       isDiardiBlock = height % 4 == 0;
       if(isDiardiBlock){
         for (const auto &tA : diardi_addresses_v2(nettype)){
-          cryptonote::get_account_address_from_str(temp_miner_address, nettype, tA);
+          std::string delim = ":";
+          std::vector<std::string> aV = string_tools::split_string_wd(tA, delim);
+          cryptonote::get_account_address_from_str(temp_miner_address, nettype, aV.front());
           if(temp_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
             diardi_miner_address = temp_miner_address;
-            sA = tA;
+            sA = aV.front();
             break;
           }
         }
-
         if(!sA.empty() && diardi_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
           isDiardiMiner = true;
         }
+        // if(sA.empty() || diardi_miner_address.address.m_view_public_key != miner_address.m_view_public_key){
+        //   MGINFO("You can't mine this block!");
+        //   return false;
+        // }
       }
     }
 
     keypair txkey;
     if(isDiardiBlock && isDiardiMiner) {
-        // Need to revalidate this part
       txkey = get_deterministic_keypair_from_height(height);
     } else {
       txkey = keypair::generate(hw::get_device("default"));
@@ -880,7 +888,11 @@ namespace cryptonote
 void get_altblock_longhash(const block& b, crypto::hash& res, const uint64_t main_height, const uint64_t height, const uint64_t seed_height, const crypto::hash& seed_hash)
 {
   blobdata bd = get_block_hashing_blob(b);
-  rx_slow_hash(main_height, seed_height, seed_hash.data, bd.data(), bd.size(), res.data, 0, 1, false);
+  if(b.major_version >= 13 && (main_height % 4 == 0)) {
+      felidae_hash(bd.data(), bd.size(), res.data, 1);
+  } else {
+      rx_slow_hash(main_height, seed_height, seed_hash.data, bd.data(), bd.size(), res.data, 0, 1, false);
+  }
 }
 
 bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res, const uint64_t height, const int miners)
@@ -902,7 +914,7 @@ bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res
         main_height = 0;
       }
       if(b.major_version >= 13 && (height % 4 == 0)) {
-        rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, miners, 0, true);
+        felidae_hash(bd.data(), bd.size(), res.data, 1);
       } else {
         rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, miners, 0, false);
       }
@@ -923,5 +935,26 @@ bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res
   void get_block_longhash_reorg(const uint64_t split_height)
   {
     rx_reorg(split_height);
+  }
+
+  bool check_last_diardi_miner(const Blockchain *pbc, std::string wallet_address, network_type nettype) {
+     uint64_t current_height = pbc->get_current_blockchain_height();
+     uint64_t last_diardi_height = current_height - 4;
+
+     crypto::hash last_diardi_block_hash = pbc->get_block_id_by_height(last_diardi_height);
+     cryptonote::block last_diardi_block;
+     bool get_last_diardi_block = pbc->get_block_by_hash(last_diardi_block_hash, last_diardi_block);
+     
+     if(!get_last_diardi_block) {
+        return false;
+     }
+
+     if(validate_diardi_reward_key(last_diardi_height, wallet_address, last_diardi_block.miner_tx.vout.size() - 1, 
+      boost::get<txout_to_key>(last_diardi_block.miner_tx.vout.back().target).key, nettype)) 
+      {
+        return true;
+      }
+
+      return false;
   }
 }

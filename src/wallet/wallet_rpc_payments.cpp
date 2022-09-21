@@ -147,7 +147,7 @@ bool wallet2::search_for_rpc_payment(uint64_t credits_target, const std::functio
     {
       const int miners = 1;
       if(major_version >= 13 && (height % 4 == 0)) {
-        crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, miners, 0, true);
+       crypto::felidae_hash(hashing_blob.data(), hashing_blob.size(), hash.data, 1);
       } else {
         crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, miners, 0, false);
       }

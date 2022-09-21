@@ -322,24 +322,6 @@ namespace cryptonote {
     return next_difficulty;
   }
 
-  difficulty_type get_diardi_difficulty(uint64_t version) {
-      uint64_t next_diff;
-
-      if(version <= 12) {
-        next_diff = 0;
-      }
-
-      else if(version > 12) {
-        next_diff = 288000;
-      }
-
-      else {
-        next_diff = 10000000;
-      }
-
-      return static_cast<difficulty_type>(next_diff);
-  }
-
   std::string hex(difficulty_type v)
   {
     static const char chars[] = "0123456789abcdef";

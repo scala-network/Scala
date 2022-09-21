@@ -24,8 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include "string_tools.h"
-
+#include <vector>
 #include <ctype.h>
 
 #ifdef _WIN32
@@ -34,6 +33,8 @@
 # include <arpa/inet.h>
 # include <netinet/in.h>
 #endif
+
+#include "string_tools.h"
 
 namespace epee
 {
@@ -49,6 +50,13 @@ namespace string_tools
     else
       return "[failed]";
   }
+
+  std::vector<std::string> split_string_wd(const std::string str_, const std::string delim_) {
+    std::vector<std::string> results;
+    boost::algorithm::split(results, str_, boost::is_any_of(delim_));
+    return results;
+  }
+
   //----------------------------------------------------------------------------
   bool get_ip_int32_from_string(uint32_t& ip, const std::string& ip_str)
   {

@@ -37,6 +37,7 @@
 #include <limits.h>
 
 #include "randomx.h"
+#include "felidae.h"
 #include "c_threads.h"
 #include "hash-ops.h"
 #include "misc_log_ex.h"
@@ -344,8 +345,11 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
     CTHR_MUTEX_UNLOCK(rx_sp->rs_mutex);
 }
 
-void rx_slow_hash_allocate_state(void) {
+void felidae_hash(const void *data, size_t length, char *hash, size_t extra_iterations) {
+  felidae_calculate_hash(data, length, hash, extra_iterations);
 }
+
+void rx_slow_hash_allocate_state(void) {}
 
 void rx_slow_hash_free_state(void) {
   if (rx_vm != NULL) {

@@ -53,8 +53,8 @@
 
 #undef SCALA_DEFAULT_LOG_CATEGORY
 #define SCALA_DEFAULT_LOG_CATEGORY "wallet.simplewallet"
-// Hardcode Scala's donation address (see #1447)
-constexpr const char SCALA_DONATION_ADDR[] = "44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A";
+// Hardcode Scala's donation address (see https://wiki.scalaproject.io/general/funding)
+constexpr const char SCALA_DONATION_ADDR[] = "SvkzckfVpUSWuSG4VS4WCL9KMTh39krgk6SLwVGLkZufh83ET8JjZ3yidaoURyHgLFDhFZEPPY12cHqYySVoV2x62XvMtJii5";
 
 /*!
  * \namespace cryptonote

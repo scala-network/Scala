@@ -832,17 +832,8 @@ difficulty_type Blockchain::get_difficulty_for_next_block() {
 }
 difficulty_type Blockchain::get_difficulty_for_next_blockV2(bool isDiardiMiner)
 {
-
   uint64_t current_height = m_db->height();
   uint8_t hard_fork_version = get_ideal_hard_fork_version(current_height);
-  bool isDiardiBlock = (current_height % 4 == 0) && hard_fork_version > 12;
-  if(isDiardiBlock && isDiardiMiner) {
-    difficulty_type diardi_difficulty = get_diardi_difficulty(hard_fork_version);
-    if(diardi_difficulty != 0) {
-      return diardi_difficulty;
-    }
-  }
-
   if (m_fixed_difficulty)
   {
     return m_db->height() ? m_fixed_difficulty : 1;
@@ -868,16 +859,21 @@ difficulty_type Blockchain::get_difficulty_for_next_blockV2(bool isDiardiMiner)
   top_hash = get_tail_id(height); // get it again now that we have the lock
   ++height; // top block height to blockchain height
 
-  // Reset network hashrate to 1.0 MH/s when V7 goes live
+  // Mainnet will start with 1 MH/s
   if (m_nettype == MAINNET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
     return (difficulty_type)120000000;
   }
 
-  // ND: Speedup
-  // 1. Keep a list of the last 735 (or less) blocks that is used to compute difficulty,
-  //    then when the next block difficulty is queried, push the latest height data and
-  //    pop the oldest one from the list. This only requires 1x read per height instead
-  //    of doing 735 (DIFFICULTY_BLOCKS_COUNT).
+  // Stagenet will start with difficulty of 1 KH/s
+  if (m_nettype == STAGENET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
+    return (difficulty_type)40000;
+  }
+
+  // Testnet will start with difficulty of 16 KH/s
+  if (m_nettype == TESTNET && (uint64_t)height >= 20 && (uint64_t)height <= 20 + (uint64_t)DIFFICULTY_BLOCKS_COUNT){
+    return (difficulty_type)1920000;
+  }
+
   if (m_timestamps_and_difficulties_height != 0 && ((height - m_timestamps_and_difficulties_height) == 1) && m_timestamps.size() >= DIFFICULTY_BLOCKS_COUNT)
   {
     uint64_t index = height - 1;
@@ -911,11 +907,11 @@ difficulty_type Blockchain::get_difficulty_for_next_blockV2(bool isDiardiMiner)
       timestamps.push_back(m_db->get_block_timestamp(offset));
       difficulties.push_back(m_db->get_block_cumulative_difficulty(offset));
     }
-
     m_timestamps_and_difficulties_height = height;
     m_timestamps = timestamps;
     m_difficulties = difficulties;
   }
+  
   size_t target = get_difficulty_target();
   difficulty_type diff = next_difficulty(timestamps, difficulties, target);
 
@@ -1273,6 +1269,18 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
 //   a non-overflowing tx amount (dubious necessity on this check)
 bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, uint8_t hf_version)
 {
+  if (b.miner_tx.vout.size() != 1 && hf_version >= HF_VERSION_DIARDI_V2)
+  {
+    MWARNING("Only 1 output in miner transaction allowed");
+    return false;
+  }
+  
+  if (b.miner_tx.vout[0].target.type() != typeid(txout_to_key))
+  {
+          MWARNING("Wrong txout type");
+          return false;
+  }
+
   LOG_PRINT_L3("Blockchain::" << __func__);
   CHECK_AND_ASSERT_MES(b.miner_tx.vin.size() == 1, false, "coinbase transaction in the block has no inputs");
   CHECK_AND_ASSERT_MES(b.miner_tx.vin[0].type() == typeid(txin_gen), false, "coinbase transaction in the block has the wrong type");
@@ -1299,6 +1307,69 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
   if(!check_outs_overflow(b.miner_tx))
   {
     MERROR("miner transaction has money overflow in block " << get_block_hash(b));
+    return false;
+  }
+
+  return true;
+}
+
+//------------------------------------------------------------------
+bool Blockchain::validate_diardi_miner_v2(const block& b) {
+  LOG_PRINT_L3("Blockchain::" << __func__);
+
+  uint8_t version = b.major_version;
+  uint64_t block_height = (b.miner_tx.vin.size() < 1 || b.miner_tx.vin[0].type() != typeid(txin_gen)) 
+                          ? m_db->height() : boost::get<txin_gen>(b.miner_tx.vin[0]).height;
+  bool isDiardiBlock = (version >= 13 && block_height % 4 == 0);
+  if (!isDiardiBlock) {
+    return true;
+  }
+
+  std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+  std::string vM;
+  std::string vMpS;
+
+  for(auto const& sM : diardi_miners_list) {
+    std::string delim = ":";
+    std::vector<std::string> aV = epee::string_tools::split_string_wd(sM, delim);
+    public_key pKey = boost::get<txout_to_key>(b.miner_tx.vout.back().target).key;
+    if(validate_diardi_reward_key(block_height, aV.front(), b.miner_tx.vout.size() - 1, pKey, m_nettype)) 
+    {
+      vM = aV.front();
+      vMpS = aV.back();
+      break;
+    }
+  }
+
+  if(vM.empty()) {
+    LOG_PRINT_L1("Diardi v2 reward public key incorrect (Address is not valid)");
+    return false;
+  }
+
+  crypto::hash sig_data = get_sig_data(block_height);
+  crypto::signature signature = b.signature;
+  crypto::public_key o_pspendkey;
+
+  epee::string_tools::hex_to_pod(vMpS, o_pspendkey);
+
+  if (!crypto::check_signature(sig_data, o_pspendkey, signature)) {
+      LOG_PRINT_L1("Diardi v2 miner signature incorrect");
+      return false;
+  }
+
+  uint64_t pDh = block_height - 4;
+  crypto::hash oDh = m_db->get_block_hash_from_height(pDh);
+  cryptonote::block oDb;
+  bool oOb = false;
+  bool getOldBlock = get_block_by_hash(oDh, oDb, &oOb);
+
+  if(!getOldBlock) {
+    LOG_PRINT_L1("Diardi v2 reward block not found");
+    return false;
+  }
+
+  if(check_last_diardi_miner(this, vM, m_nettype)) {
+    LOG_PRINT_L1("Same public key mined 4 blocks ago");
     return false;
   }
 
@@ -1413,10 +1484,6 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
       }
     }
   }
-  if(!validate_miner_diardiV2(b)) {
-    MERROR_VER("Diardi checking failed");
-  }
-    
   if(base_reward + fee < money_in_use)
   {
     MERROR_VER("coinbase transaction spend too much money (" << print_money(money_in_use) << "). Block reward is " << print_money(base_reward + fee) << "(" << print_money(base_reward) << "+" << print_money(fee) << "), cumulative_block_weight " << cumulative_block_weight);
@@ -1721,6 +1788,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   uint8_t hf_version = b.major_version;
   size_t max_outs = hf_version >= 4 ? 1 : 11;
   bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
+  
   CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, first chance");
   size_t cumulative_weight = txs_weight + get_transaction_weight(b.miner_tx);
 #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
@@ -1947,24 +2015,28 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     memset(proof_of_work.data, 0xff, sizeof(proof_of_work.data));
     if (b.major_version >= RX_BLOCK_VERSION)
     {
-      crypto::hash seedhash = null_hash;
-      uint64_t seedheight = rx_seedheight(bei.height);
-      // seedblock is on the alt chain somewhere
-      if (alt_chain.size() && alt_chain.front().height <= seedheight)
-      {
-        for (auto it=alt_chain.begin(); it != alt_chain.end(); it++)
+      if(b.major_version < 13 || (b.major_version >= 13 && (bei.height % 4 != 0))) {
+        crypto::hash seedhash = null_hash;
+        uint64_t seedheight = rx_seedheight(bei.height);
+        // seedblock is on the alt chain somewhere
+        if (alt_chain.size() && alt_chain.front().height <= seedheight)
         {
-          if (it->height == seedheight+1)
+          for (auto it=alt_chain.begin(); it != alt_chain.end(); it++)
           {
-            seedhash = it->bl.prev_id;
-            break;
+            if (it->height == seedheight+1)
+            {
+              seedhash = it->bl.prev_id;
+              break;
+            }
           }
+        } else
+        {
+          seedhash = get_block_id_by_height(seedheight);
         }
-      } else
-      {
-        seedhash = get_block_id_by_height(seedheight);
+        get_altblock_longhash(bei.bl, proof_of_work, get_current_blockchain_height(), bei.height, seedheight, seedhash);
+      } else {
+        get_block_longhash(this, bei.bl, proof_of_work, bei.height, 0);
       }
-      get_altblock_longhash(bei.bl, proof_of_work, get_current_blockchain_height(), bei.height, seedheight, seedhash);
     } else
     {
       get_block_longhash(this, bei.bl, proof_of_work, bei.height, 0);
@@ -4364,7 +4436,8 @@ bool Blockchain::add_new_block(const block& bl, block_verification_context& bvc)
     return false;
   }
 
-  if(!validate_miner_diardiV2(bl)) {
+  if(!validate_diardi_miner_v2(bl)) {
+    LOG_PRINT_L1("Diardi validation failed for block with id <" << id << ">");
     bvc.m_added_to_main_chain = false;
     m_blocks_txs_check.clear();
     return true;
