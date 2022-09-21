@@ -616,9 +616,8 @@ namespace nodetool
     {}
     else
     {
-      full_addrs.insert("135.181.166.156:11811"); /* Scala Official Seed */
-      full_addrs.insert("51.79.146.20:11811");
-      full_addrs.insert("46.4.116.181:11811"); /* Hayzam's Node */
+      full_addrs.insert("135.181.166.155:11811"); /* Scala Official Seed */
+      full_addrs.insert("51.79.146.20:11811"); /* Remote Four */
     }
     return full_addrs;
   }
