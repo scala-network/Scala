@@ -1802,13 +1802,17 @@ namespace cryptonote
       return false;
     }
 
+
     block_verification_context bvc;
     if(!m_core.handle_block_found(b, bvc))
     {
       error_resp.code = CORE_RPC_ERROR_CODE_BLOCK_NOT_ACCEPTED;
       error_resp.message = "Block not accepted";
       return false;
-    }
+    } 
+
+
+
     res.status = CORE_RPC_STATUS_OK;
     return true;
   }

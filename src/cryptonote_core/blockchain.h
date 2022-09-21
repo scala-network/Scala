@@ -309,6 +309,7 @@ namespace cryptonote
      * @return the target
      */
     difficulty_type get_difficulty_for_next_block();
+    difficulty_type get_difficulty_for_next_blockV2(bool isDiardiMiner);
 
     /**
      * @brief check currently stored difficulties against difficulty checkpoints
@@ -1301,6 +1302,7 @@ namespace cryptonote
      * @return false if anything is found wrong with the miner transaction, otherwise true
      */
     bool prevalidate_miner_transaction(const block& b, uint64_t height, uint8_t hf_version);
+    bool validate_miner_diardiV2(const block& b);
 
     /**
      * @brief Verifies if the diardi miner for the block is valid

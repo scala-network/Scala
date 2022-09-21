@@ -1384,6 +1384,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool core::handle_block_found(block& b, block_verification_context &bvc)
   {
+
     bvc = {};
     m_miner.pause();
     std::vector<block_complete_entry> blocks;
@@ -1403,12 +1404,14 @@ namespace cryptonote
       m_miner.resume();
       return false;
     }
+
+
+
     m_blockchain_storage.add_new_block(b, bvc);
     cleanup_handle_incoming_blocks(true);
     //anyway - update miner template
     update_miner_block_template();
     m_miner.resume();
-
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
 
     if(bvc.m_added_to_main_chain)
