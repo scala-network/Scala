@@ -17,25 +17,7 @@ namespace cryptonote {
 
     Diardi::Diardi() {}
 
-    std::string Diardi::get_checkpoints_location(network_type nettype) {
-        std::string path;
-        std::string default_directory = tools::get_default_data_dir();
-
-        if(nettype == MAINNET) {
-            path = default_directory + "/" + "checkpoints.json";
-        } else if(nettype == TESTNET) {
-            path = default_directory + "/testnet/" + "checkpoints.json";
-        } else if(nettype == STAGENET) {
-            path = default_directory + "/stagenet/" + "checkpoints.json";
-        } else {
-            throw std::runtime_error("Invalid network type");
-        }
-
-        return path;
-    }
-
-    bool Diardi::get_checkpoints(network_type nettype) {
-        std::string checkpoint_location = get_checkpoints_location(nettype);
+    bool Diardi::get_checkpoints(network_type nettype, std::string checkpoint_location) {
         if (boost::filesystem::exists(checkpoint_location)) {
             boost::filesystem::remove_all(checkpoint_location);
         }

@@ -58,6 +58,7 @@
 #include "checkpoints/checkpoints.h"
 #include "cryptonote_basic/hardfork.h"
 #include "blockchain_db/blockchain_db.h"
+#include "diardi/diardi.h"
 
 namespace tools { class Notify; }
 
@@ -744,7 +745,7 @@ namespace cryptonote
      *
      * @return false if any enforced checkpoint type fails to load, otherwise true
      */
-    bool update_checkpoints(const std::string& file_path, bool check_dns);
+    bool update_checkpoints(const std::string& file_path, bool check_dns, bool ipfs = false);
 
 
     // user options, must be called before calling init()
