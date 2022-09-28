@@ -280,12 +280,12 @@ namespace cryptonote
       m_last_json_checkpoints_update = time(NULL);
       m_last_ipfs_checkpoints_update = time(NULL);
     }
-    else if (time(NULL) - m_last_json_checkpoints_update >= 2400)
+    else if (time(NULL) - m_last_json_checkpoints_update >= 86400)
     {
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, false);
       m_last_json_checkpoints_update = time(NULL);
     }
-    else if(time(NULL) - m_last_ipfs_checkpoints_update >= 2200)
+    else if(time(NULL) - m_last_ipfs_checkpoints_update >= 10800)
     {
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, false, true);
       m_last_ipfs_checkpoints_update = time(NULL);

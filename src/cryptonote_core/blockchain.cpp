@@ -4509,6 +4509,11 @@ bool Blockchain::update_checkpoints(const std::string& file_path, bool check_dns
     {
       LOG_PRINT_L1("Failed to download checkpoints from diardi");
     }
+
+    if (!m_checkpoints.load_checkpoints_from_json(file_path))
+    {
+      LOG_PRINT_L1("Failed to parse checkpoints from IPFS");
+    }
   }
 
   if (!m_checkpoints.load_checkpoints_from_json(file_path))
