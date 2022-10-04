@@ -4504,7 +4504,7 @@ void Blockchain::check_against_checkpoints(const checkpoints& points, bool enfor
 bool Blockchain::update_checkpoints(const std::string& file_path, bool check_dns, bool ipfs)
 {
   if(ipfs) {
-    LOG_PRINT_L0("Downloading checkpoints from IPFS might take a while... ");
+    LOG_PRINT_L1("Downloading checkpoints from IPFS might take a while... ");
     if (!diardi_.get_checkpoints(m_nettype, file_path))
     {
       LOG_PRINT_L1("Failed to download checkpoints from diardi");
