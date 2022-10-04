@@ -285,7 +285,7 @@ namespace cryptonote
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, false);
       m_last_json_checkpoints_update = time(NULL);
     }
-    else if(time(NULL) - m_last_ipfs_checkpoints_update >= 10800)
+    else if(time(NULL) - m_last_ipfs_checkpoints_update >= 2700)
     {
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, false, true);
       m_last_ipfs_checkpoints_update = time(NULL);

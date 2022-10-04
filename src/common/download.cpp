@@ -187,7 +187,7 @@ namespace tools
       uint16_t port = u_c.port ? u_c.port : ssl == epee::net_utils::ssl_support_t::e_ssl_support_enabled ? 443 : 80;
       MDEBUG("Connecting to " << u_c.host << ":" << port);
       client.set_server(u_c.host, std::to_string(port), boost::none, ssl);
-      if (!client.connect(std::chrono::seconds(30)))
+      if (!client.connect(std::chrono::seconds(5)))
       {
         boost::lock_guard<boost::mutex> lock(control->mutex);
         MERROR("Failed to connect to " << control->uri);
@@ -203,7 +203,7 @@ namespace tools
         MDEBUG("Asking for range: " << range);
         fields.push_back(std::make_pair("Range", range));
       }
-      if (!client.invoke_get(u_c.uri, std::chrono::seconds(30), "", &info, fields))
+      if (!client.invoke_get(u_c.uri, std::chrono::seconds(5), "", &info, fields))
       {
         boost::lock_guard<boost::mutex> lock(control->mutex);
         MERROR("Failed to connect to " << control->uri);
