@@ -234,6 +234,7 @@ namespace cryptonote
               m_checkpoints_path(""),
               m_last_dns_checkpoints_update(0),
               m_last_json_checkpoints_update(0),
+              m_last_ipfs_checkpoints_update(0),
               m_disable_dns_checkpoints(false),
               m_update_download(0),
               m_nettype(UNDEFINED),
@@ -277,11 +278,17 @@ namespace cryptonote
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, true);
       m_last_dns_checkpoints_update = time(NULL);
       m_last_json_checkpoints_update = time(NULL);
+      m_last_ipfs_checkpoints_update = time(NULL);
     }
-    else if (time(NULL) - m_last_json_checkpoints_update >= 600)
+    else if (time(NULL) - m_last_json_checkpoints_update >= 86400)
     {
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, false);
       m_last_json_checkpoints_update = time(NULL);
+    }
+    else if(time(NULL) - m_last_ipfs_checkpoints_update >= 2700)
+    {
+      res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, false, true);
+      m_last_ipfs_checkpoints_update = time(NULL);
     }
 
     m_checkpoints_updating.clear();

@@ -53,6 +53,7 @@ scala_add_library(cryptonote_core
 target_link_libraries(cryptonote_core
   PUBLIC
     version
+    diardi
     common
     cncrypto
     blockchain_db

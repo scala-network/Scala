@@ -87,6 +87,8 @@ DISABLE_VS_WARNINGS(4267)
 // used to overestimate the block reward when estimating a per kB to use
 #define BLOCK_REWARD_OVERESTIMATE (10 * 1000000000000)
 
+Diardi diardi_;
+
 //------------------------------------------------------------------
 Blockchain::Blockchain(tx_memory_pool& tx_pool) :
   m_db(), m_tx_pool(tx_pool), m_hardfork(NULL), m_timestamps_and_difficulties_height(0), m_current_block_cumul_weight_limit(0), m_current_block_cumul_weight_median(0),
@@ -4499,8 +4501,21 @@ void Blockchain::check_against_checkpoints(const checkpoints& points, bool enfor
 // returns false if any of the checkpoints loading returns false.
 // That should happen only if a checkpoint is added that conflicts
 // with an existing checkpoint.
-bool Blockchain::update_checkpoints(const std::string& file_path, bool check_dns)
+bool Blockchain::update_checkpoints(const std::string& file_path, bool check_dns, bool ipfs)
 {
+  if(ipfs) {
+    LOG_PRINT_L1("Downloading checkpoints from IPFS might take a while... ");
+    if (!diardi_.get_checkpoints(m_nettype, file_path))
+    {
+      LOG_PRINT_L1("Failed to download checkpoints from diardi");
+    }
+
+    if (!m_checkpoints.load_checkpoints_from_json(file_path))
+    {
+      LOG_PRINT_L1("Failed to parse checkpoints from IPFS");
+    }
+  }
+
   if (!m_checkpoints.load_checkpoints_from_json(file_path))
   {
       return false;

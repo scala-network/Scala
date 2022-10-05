@@ -36,7 +36,6 @@
 #include "cryptonote_config.h"
 #include "net/http_client.h"
 #include "cryptonote_basic/difficulty.h"
-#include "diardi/diardi.h"
 
 #define ADD_CHECKPOINT(h, hash)  CHECK_AND_ASSERT(add_checkpoint(h,  hash), false);
 #define ADD_CHECKPOINT_2(h, hash, difficulty)  CHECK_AND_ASSERT(add_checkpoint(h,  hash, difficulty), false);

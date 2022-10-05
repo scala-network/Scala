@@ -84,8 +84,6 @@ namespace cryptonote
         END_KV_SERIALIZE_MAP()
   };
 
-  Diardi diardi_;
-
   //---------------------------------------------------------------------------
   checkpoints::checkpoints()
   {
@@ -200,25 +198,22 @@ namespace cryptonote
   bool checkpoints::init_default_checkpoints(network_type nettype)
   {
     if(nettype == MAINNET) {
-      MGINFO("Downloading checkpoints from IPFS might take a while...");
-      bool downloadCompleted = diardi_.get_checkpoints(nettype);
-
-      if (!downloadCompleted)
-      {
-        LOG_ERROR("Failed to download checkpoints from diardi");
-      }
+      ADD_CHECKPOINT(0, "3fa5c8976978f52ad7d8fc3663e902a229a232ef987fc11ca99628366652ba99");
+      ADD_CHECKPOINT(100, "61e49040154df814f90ff106dae115d79a0dc54480278de605f016f6451ce3b0");
+      ADD_CHECKPOINT(1000, "f0610f14129ca53cf4812334ddd8ae6bbec459113367a853adc36c163fab5cd2");
+      ADD_CHECKPOINT(10000, "4a220652f8fb723d1d627022b2fd556132d51915ad4f78964fda4ec071b89504");
     }
+
     if (nettype == TESTNET)
     {
       ADD_CHECKPOINT(0,"eb093694aef3a0fba15e64ff70260d04b65dfbf7b198e54936e99c9151c53e72");
       ADD_CHECKPOINT(5,"3be192a55b3b4d7896d1a07fdebb04634f5cce85f6b9536cf4353c35c087cfb0");
       ADD_CHECKPOINT(15,"ff2d2f5ffe5ef3443ff9d6f5330bff05f03cdd8de2ba6e54fc01110d0fa2b9a5");
-      return true;
     }
+
     if (nettype == STAGENET)
-    {
-      return true;
-    }
+    {}
+    
     return true;
   }
   //---------------------------------------------------------------------------
