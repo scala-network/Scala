@@ -28,9 +28,11 @@
 #include <boost/archive/basic_binary_oprimitive.hpp>
 #include <boost/archive/detail/common_oarchive.hpp>
 #include <boost/archive/detail/register_archive.hpp>
-
 #include <boost/archive/portable_binary_archive.hpp>
 #include <boost/archive/impl/basic_binary_oprimitive.ipp>
+#if BOOST_VERSION >= 107400
+    #include <boost/serialization/library_version_type.hpp>
+#endif
 
 namespace boost { namespace archive {
 

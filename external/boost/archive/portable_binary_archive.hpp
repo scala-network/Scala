@@ -23,8 +23,11 @@
 
 #include <boost/archive/basic_archive.hpp>
 #include <boost/predef/other/endian.h>
-
 #include <boost/archive/impl/archive_serializer_map.ipp>
+
+#if BOOST_VERSION >= 107400
+    #include <boost/serialization/library_version_type.hpp>
+#endif
 
 namespace boost { namespace archive {
 
