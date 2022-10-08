@@ -4505,14 +4505,15 @@ bool Blockchain::update_checkpoints(const std::string& file_path, bool check_dns
 {
   if(ipfs) {
     LOG_PRINT_L1("Downloading checkpoints from IPFS might take a while... ");
-    if (!diardi_.get_checkpoints(m_nettype, file_path))
-    {
-      LOG_PRINT_L1("Failed to download checkpoints from diardi");
-    }
 
-    if (!m_checkpoints.load_checkpoints_from_json(file_path))
-    {
-      LOG_PRINT_L1("Failed to parse checkpoints from IPFS");
+    bool got_ipfs_checkpoints = diardi_.get_checkpoints(m_nettype, file_path);
+
+    if (!got_ipfs_checkpoints) {
+      LOG_PRINT_L1("Failed to download checkpoints from diardi");
+    } else {
+      if (!m_checkpoints.load_checkpoints_from_json(file_path)) {
+        LOG_PRINT_L1("Failed to parse checkpoints from IPFS");
+      }
     }
   }
 
