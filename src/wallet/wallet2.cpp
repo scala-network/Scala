@@ -8159,7 +8159,6 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
               "Known ring does not include the spent output: " + std::to_string(td.m_global_output_index));
         }
       }
-
       if (num_outs <= requested_outputs_count)
       {
         for (uint64_t i = 0; i < num_outs; i++)
@@ -8385,9 +8384,10 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       // then pick outs from an existing ring, if any
       if (td.m_key_image_known && !td.m_key_image_partial)
       {
-        std::vector<uint64_t> ring;
-        if (get_ring(get_ringdb_key(), td.m_key_image, ring))
+	      const auto it = existing_rings.find(td.m_key_image);
+        if (it != existing_rings.end())
         {
+	        const std::vector<uint64_t> &ring = it->second;
           for (uint64_t out: ring)
           {
             if (out < num_outs)
