@@ -63,18 +63,3 @@ jobs:
         name: ${{ matrix.toolchain.name }}
         path: |
           /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
-    - name: Get latest release version number
-      id: get_version
-      uses: battila7/get-version-action@v2
-    - name: Package for Windows
-      if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32'}}
-      run: |
-        zip -rj scala-${{ steps.get_version.outputs.version }}-win-x64.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
-    - name: Package for Linux
-      if: ${{ matrix.toolchain.host == 'x86_64-unknown-linux-gnu'}}
-      run: |
-        zip -rj scala-${{ steps.get_version.outputs.version }}-linux-x64.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
-    - name: Package for macOS
-      if: ${{ matrix.toolchain.host == 'x86_64-apple-darwin11'}}
-      run: |
-        zip -rj scala-${{ steps.get_version.outputs.version }}-macOS-x64.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
