@@ -1,5 +1,5 @@
 name: ci/gh-actions/build
-
+on: [push, pull_request]
 jobs:
   create-release:
     name: Create release
