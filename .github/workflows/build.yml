@@ -1,30 +1,7 @@
 name: ci/gh-actions/build
 on: [push, pull_request]
 jobs:
-  create-release:
-    name: Create release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.step_upload_url.outputs.upload_url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Scala ${{ github.ref }}
-          draft: false
-          prerelease: false
-          body_path: CHANGELOG.md
-      - id: step_upload_url
-        run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
-
   build-all:
-    needs: create-release
     runs-on: ubuntu-18.04
     env:
       CCACHE_COMPRESS: 1
