@@ -7465,6 +7465,14 @@ bool wallet2::get_ring(const crypto::chacha_key &key, const crypto::key_image &k
   catch (const std::exception &e) { return false; }
 }
 
+bool wallet2::get_rings(const crypto::chacha_key &key, const std::vector<crypto::key_image> &key_images, std::vector<std::vector<uint64_t>> &outs)
+{
+  if (!m_ringdb)
+    return false;
+  try { return m_ringdb->get_rings(key, key_images, outs); }
+  catch (const std::exception &e) { return false; }
+}
+
 bool wallet2::get_rings(const crypto::hash &txid, std::vector<std::pair<crypto::key_image, std::vector<uint64_t>>> &outs)
 {
   for (auto i: m_confirmed_txs)
@@ -7971,6 +7979,28 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       }
     }
 
+    std::vector<crypto::key_image> ring_key_images;
+    ring_key_images.reserve(selected_transfers.size());
+    std::unordered_map<crypto::key_image, std::vector<uint64_t>> existing_rings;
+    
+    for(size_t idx: selected_transfers)
+    {
+      const transfer_details &td = m_transfers[idx];
+      if (td.m_key_image_known && !td.m_key_image_partial)
+        ring_key_images.push_back(td.m_key_image);
+    }
+
+    
+    if (!ring_key_images.empty())
+    {
+      std::vector<std::vector<uint64_t>> all_outs;
+      if (get_rings(get_ringdb_key(), ring_key_images, all_outs))
+      {
+        for (size_t i = 0; i < ring_key_images.size(); ++i)
+          existing_rings[ring_key_images[i]] = std::move(all_outs[i]);
+      }
+    }
+
     // we ask for more, to have spares if some outputs are still locked
     size_t base_requested_outputs_count = (size_t)((fake_outputs_count + 1) * 1.5 + 1);
     LOG_PRINT_L2("base_requested_outputs_count: " << base_requested_outputs_count);
@@ -8093,20 +8123,21 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       // if we have a known ring, use it
       if (td.m_key_image_known && !td.m_key_image_partial)
       {
-        std::vector<uint64_t> ring;
-        if (get_ring(get_ringdb_key(), td.m_key_image, ring))
-        {
+        const auto it = existing_rings.find(td.m_key_image);
+        const bool has_ring = it != existing_rings.end();
+
+        if(has_ring) {
+          const std::vector<uint64_t> &ring = it->second;
           MINFO("This output has a known ring, reusing (size " << ring.size() << ")");
           THROW_WALLET_EXCEPTION_IF(ring.size() > fake_outputs_count + 1, error::wallet_internal_error,
               "An output in this transaction was previously spent on another chain with ring size " +
               std::to_string(ring.size()) + ", it cannot be spent now with ring size " +
               std::to_string(fake_outputs_count + 1) + " as it is smaller: use a higher ring size");
+
           bool own_found = false;
-          for (const auto &out: ring)
-          {
+          for (const auto &out: ring) {
             MINFO("Ring has output " << out);
-            if (out < num_outs)
-            {
+            if (out < num_outs) {
               MINFO("Using it");
               req.outputs.push_back({amount, out});
               ++num_found;
@@ -8122,11 +8153,12 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
               MINFO("Ignoring output " << out << ", too recent");
             }
           }
+
+          
           THROW_WALLET_EXCEPTION_IF(!own_found, error::wallet_internal_error,
               "Known ring does not include the spent output: " + std::to_string(td.m_global_output_index));
         }
       }
-
       if (num_outs <= requested_outputs_count)
       {
         for (uint64_t i = 0; i < num_outs; i++)
@@ -8352,9 +8384,10 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       // then pick outs from an existing ring, if any
       if (td.m_key_image_known && !td.m_key_image_partial)
       {
-        std::vector<uint64_t> ring;
-        if (get_ring(get_ringdb_key(), td.m_key_image, ring))
+	      const auto it = existing_rings.find(td.m_key_image);
+        if (it != existing_rings.end())
         {
+	        const std::vector<uint64_t> &ring = it->second;
           for (uint64_t out: ring)
           {
             if (out < num_outs)
