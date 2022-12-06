@@ -18,16 +18,23 @@ namespace cryptonote {
     Diardi::Diardi() {}
 
     bool Diardi::get_checkpoints(network_type nettype, std::string checkpoint_location) {
-        if (boost::filesystem::exists(checkpoint_location)) {
-            boost::filesystem::remove_all(checkpoint_location);
-        }
+        if(nettype == MAINNET) {
+            if (boost::filesystem::exists(checkpoint_location)) {
+                boost::filesystem::remove_all(checkpoint_location);
+            }
 
-        std::string ipfs_path = fetch_dns_txt_ipfs_path(nettype);
-        std::string url = "https://scala.infura-ipfs.io/ipfs/" + ipfs_path;
+            std::string ipfs_path = fetch_dns_txt_ipfs_path(nettype);
+            if (ipfs_path.empty()) {
+                LOG_PRINT_L1("Couldn't fetch DNS TXT record from IPFS");
+                return false;
+            }
 
-        if (!tools::download(checkpoint_location, url)) {
-            LOG_PRINT_L1("Error loading checkpoints from IPFS");
-            return false;
+            std::string url = "https://scala.infura-ipfs.io/ipfs/" + ipfs_path;
+
+            if (!tools::download(checkpoint_location, url)) {
+                LOG_PRINT_L1("Error loading checkpoints from IPFS");
+                return false;
+            }
         }
 
         return true;
@@ -49,6 +56,10 @@ namespace cryptonote {
         }
 
         std::vector<std::string> records = tools::DNSResolver::instance().get_txt_record(dns_name, available, valid);
+        if(records.empty()) {
+            return "";
+        }
+
         std::string ipfs_path = records[0];
         boost::replace_all(ipfs_path, "dnslink=\"/ipfs/", "");
         boost::replace_all(ipfs_path, "\"", "");
