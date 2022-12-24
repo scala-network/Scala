@@ -38,6 +38,8 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/optional.hpp>
+#include <rapidjson/document.h>
+
 using namespace epee;
 
 #undef SCALA_DEFAULT_LOG_CATEGORY
@@ -421,9 +423,9 @@ std::string address_from_txt_record(const std::string& s)
   if (pos2 != std::string::npos)
   {
     // length of address == 95, we can at least validate that much here
-    if (pos2 - pos == 95)
+    if (pos2 - pos == 97)
     {
-      return s.substr(pos, 95);
+      return s.substr(pos, 97);
     }
     else if (pos2 - pos == 106) // length of address == 106 --> integrated address
     {
@@ -451,8 +453,13 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
   std::vector<std::string> addresses;
   // get txt records
   bool dnssec_available, dnssec_isvalid;
+
+  LOG_ERROR("Getting TXT record for " << url);
+
   std::string oa_addr = DNSResolver::instance().get_dns_format_from_oa_address(url);
   auto records = DNSResolver::instance().get_txt_record(oa_addr, dnssec_available, dnssec_isvalid);
+
+  LOG_ERROR("Got " << records.size() << " records for " << url);
 
   // TODO: update this to allow for conveying that dnssec was not available
   if (dnssec_available && dnssec_isvalid)
@@ -464,6 +471,7 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
   // for each txt record, try to find a scala address in it.
   for (auto& rec : records)
   {
+    LOG_ERROR("TXT record: " << rec);
     std::string addr = address_from_txt_record(rec);
     if (addr.size())
     {
@@ -475,14 +483,91 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
 
 std::string get_account_address_as_str_from_url(const std::string& url, bool& dnssec_valid, std::function<std::string(const std::string&, const std::vector<std::string>&, bool)> dns_confirm)
 {
-  // attempt to get address from dns query
-  auto addresses = addresses_from_url(url, dnssec_valid);
-  if (addresses.empty())
+
+  std::vector<std::string> valid_ud_tlds{ ".crypto", ".nft", ".blockchain", ".bitcoin", ".wallet", ".888", ".dao", ".x", ".klever", ".zil", ".eth" };
+
+  /* Check if url contains a valid TLD */
+  bool valid_tld = false;
+
+  for (const auto& tld : valid_ud_tlds)
   {
-    LOG_ERROR("wrong address: " << url);
-    return {};
+    if (url.find(tld) != std::string::npos)
+    {
+      valid_tld = true;
+      break;
+    }
   }
-  return dns_confirm(url, addresses, dnssec_valid);
+
+  if (!valid_tld)
+  {
+    // attempt to get address from dns query
+    auto addresses = addresses_from_url(url, dnssec_valid);
+    if (addresses.empty())
+    {
+      LOG_ERROR("wrong address: " << url);
+      return {};
+    }
+    return dns_confirm(url, addresses, dnssec_valid);
+  } 
+
+  else {
+    std::vector<std::string> ud_addresses;
+    std::string ud_bridge_api = "http://ud-bridge.scalaproject.io/fetch-records/" + url;
+
+    epee::net_utils::http::http_simple_client client;
+    epee::net_utils::http::url_content u_c;
+
+    if (!epee::net_utils::parse_url(ud_bridge_api, u_c)){
+        MERROR("Failed to parse URL " << ud_bridge_api);
+        return {};
+     }
+
+    epee::net_utils::ssl_support_t ssl_requirement = epee::net_utils::ssl_support_t::e_ssl_support_disabled;
+    uint16_t port = 80;
+
+    client.set_server(u_c.host, std::to_string(port), boost::none, ssl_requirement);
+    epee::net_utils::http::fields_list fields;
+    const epee::net_utils::http::http_response_info *info = NULL;
+
+    
+		 if (!client.invoke_get(u_c.uri, std::chrono::seconds(5), "", &info, fields)){
+				LOG_ERROR(ud_bridge_api << " is not responding, skipping.");
+				return {};
+		 } else{
+        if (info->m_response_code != 200){
+          LOG_ERROR("Failed to get address from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        std::string response = info->m_body;
+        rapidjson::Document doc;
+
+
+        if (doc.Parse(response.c_str()).HasParseError()){
+          LOG_ERROR("Failed to parse response from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        if (!doc.HasMember("records")){
+          LOG_ERROR("Failed to get records from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        if (!doc["records"].HasMember("records")){
+          LOG_ERROR("Failed to get records from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        if (!doc["records"]["records"].HasMember("crypto.XMR.address")){
+          LOG_ERROR("Failed to get XLA address from " << ud_bridge_api << ", skipping.");
+          return {};
+        } else {
+          std::string address = doc["records"]["records"]["crypto.XMR.address"].GetString();
+
+          return address;
+        }
+     }
+  }
 }
 
 namespace

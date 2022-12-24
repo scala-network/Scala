@@ -188,30 +188,12 @@ namespace cryptonote
     std::list<std::string> mainnet_addresses = {};
   
     std::list<std::string> testnet_addresses = {
-      "Tsz4xmjxX77UGd2PR9iqnMiYRyzN8TJx1XFk42i5TqDsQEezdr2LCWaLrAzQx73pL9gieyZRT5vkUeWunGeoM9yq3E1PUAFpjz",
-      "Tsz4rcTEbg1RMVfhwBzoSoMsVRGdCbuxDf7yyW7MqJ1TbVBenV3w4hz71Fwjw3pg1DGPzsG33Pr7tfC7LLCEiWJm2YBgWdce2x",
-      "Tsz5EAMtaiBbsSLu9DDpFJEjKPcE6QAKeNkkj1q8W6zvDKwnBL8jRVi2ZJbCRVtMzi9wzj1XQKKV6J9HBvn8aQDE8UCM7uSFQH",
-      "Tsz56fUWByJJvoNX7hC18oBettjR5eN3h9jVHpoZr9W5HCEoLGjbM7FRgkaXoebAfheAngbovKXwZaFX9AmugCH85rLoRgBbxv",
-      "Tsz58ZYe5yPUC1NGCjYiv6fZocq8S7beKFDFxNKscnvLgWqG3akaA1xaN3jJxj1efYik4N2HKthH1GG5dXvzFe7A4gmCaLy5cP",
-      "Tsz5DNJC3nEKcCDtKW89BfLFNzGjyD1BYFgPDPAkgYG9L6KKU3VJyjF22wZpwxDmzkLESYMkRxz31KYN5MuQypP43EaDP616Je",
-      "Tsz5EaVGRJJVtjroQF2caTCVmhxQvSFb3cLt9hi8Fbk2jdfWJQNF9ecGGzbVeBGtufBknwTnAq8G1Xt62u2JKLBR5SBFH2zfi6",
-      "Tsz55fiuT7FLbuB4JPZp5PiXTfDMgWjbX4uExf93eMVdNocbybxd8rX3hCa82XgwDe3tWxBqijyfj1T9C153norsAhZuQU58zK",
-      "Tsz577WNogF6H5bRdJxzPs9fbvNZSxdWE3HG19Hp2J4yEx6JiPgW97EKWtAHb3Xy4UgHJ6dNnMWD3SPV8QWTi2fW6sUm9Jp7Lz",
-      "Tsz4wGe6c2QWLEcpuCTSMufp5DuZpEoyhbJToTzfdu54Cq4zbjezB1MgXjsjHxhAqdj7qabdSyYz3eRxU2HnTKXL1MdEdTkJgc",
-      "Tsz4vMfDshGcoJsyQcaNBzA7vENUNHTx47QaZvNKoqUXgf57cH1isbt2pb4hjpea2tdTFj48aa1sw999cogsFKQ97opzWyWFJj",
-      "Tsz4tpS34f43Vhx7D5UNbBfrSWFXEjSvTDgvXcJmB9zACVYxxnV3NHSJPuVfgd5q3Pbp3tkQazMH57AiAAQ7vuSV8F24jw4z7x",
-      "Tsz542i5nn4UZ7qE77BUP5ZSfWDhEpgia2vJsG5JJLMSYAE8i99nhBtT29uzxaVx5AB7SVKdZ9GTrBU8a5N2E6YG1R3QPDW1BR",
-      "Tsz4pZZBFn9PvzcxZChi2zZVu6FTkZAiz3mPtDL2nwqn1qvmWVDmFM8BM4hF7xuGhgHz1e4uxXiRDN4UkKfGQbxg6JxBRMewuy",
-      "Tsz4nP24vyX5A3H4y8sNU9cuMcjfXyna2HGavJ3fuZ3t1rog7tEEsHNYFYvTSo1JK8Haz1wyRt1q5Ucq8XFqGEvR4grvfteNRo",
-      "Tsz51eqCSZhKPgF7CXgtTx1ohDhNzC1vb2NTqZn7ajshZ4VaeKv1ApN89PCEbSmickP3SCVxRhcK6NXwwRv9PQuL7dsjw7FSK9",
-      "Tsz52JqrvroSwjbBHfLz6RFrzTHenA7dE37KWE4E2mfr2yPA2P9oL6z7ChkvWimQKWUhyw8izqVzM5PEToxotwgY4Zq6HqSgPn",
-      "Tsz5Dr5nAkWhJ4Fs4JzANsipSifMy8ecyVhut6rJT6gfK51LQ6Jfgi1E6LfQhcMejhdDpXJVJrRNo6QL2Kb8jgg31MJPWuoq8t",
-      "Tsz5ATeydk8R8FNTWQV1GP4cSvNVeTJTT4eYRKPNMMUSHpg5PFKCG7X5NyDrHfdmpMCgohYyJKpyAbPP7kGqGd5iAQcSDhs4UM",
-      "Tsz5Egbf6t9YZNs2pNnZ8kGJZtTwStktHRtUM15A7NGRctdM2N6sbWfAKdbikGtdNdW8UeegHHSebatoudQG2JBD98tNE6GuW7"
+      "",
+      ""
     };
 
     std::list <std::string> stagenet_addresses = {
-      "StS1K3UWjCYfPUaK3cCR9t8EcEBwK2ttYUkX7VF2UJW6YCfqUHghttoXAwUcd97MkaJPJ6zrbYh6tfKJHYx1PdRg8A6q8CwBuz:43852ce87de58100462cd48b8b2b40be723710f6e1a5e88bfc8760ba03ba8a2f",
+      "",
       "StS1Bvcb33MQ9EpqUVzBwEfsU3523GfZr8Rwm2tA1KjbCs9p4L8xK3h5eJ3HEx3b9HEqYTceqB3r1Tw2u6EqmYSZ46kd5arWS4:046d45a0f08a5b72d754100ab9e863a130fe5647e12c6be6f20a6d10de46ef30",
       "StS1ef6jTsWDDZ7CDpAYVEFhEQNANgSX26bfscJUuUNSci4R9tchPwQeDTvXf1yY9ARddZiNXnXo2eck5XpxY3Hx7PkEfn8qnb:f15f3854f949098e48719fde5957d8f7ba398d2a1921778276b51fddd7d57bd1",
       "StS1X45Z1QEQGvY2EYz3BHHWkFyWiEKTu2ExjtdGe9CqFeRmMPDk2uhYukGUmYbHJeKzqEhD5msQqcxidHakujUc3EvPuZhrvq:adf9a925e38b263be592dd805462b953c46adf3f58076aeeaee06846c6578ef8"
