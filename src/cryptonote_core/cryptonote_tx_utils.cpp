@@ -184,9 +184,7 @@ namespace cryptonote
   }
   //---------------------------------------------------------------
   std::list<std::string> diardi_addresses_v2(network_type nettype) {
-  
     std::list<std::string> mainnet_addresses = {};
-  
     std::list<std::string> testnet_addresses = {
       "Tsz4ksnHAQxP7pjCxyZ2fmh4yc7QFSS5zftXAWqXpEhtGTtQt3qvLMdE1Db1nvvLVN2d5npSMxWd3Poom1G6VDey7QGUeGnde5,09473dc481843b92a1b757dc8cef8de0f93ef97acde87f70fa0a0ccf0f5c7359",
       "Tsz54FHBmwwdoiVuAcigRbELu6W3paXxWU9g8hccp9zDZLfBFRVLnhqDComgXoHGtui88qMCWtAsgRRTsnGwzEYW5TfpgJ9GAL,a33e8145b2dc0b9bbc5063d2464fc5e4674e8cc6e3a2510f1b9563a7fec15784",
