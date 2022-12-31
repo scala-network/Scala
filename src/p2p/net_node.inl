@@ -606,12 +606,10 @@ namespace nodetool
     {
       /* Wanna be a testnet node seed? Contact hayzam on discord */
       full_addrs.insert("65.21.221.2:22821"); /* Scala's Official Testnet node */
-      full_addrs.insert("46.4.116.181:22821"); /* Hayzam's Node */
+      full_addrs.insert("167.235.151.213:22821"); /* Hayzam's Testnet Node */
     }
     else if (nettype == cryptonote::STAGENET)
-    {
-      full_addrs.insert("46.4.116.181:38080");
-    }
+    {}
     else if (nettype == cryptonote::FAKECHAIN)
     {}
     else
