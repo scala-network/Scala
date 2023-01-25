@@ -511,6 +511,7 @@ std::string get_account_address_as_str_from_url(const std::string& url, bool& dn
   } 
 
   else {
+    std::vector<std::string> addresses;
     std::vector<std::string> ud_addresses;
     std::string ud_bridge_api = "http://ud-bridge.scalaproject.io/fetch-records/" + url;
 
@@ -530,7 +531,7 @@ std::string get_account_address_as_str_from_url(const std::string& url, bool& dn
     const epee::net_utils::http::http_response_info *info = NULL;
 
     
-		 if (!client.invoke_get(u_c.uri, std::chrono::seconds(5), "", &info, fields)){
+		 if (!client.invoke_get(u_c.uri, std::chrono::seconds(10), "", &info, fields)){
 				LOG_ERROR(ud_bridge_api << " is not responding, skipping.");
 				return {};
 		 } else{
@@ -553,18 +554,14 @@ std::string get_account_address_as_str_from_url(const std::string& url, bool& dn
           return {};
         }
 
-        if (!doc["records"].HasMember("records")){
-          LOG_ERROR("Failed to get records from " << ud_bridge_api << ", skipping.");
-          return {};
-        }
-
-        if (!doc["records"]["records"].HasMember("crypto.XMR.address")){
+        if (!doc["records"].HasMember("crypto.XLA.address")){
           LOG_ERROR("Failed to get XLA address from " << ud_bridge_api << ", skipping.");
           return {};
         } else {
-          std::string address = doc["records"]["records"]["crypto.XMR.address"].GetString();
+          std::string address = doc["records"]["crypto.XLA.address"].GetString();
 
-          return address;
+          addresses.push_back(address);
+          return dns_confirm(url, addresses, true);
         }
      }
   }
