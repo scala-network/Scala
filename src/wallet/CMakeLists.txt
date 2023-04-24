@@ -136,7 +136,8 @@ if (BUILD_GUI_DEPS)
             checkpoints
             version
             net
-            device_trezor)
+            device_trezor
+            diardi)
 
     foreach(lib ${libs_to_merge})
         list(APPEND objlibs $<TARGET_OBJECTS:obj_${lib}>) # matches naming convention in src/CMakeLists.txt
