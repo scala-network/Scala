@@ -96,7 +96,7 @@ jobs:
       run: ${{env.APT_SET_CONF}}
     - name: update apt
       run: sudo apt update
-    - name: install monero dependencies
+    - name: install scala dependencies
       run: ${{env.APT_INSTALL_LINUX}}
     - name: build
       run: |
@@ -122,7 +122,7 @@ jobs:
       run: ${{env.APT_SET_CONF}}
     - name: update apt
       run: sudo apt update
-    - name: install monero dependencies
+    - name: install scala dependencies
       run: ${{env.APT_INSTALL_LINUX}}
     - name: build
       run: |
@@ -151,7 +151,7 @@ jobs:
       run: ${{env.APT_SET_CONF}}
     - name: update apt
       run: sudo apt update
-    - name: install monero dependencies
+    - name: install scala dependencies
       run: ${{env.APT_INSTALL_LINUX}}
     - name: install Python dependencies
       run: pip install requests psutil monotonic zmq
@@ -177,7 +177,7 @@ jobs:
     - name: archive
       run: |
         pip install git-archive-all
-        export VERSION="scala-$(git describe)"
+        export VERSION="scala-$(git rev-parse HEAD)"
         export OUTPUT="$VERSION.tar"
         echo "OUTPUT=$OUTPUT" >> $GITHUB_ENV
         /home/runner/.local/bin/git-archive-all --prefix "$VERSION/" --force-submodules "$OUTPUT"
