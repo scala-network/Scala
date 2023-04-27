@@ -47,8 +47,8 @@
 #include "net_parse_helpers.h"
 #include "syncobj.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net.http"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net.http"
 
 namespace epee
 {

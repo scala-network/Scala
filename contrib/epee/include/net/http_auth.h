@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2023, The scala Project
+// Copyright (c) 2014-2023, The Scala Project
 //
 // All rights reserved.
 //
@@ -36,8 +36,8 @@
 #include "wipeable_string.h"
 #include "http_base.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net.http"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net.http"
 
 namespace epee
 {

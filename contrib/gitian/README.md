@@ -1,9 +1,9 @@
 Gitian building
 ================
 
-*Setup instructions for a Gitian build of scala.*
+*Setup instructions for a Gitian build of Scala.*
 
-Gitian is the deterministic build process that is used to build the scala CLI
+Gitian is the deterministic build process that is used to build the Scala CLI
 executables. It provides a way to be reasonably sure that the
 executables are really built from the git source. It also makes sure that
 the same, tested dependencies are used and statically built into the executable.
@@ -172,7 +172,7 @@ To build the most recent tag (pass in `--docker` if using docker):
 ./gitian-build.py --detach-sign --no-commit --build $GH_USER $VERSION
 ```
 
-To speed up the build, use `-j 5 --memory 10000` as the first arguments, where `5` is the number of CPU's you allocated to the VM plus one, and 10000 is a little bit less than then the MB's of RAM you allocated. If there is memory corruption on your machine, try to tweak these values. A good rule of thumb is, that scala currently needs about 2 GB of RAM per core. 
+To speed up the build, use `-j 5 --memory 10000` as the first arguments, where `5` is the number of CPU's you allocated to the VM plus one, and 10000 is a little bit less than then the MB's of RAM you allocated. If there is memory corruption on your machine, try to tweak these values. A good rule of thumb is, that Scala currently needs about 2 GB of RAM per core. 
 
 A full example for `docker` would look like the following:
 

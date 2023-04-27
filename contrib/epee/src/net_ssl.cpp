@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, The scala Project
+// Copyright (c) 2018-2023, The Scala Project
 
 // 
 // All rights reserved.
@@ -43,8 +43,8 @@
 #include "net/net_utils_base.h"
 #include "file_io_utils.h" // to validate .crt and .key paths
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net.ssl"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net.ssl"
 
 // openssl genrsa -out /tmp/KEY 4096
 // openssl req -new -key /tmp/KEY -out /tmp/REQ

@@ -1,7 +1,7 @@
 Quick Gitian building with docker
 =================================
 
-*Setup instructions for a Gitian build of scala using Docker.*
+*Setup instructions for a Gitian build of Scala using Docker.*
 
 Gitian supports other container mechanisms too but if you have a Debian or
 Ubuntu-based host the steps can be greatly simplified.

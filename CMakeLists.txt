@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2023, The scala Project
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -364,7 +365,7 @@ if(NOT MANUAL_SUBMODULES)
     endfunction ()
     
     message(STATUS "Checking submodules")
-    check_submodule(external/miniupnp)
+    #check_submodule(external/miniupnp)
     check_submodule(external/rapidjson)
     check_submodule(external/trezor-common)
     #check_submodule(external/randomx)

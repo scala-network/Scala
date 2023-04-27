@@ -32,8 +32,8 @@
 #include "misc_log_ex.h"
 #include "keyvalue_serialization_overloads.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "serialization"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "serialization"
 
 namespace epee
 {

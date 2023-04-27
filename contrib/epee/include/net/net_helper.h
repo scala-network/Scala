@@ -47,8 +47,8 @@
 #include "net/net_ssl.h"
 #include "misc_language.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net"
 
 namespace epee
 {

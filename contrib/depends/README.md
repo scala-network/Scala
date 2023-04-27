@@ -18,9 +18,9 @@ For example:
 make HOST=x86_64-w64-mingw32 -j4
 ```
 
-A toolchain will be generated that's suitable for plugging into scala's
+A toolchain will be generated that's suitable for plugging into Scala's
 cmake. In the above example, a dir named x86_64-w64-mingw32 will be
-created. To use it for scala, from the top of the scala source tree:
+created. To use it for Scala, from the top of the Scala source tree:
 
 ```bash
 mkdir build

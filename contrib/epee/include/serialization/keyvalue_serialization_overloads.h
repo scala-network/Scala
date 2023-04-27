@@ -33,8 +33,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/contains_fwd.hpp>
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "serialization"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "serialization"
 
 namespace epee
 {

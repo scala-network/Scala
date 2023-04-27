@@ -60,8 +60,8 @@
 #include "connection_basic.hpp"
 #include "network_throttle-detail.hpp"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net"
 
 #define ABSTRACT_SERVER_SEND_QUE_MAX_COUNT 1000
 

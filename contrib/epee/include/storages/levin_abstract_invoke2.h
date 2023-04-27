@@ -34,8 +34,8 @@
 #include "span.h"
 #include "net/levin_base.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net"
 
 template<typename context_t>
 void on_levin_traffic(const context_t &context, bool initiator, bool sent, bool error, size_t bytes, const char *category);

@@ -139,9 +139,9 @@ POP_WARNINGS
       }
     };
 
-    // For Myscala/Openscala backend compatibility
-    // Myscala backend sends amount, fees and timestamp values as strings.
-    // Until MM backend is updated, this is needed for compatibility between Openscala and Myscala. 
+    // For MyScala/OpenScala backend compatibility
+    // MyScala backend sends amount, fees and timestamp values as strings.
+    // Until MM backend is updated, this is needed for compatibility between OpenScala and MyScala. 
     template<>
     struct convert_to_integral<std::string, uint64_t, false>
     {
@@ -151,7 +151,7 @@ POP_WARNINGS
         // String only contains digits
         if(std::all_of(from.begin(), from.end(), epee::misc_utils::parse::isdigit))
           to = boost::lexical_cast<uint64_t>(from);
-        // Myscala ISO 8061 timestamp (2017-05-06T16:27:06Z)
+        // MyScala ISO 8061 timestamp (2017-05-06T16:27:06Z)
         else if (boost::regex_match (from, boost::regex("\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\dZ")))
         {
           // Convert to unix timestamp

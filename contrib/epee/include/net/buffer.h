@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, The scala Project
+// Copyright (c) 2018-2023, The Scala Project
 
 // 
 // All rights reserved.
@@ -33,8 +33,8 @@
 #include "misc_log_ex.h"
 #include "span.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net.buffer"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net.buffer"
 
 //#define NET_BUFFER_LOG(x) MDEBUG(x)
 #define NET_BUFFER_LOG(x) ((void)0)

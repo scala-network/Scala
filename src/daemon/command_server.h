@@ -9,7 +9,8 @@ Passing RPC commands:
 
 */
 
-// Copyright (c) 2014-2023, The scala Project
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 

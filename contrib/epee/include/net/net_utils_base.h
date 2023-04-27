@@ -40,8 +40,8 @@
 #include "serialization/keyvalue_serialization.h"
 #include "int-util.h"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net"
 
 #ifndef MAKE_IP
 #define MAKE_IP( a1, a2, a3, a4 )	(a1|(a2<<8)|(a3<<16)|(((uint32_t)a4)<<24))

@@ -86,7 +86,7 @@ done
 if test "$ready" = 0
 then
   echo "Error starting scalad"
-  tail -n 400 "$HOME/.bitscala/bitscala.log" | grep -Ev stacktrace\|"Error: Couldn't connect to daemon:"\|"src/daemon/main.cpp:.*scala\ \'" | tail -n 20
+  tail -n 400 "$HOME/.bitscala/bitscala.log" | grep -Ev stacktrace\|"Error: Couldn't connect to daemon:"\|"src/daemon/main.cpp:.*Scala\ \'" | tail -n 20
   exit 1
 fi
 

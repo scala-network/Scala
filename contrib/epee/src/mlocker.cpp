@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, The scala Project
+// Copyright (c) 2018-2023, The Scala Project
 
 // 
 // All rights reserved.
@@ -41,8 +41,8 @@
 
 #include <atomic>
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "mlocker"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "mlocker"
 
 // did an mlock operation previously fail? we only
 // want to log an error once and be done with it

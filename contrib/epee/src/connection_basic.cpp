@@ -2,7 +2,7 @@
 /// @author rfree (current maintainer in scala.cc project)
 /// @brief base for connection, contains e.g. the ratelimit hooks
 
-// Copyright (c) 2014-2023, The scala Project
+// Copyright (c) 2014-2023, The Scala Project
 // 
 // All rights reserved.
 // 
@@ -52,8 +52,8 @@
 #define GET_IO_SERVICE(s) ((s).get_io_service())
 #endif
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net.conn"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net.conn"
 
 // ################################################################################################
 // local (TU local) headers

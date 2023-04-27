@@ -2,7 +2,8 @@
 /// @author rfree (current maintainer in scala.cc project)
 /// @brief This is the place to implement our handlers for protocol network actions, e.g. for ratelimit for download-requests
 
-// Copyright (c) 2014-2023, The scala Project
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 

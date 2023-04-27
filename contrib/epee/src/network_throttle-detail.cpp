@@ -2,7 +2,7 @@
 /// @author rfree (current maintainer in scala.cc project)
 /// @brief implementaion for throttling of connection (count and rate-limit speed etc)
 
-// Copyright (c) 2014-2023, The scala Project
+// Copyright (c) 2014-2023, The Scala Project
 // 
 // All rights reserved.
 // 
@@ -59,8 +59,8 @@
 // TODO:
 #include "net/network_throttle-detail.hpp"
 
-#undef scala_DEFAULT_LOG_CATEGORY
-#define scala_DEFAULT_LOG_CATEGORY "net.throttle"
+#undef SCALA_DEFAULT_LOG_CATEGORY
+#define SCALA_DEFAULT_LOG_CATEGORY "net.throttle"
 
 // ################################################################################################
 // ################################################################################################
