@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -41,12 +40,11 @@
 #include "blocks/blocks.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
 #include "serialization/binary_utils.h" // dump_binary(), parse_binary()
-#include "serialization/json_utils.h" // dump_json()
 #include "include_base_utils.h"
 #include "cryptonote_core/cryptonote_core.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "bcutil"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "bcutil"
 
 namespace
 {
@@ -147,7 +145,7 @@ int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &block
     if (!parse_and_validate_block_from_blob(b.block, block))
     {
       MERROR("Failed to parse block: "
-          << epee::string_tools::pod_to_hex(get_blob_hash(b.block)));
+          << epee::string_tools::buff_to_hex_nodelimer(b.block));
       core.cleanup_handle_incoming_blocks();
       return 1;
     }
@@ -178,8 +176,11 @@ int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &block
       core.handle_incoming_tx(tx_blob, tvc, relay_method::block, true);
       if(tvc.m_verifivation_failed)
       {
-        MERROR("transaction verification failed, tx_id = "
-            << epee::string_tools::pod_to_hex(get_blob_hash(tx_blob.blob)));
+        cryptonote::transaction transaction;
+        if (cryptonote::parse_and_validate_tx_from_blob(tx_blob.blob, transaction))
+          MERROR("Transaction verification failed, tx_id = " << cryptonote::get_transaction_hash(transaction));
+        else
+          MERROR("Transaction verification failed, transaction is unparsable");
         core.cleanup_handle_incoming_blocks();
         return 1;
       }
@@ -193,8 +194,11 @@ int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &block
 
     if(bvc.m_verifivation_failed)
     {
-      MERROR("Block verification failed, id = "
-          << epee::string_tools::pod_to_hex(get_blob_hash(block_entry.block)));
+      cryptonote::block block;
+      if (cryptonote::parse_and_validate_block_from_blob(block_entry.block, block))
+        MERROR("Block verification failed, id = " << cryptonote::get_block_hash(block));
+      else
+        MERROR("Block verification failed, block is unparsable");
       core.cleanup_handle_incoming_blocks();
       return 1;
     }
@@ -228,6 +232,7 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
     return false;
   }
 
+  uint64_t block_first;
   uint64_t start_height = 1, seek_height;
   if (opt_resume)
     start_height = core.get_blockchain_storage().get_current_blockchain_height();
@@ -236,10 +241,10 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
   BootstrapFile bootstrap;
   std::streampos pos;
   // BootstrapFile bootstrap(import_file_path);
-  uint64_t total_source_blocks = bootstrap.count_blocks(import_file_path, pos, seek_height);
-  MINFO("bootstrap file last block number: " << total_source_blocks-1 << " (zero-based height)  total blocks: " << total_source_blocks);
+  uint64_t total_source_blocks = bootstrap.count_blocks(import_file_path, pos, seek_height, block_first);
+  MINFO("bootstrap file last block number: " << total_source_blocks+block_first-1 << " (zero-based height)  total blocks: " << total_source_blocks);
 
-  if (total_source_blocks-1 <= start_height)
+  if (total_source_blocks+block_first-1 <= start_height)
   {
     return false;
   }
@@ -261,7 +266,8 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
 
   // 4 byte magic + (currently) 1024 byte header structures
   uint8_t major_version, minor_version;
-  bootstrap.seek_to_first_chunk(import_file, major_version, minor_version);
+  uint64_t dummy;
+  bootstrap.seek_to_first_chunk(import_file, major_version, minor_version, dummy, dummy);
 
   std::string str1;
   char buffer1[1024];
@@ -276,7 +282,7 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
 
   if (! block_stop)
   {
-    block_stop = total_source_blocks - 1;
+    block_stop = total_source_blocks+block_first - 1;
   }
 
   // These are what we'll try to use, and they don't have to be a determination
@@ -630,7 +636,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }

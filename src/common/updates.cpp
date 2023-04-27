@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -32,8 +32,8 @@
 #include "dns_utils.h"
 #include "updates.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "updates"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "updates"
 
 namespace tools
 {
@@ -44,11 +44,14 @@ namespace tools
 
     MDEBUG("Checking updates for " << buildtag << " " << software);
 
-    // All four ScalaPulse domains have DNSSEC on and valid
+    // All four scalaPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = {
         "updates.scalapulse.org",
         "updates.scalapulse.net",
-        "updates.scalapulse.co",
+        "updates.scalapulse.fr",
+        "updates.scalapulse.de",
+        "updates.scalapulse.no",
+        "updates.scalapulse.ch",
         "updates.scalapulse.se"
     };
 
@@ -102,6 +105,8 @@ namespace tools
     const char *base = user ? "https://downloads.getscala.org/" : "https://updates.getscala.org/";
 #ifdef _WIN32
     static const char *extension = strncmp(buildtag.c_str(), "source", 6) ? (strncmp(buildtag.c_str(), "install-", 8) ? ".zip" : ".exe") : ".tar.bz2";
+#elif defined(__APPLE__)
+    static const char *extension = strncmp(software.c_str(), "scala-gui", 10) ? ".tar.bz2" : ".dmg";
 #else
     static const char extension[] = ".tar.bz2";
 #endif

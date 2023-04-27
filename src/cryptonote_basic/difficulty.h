@@ -1,6 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
-// Copyright (c) 2018-2020, The Scala Network
-//
+// Copyright (c) 2014-2023, The scala Project
+// 
 // All rights reserved.
 // 
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -59,5 +58,6 @@ namespace cryptonote
     bool check_hash_128(const crypto::hash &hash, difficulty_type difficulty);
     bool check_hash(const crypto::hash &hash, difficulty_type difficulty);
     difficulty_type next_difficulty(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds);
+
     std::string hex(difficulty_type v);
 }

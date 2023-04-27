@@ -6,8 +6,7 @@
 
 */
 
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -41,7 +40,6 @@
 
 #include "daemon/rpc_command_executor.h"
 #include "common/common_fwd.h"
-#include "net/net_fwd.h"
 #include "rpc/core_rpc_server.h"
 
 namespace daemonize {

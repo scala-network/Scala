@@ -34,14 +34,14 @@
 
 #include "easylogging++.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "default"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "default"
 
 #define MAX_LOG_FILE_SIZE 104850000 // 100 MB - 7600 bytes
 #define MAX_LOG_FILES 50
 
 #define MCLOG_TYPE(level, cat, color, type, x) do { \
-    if (ELPP->vRegistry()->allowed(level, cat)) { \
+    if (el::Loggers::allowed(level, cat)) { \
       el::base::Writer(level, color, __FILE__, __LINE__, ELPP_FUNC, type).construct(cat) << x; \
     } \
   } while (0)
@@ -64,20 +64,20 @@
 #define MCLOG_MAGENTA(level,cat,x) MCLOG_COLOR(level,cat,el::Color::Magenta,x)
 #define MCLOG_CYAN(level,cat,x) MCLOG_COLOR(level,cat,el::Color::Cyan,x)
 
-#define MLOG_RED(level,x) MCLOG_RED(level,SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MLOG_GREEN(level,x) MCLOG_GREEN(level,SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MLOG_YELLOW(level,x) MCLOG_YELLOW(level,SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MLOG_BLUE(level,x) MCLOG_BLUE(level,SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MLOG_MAGENTA(level,x) MCLOG_MAGENTA(level,SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MLOG_CYAN(level,x) MCLOG_CYAN(level,SCALA_DEFAULT_LOG_CATEGORY,x)
+#define MLOG_RED(level,x) MCLOG_RED(level,scala_DEFAULT_LOG_CATEGORY,x)
+#define MLOG_GREEN(level,x) MCLOG_GREEN(level,scala_DEFAULT_LOG_CATEGORY,x)
+#define MLOG_YELLOW(level,x) MCLOG_YELLOW(level,scala_DEFAULT_LOG_CATEGORY,x)
+#define MLOG_BLUE(level,x) MCLOG_BLUE(level,scala_DEFAULT_LOG_CATEGORY,x)
+#define MLOG_MAGENTA(level,x) MCLOG_MAGENTA(level,scala_DEFAULT_LOG_CATEGORY,x)
+#define MLOG_CYAN(level,x) MCLOG_CYAN(level,scala_DEFAULT_LOG_CATEGORY,x)
 
-#define MFATAL(x) MCFATAL(SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MERROR(x) MCERROR(SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MWARNING(x) MCWARNING(SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MINFO(x) MCINFO(SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MDEBUG(x) MCDEBUG(SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MTRACE(x) MCTRACE(SCALA_DEFAULT_LOG_CATEGORY,x)
-#define MLOG(level,x) MCLOG(level,SCALA_DEFAULT_LOG_CATEGORY,el::Color::Default,x)
+#define MFATAL(x) MCFATAL(scala_DEFAULT_LOG_CATEGORY,x)
+#define MERROR(x) MCERROR(scala_DEFAULT_LOG_CATEGORY,x)
+#define MWARNING(x) MCWARNING(scala_DEFAULT_LOG_CATEGORY,x)
+#define MINFO(x) MCINFO(scala_DEFAULT_LOG_CATEGORY,x)
+#define MDEBUG(x) MCDEBUG(scala_DEFAULT_LOG_CATEGORY,x)
+#define MTRACE(x) MCTRACE(scala_DEFAULT_LOG_CATEGORY,x)
+#define MLOG(level,x) MCLOG(level,scala_DEFAULT_LOG_CATEGORY,el::Color::Default,x)
 
 #define MGINFO(x) MCINFO("global",x)
 #define MGINFO_RED(x) MCLOG_RED(el::Level::Info, "global",x)
@@ -89,12 +89,12 @@
 
 #define IFLOG(level, cat, color, type, init, x) \
   do { \
-    if (ELPP->vRegistry()->allowed(level, cat)) { \
+    if (el::Loggers::allowed(level, cat)) { \
       init; \
       el::base::Writer(level, color, __FILE__, __LINE__, ELPP_FUNC, type).construct(cat) << x; \
     } \
   } while(0)
-#define MIDEBUG(init, x) IFLOG(el::Level::Debug, SCALA_DEFAULT_LOG_CATEGORY, el::Color::Default, el::base::DispatchAction::NormalLog, init, x)
+#define MIDEBUG(init, x) IFLOG(el::Level::Debug, scala_DEFAULT_LOG_CATEGORY, el::Color::Default, el::base::DispatchAction::NormalLog, init, x)
 
 
 #define LOG_ERROR(x) MERROR(x)

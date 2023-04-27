@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -84,6 +83,7 @@ namespace tools
     //         tx_rejected
     //         tx_sum_overflow
     //         tx_too_big
+    //         zero_amount
     //         zero_destination
     //       wallet_rpc_error *
     //         daemon_busy
@@ -91,7 +91,7 @@ namespace tools
     //         is_key_image_spent_error
     //         get_histogram_error
     //         get_output_distribution
-    //         payment_required
+    //         deprecated_rpc_access
     //       wallet_files_doesnt_correspond
     //
     // * - class with protected ctor
@@ -429,6 +429,26 @@ namespace tools
       std::string to_string() const { return refresh_error::to_string(); }
     };
     //----------------------------------------------------------------------------------------------------
+    struct reorg_depth_error : public refresh_error
+    {
+      explicit reorg_depth_error(std::string&& loc, const std::string& message)
+        : refresh_error(std::move(loc), message)
+      {
+      }
+
+      std::string to_string() const { return refresh_error::to_string(); }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct incorrect_fork_version : public refresh_error
+    {
+      explicit incorrect_fork_version(std::string&& loc, const std::string& message)
+        : refresh_error(std::move(loc), message)
+      {
+      }
+
+      std::string to_string() const { return refresh_error::to_string(); }
+    };
+    //----------------------------------------------------------------------------------------------------
     struct signature_check_failed : public wallet_logic_error
     {
       explicit signature_check_failed(std::string&& loc, const std::string& message)
@@ -741,10 +761,18 @@ namespace tools
       uint64_t m_tx_weight_limit;
     };
     //----------------------------------------------------------------------------------------------------
+    struct zero_amount: public transfer_error
+    {
+      explicit zero_amount(std::string&& loc)
+        : transfer_error(std::move(loc), "destination amount is zero")
+      {
+      }
+    };
+    //----------------------------------------------------------------------------------------------------
     struct zero_destination : public transfer_error
     {
       explicit zero_destination(std::string&& loc)
-        : transfer_error(std::move(loc), "destination amount is zero")
+        : transfer_error(std::move(loc), "transaction has no destination")
       {
       }
     };
@@ -837,10 +865,11 @@ namespace tools
       }
     };
     //----------------------------------------------------------------------------------------------------
-    struct payment_required: public wallet_rpc_error
+    struct deprecated_rpc_access: public wallet_rpc_error
     {
-      explicit payment_required(std::string&& loc, const std::string& request)
-        : wallet_rpc_error(std::move(loc), "payment required", request)
+      // The daemon we connected to has enabled the old pay-to-access RPC feature
+      explicit deprecated_rpc_access(std::string&& loc, const std::string& request)
+        : wallet_rpc_error(std::move(loc), "daemon requires deprecated RPC payment", request)
       {
       }
     };

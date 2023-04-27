@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -29,7 +29,6 @@
 #pragma once 
 
 #include <string>
-#include <memory>
 
 namespace tools
 {

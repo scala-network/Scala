@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 //
 // All rights reserved.
 //
@@ -31,12 +32,13 @@
 #include "net/tor_address.h"
 #include "net/i2p_address.h"
 #include "string_tools.h"
+#include "string_tools_lexical.h"
 
 namespace net
 {
     void get_network_address_host_and_port(const std::string& address, std::string& host, std::string& port)
     {
-        // require ipv6 address format "[addr:addr:addr:...:addr]:port"
+        // If IPv6 address format with port "[addr:addr:addr:...:addr]:port"
         if (address.find(']') != std::string::npos)
         {
             host = address.substr(1, address.rfind(']') - 1);
@@ -45,6 +47,12 @@ namespace net
                 port = address.substr(address.rfind(':') + 1);
             }
         }
+        // Else if IPv6 address format without port e.g. "addr:addr:addr:...:addr"
+        else if (std::count(address.begin(), address.end(), ':') >= 2)
+        {
+            host = address;
+        }
+        // Else IPv4, Tor, I2P address or hostname
         else
         {
             host = address.substr(0, address.rfind(':'));
@@ -121,5 +129,40 @@ namespace net
             return make_error_code(net::error::invalid_host);
 
         return {epee::net_utils::ipv4_network_subnet{ip, (uint8_t)mask}};
+    }
+
+    expect<boost::asio::ip::tcp::endpoint> get_tcp_endpoint(const boost::string_ref address)
+    {
+        uint16_t port = 0;
+        expect<epee::net_utils::network_address> parsed = get_network_address(address, port);
+        if (!parsed)
+        {
+            return parsed.error();
+        }
+
+        boost::asio::ip::tcp::endpoint result;
+        switch (parsed->get_type_id())
+        {
+            case epee::net_utils::ipv4_network_address::get_type_id():
+            {
+                const auto &ipv4 = parsed->as<epee::net_utils::ipv4_network_address>();
+                result = boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4(SWAP32BE(ipv4.ip())), ipv4.port());
+                break;
+            }
+            case epee::net_utils::ipv6_network_address::get_type_id():
+            {
+                const auto &ipv6 = parsed->as<epee::net_utils::ipv6_network_address>();
+                result = boost::asio::ip::tcp::endpoint(ipv6.ip(), ipv6.port());
+                break;
+            }
+            default:
+                return make_error_code(net::error::unsupported_address);
+        }
+        if (result.port() == 0)
+        {
+            return make_error_code(net::error::invalid_port);
+        }
+
+        return result;
     }
 }

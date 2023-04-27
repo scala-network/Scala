@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -49,6 +48,7 @@
 #include <string>
 #include <boost/type_traits/is_integral.hpp>
 #include <boost/type_traits/integral_constant.hpp>
+#include <boost/mpl/bool.hpp>
 
 /*! \struct is_blob_type 
  *
@@ -132,13 +132,6 @@ inline bool do_serialize(Archive &ar, bool &v)
   return true;
 }
 
-// Never used in the code base
-// #ifndef __GNUC__
-// #ifndef constexpr
-// #define constexpr
-// #endif
-// #endif
-
 /* the following add a trait to a set and define the serialization DSL*/
 
 /*! \macro BLOB_SERIALIZER
@@ -213,7 +206,7 @@ inline bool do_serialize(Archive &ar, bool &v)
  * \brief self-explanatory
  */
 #define END_SERIALIZE()				\
-  return ar.stream().good();			\
+  return ar.good();				\
   }
 
 /*! \macro VALUE(f)
@@ -223,7 +216,7 @@ inline bool do_serialize(Archive &ar, bool &v)
   do {							\
     ar.tag(#f);						\
     bool r = ::do_serialize(ar, f);			\
-    if (!r || !ar.stream().good()) return false;	\
+    if (!r || !ar.good()) return false;			\
   } while(0);
 
 /*! \macro FIELD_N(t,f)
@@ -234,7 +227,7 @@ inline bool do_serialize(Archive &ar, bool &v)
   do {							\
     ar.tag(t);						\
     bool r = ::do_serialize(ar, f);			\
-    if (!r || !ar.stream().good()) return false;	\
+    if (!r || !ar.good()) return false;			\
   } while(0);
 
 /*! \macro FIELD(f)
@@ -245,7 +238,7 @@ inline bool do_serialize(Archive &ar, bool &v)
   do {							\
     ar.tag(#f);						\
     bool r = ::do_serialize(ar, f);			\
-    if (!r || !ar.stream().good()) return false;	\
+    if (!r || !ar.good()) return false;			\
   } while(0);
 
 /*! \macro FIELDS(f)
@@ -255,7 +248,7 @@ inline bool do_serialize(Archive &ar, bool &v)
 #define FIELDS(f)							\
   do {									\
     bool r = ::do_serialize(ar, f);					\
-    if (!r || !ar.stream().good()) return false;			\
+    if (!r || !ar.good()) return false;					\
   } while(0);
 
 /*! \macro VARINT_FIELD(f)
@@ -265,7 +258,7 @@ inline bool do_serialize(Archive &ar, bool &v)
   do {						\
     ar.tag(#f);					\
     ar.serialize_varint(f);			\
-    if (!ar.stream().good()) return false;	\
+    if (!ar.good()) return false;		\
   } while(0);
 
 /*! \macro VARINT_FIELD_N(t, f)
@@ -276,7 +269,28 @@ inline bool do_serialize(Archive &ar, bool &v)
   do {						\
     ar.tag(t);					\
     ar.serialize_varint(f);			\
-    if (!ar.stream().good()) return false;	\
+    if (!ar.good()) return false;		\
+  } while(0);
+
+/*! \macro MAGIC_FIELD(m)
+ */
+#define MAGIC_FIELD(m)				\
+  std::string magic = m;			\
+  do {						\
+    ar.tag("magic");				\
+    ar.serialize_blob((void*)magic.data(), magic.size()); \
+    if (!ar.good()) return false;		\
+    if (magic != m) return false;		\
+  } while(0);
+
+/*! \macro VERSION_FIELD(v)
+ */
+#define VERSION_FIELD(v)			\
+  uint32_t version = v;				\
+  do {						\
+    ar.tag("version");				\
+    ar.serialize_varint(version);		\
+    if (!ar.good()) return false;		\
   } while(0);
 
 
@@ -318,10 +332,10 @@ namespace serialization {
      *
      * \brief self explanatory
      */
-    template<class Stream>
-    bool do_check_stream_state(Stream& s, boost::mpl::bool_<true>, bool noeof)
+    template<class Archive>
+    bool do_check_stream_state(Archive& ar, boost::mpl::bool_<true>, bool noeof)
     {
-      return s.good();
+      return ar.good();
     }
     /*! \fn do_check_stream_state
      *
@@ -329,15 +343,13 @@ namespace serialization {
      *
      * \detailed Also checks to make sure that the stream is not at EOF
      */
-    template<class Stream>
-    bool do_check_stream_state(Stream& s, boost::mpl::bool_<false>, bool noeof)
+    template<class Archive>
+    bool do_check_stream_state(Archive& ar, boost::mpl::bool_<false>, bool noeof)
     {
       bool result = false;
-      if (s.good())
+      if (ar.good())
 	{
-	  std::ios_base::iostate state = s.rdstate();
-	  result = noeof || EOF == s.peek();
-	  s.clear(state);
+	  result = noeof || ar.eof();
 	}
       return result;
     }
@@ -350,7 +362,7 @@ namespace serialization {
   template<class Archive>
   bool check_stream_state(Archive& ar, bool noeof = false)
   {
-    return detail::do_check_stream_state(ar.stream(), typename Archive::is_saving(), noeof);
+    return detail::do_check_stream_state(ar, typename Archive::is_saving(), noeof);
   }
 
   /*! \fn serialize

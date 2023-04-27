@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -43,7 +44,7 @@ namespace lmdb
             {
                 const int rc = mdb_cursor_count(cur, &out);
                 if (rc)
-                    SCALA_THROW(lmdb::error(rc), "mdb_cursor_count");
+                    scala_THROW(lmdb::error(rc), "mdb_cursor_count");
             }
             return out;
         }
@@ -58,14 +59,14 @@ namespace lmdb
             {
                 if (rc == MDB_NOTFOUND)
                     return {};
-                SCALA_THROW(lmdb::error(rc), "mdb_cursor_get");
+                scala_THROW(lmdb::error(rc), "mdb_cursor_get");
             }
 
             if (key && key != key_bytes.mv_size)
-                SCALA_THROW(lmdb::error(MDB_BAD_VALSIZE), "mdb_cursor_get key");
+                scala_THROW(lmdb::error(MDB_BAD_VALSIZE), "mdb_cursor_get key");
 
             if (value && (value_bytes.mv_size % value != 0 || value_bytes.mv_size == 0))
-                SCALA_THROW(lmdb::error(MDB_BAD_VALSIZE), "mdb_cursor_get value");
+                scala_THROW(lmdb::error(MDB_BAD_VALSIZE), "mdb_cursor_get value");
 
             return {lmdb::to_byte_span(key_bytes), lmdb::to_byte_span(value_bytes)};
         }

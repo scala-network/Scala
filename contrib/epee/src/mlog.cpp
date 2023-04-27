@@ -40,15 +40,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include "string_tools.h"
-#include "misc_os_dependent.h"
+#include "time_helper.h"
 #include "misc_log_ex.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "logging"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "logging"
 
 #define MLOG_BASE_FORMAT "%datetime{%Y-%M-%d %H:%m:%s.%g}\t%thread\t%level\t%logger\t%loc\t%msg"
 
-#define MLOG_LOG(x) CINFO(el::base::Writer,el::base::DispatchAction::FileOnlyLog,SCALA_DEFAULT_LOG_CATEGORY) << x
+#define MLOG_LOG(x) CINFO(el::base::Writer,el::base::DispatchAction::FileOnlyLog,scala_DEFAULT_LOG_CATEGORY) << x
 
 using namespace epee;
 
@@ -100,7 +100,7 @@ static const char *get_default_categories(int level)
   switch (level)
   {
     case 0:
-      categories = "*:WARNING,net:FATAL,net.http:FATAL,net.ssl:FATAL,net.p2p:FATAL,net.cn:FATAL,global:INFO,verify:FATAL,serialization:FATAL,daemon.rpc.payment:ERROR,stacktrace:INFO,logging:INFO,msgwriter:INFO";
+      categories = "*:WARNING,net:FATAL,net.http:FATAL,net.ssl:FATAL,net.p2p:FATAL,net.cn:FATAL,daemon.rpc:FATAL,global:INFO,verify:FATAL,serialization:FATAL,daemon.rpc.payment:ERROR,stacktrace:INFO,logging:INFO,msgwriter:INFO";
       break;
     case 1:
       categories = "*:INFO,global:INFO,stacktrace:INFO,logging:INFO,msgwriter:INFO,perf.*:DEBUG";
@@ -150,7 +150,7 @@ void mlog_configure(const std::string &filename_base, bool console, const std::s
   el::Configurations c;
   c.setGlobally(el::ConfigurationType::Filename, filename_base);
   c.setGlobally(el::ConfigurationType::ToFile, "true");
-  const char *log_format = getenv("SCALA_LOG_FORMAT");
+  const char *log_format = getenv("scala_LOG_FORMAT");
   if (!log_format)
     log_format = MLOG_BASE_FORMAT;
   c.setGlobally(el::ConfigurationType::Format, log_format);
@@ -224,7 +224,7 @@ void mlog_configure(const std::string &filename_base, bool console, const std::s
     }
   });
   mlog_set_common_prefix();
-  const char *scala_log = getenv("SCALA_LOGS");
+  const char *scala_log = getenv("scala_LOGS");
   if (!scala_log)
   {
     scala_log = get_default_categories(0);
@@ -338,9 +338,19 @@ bool is_stdout_a_tty()
   return is_a_tty.load(std::memory_order_relaxed);
 }
 
+static bool is_nocolor()
+{
+  static const char *no_color_var = getenv("NO_COLOR");
+  static const bool no_color = no_color_var && *no_color_var; // apparently, NO_COLOR=0 means no color too (as per no-color.org)
+  return no_color;
+}
+
 void set_console_color(int color, bool bright)
 {
   if (!is_stdout_a_tty())
+    return;
+
+  if (is_nocolor())
     return;
 
   switch(color)
@@ -459,6 +469,9 @@ void set_console_color(int color, bool bright)
 
 void reset_console_color() {
   if (!is_stdout_a_tty())
+    return;
+
+  if (is_nocolor())
     return;
 
 #ifdef WIN32

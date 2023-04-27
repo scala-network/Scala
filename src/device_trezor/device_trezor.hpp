@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -27,8 +27,8 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef SCALA_DEVICE_TREZOR_H
-#define SCALA_DEVICE_TREZOR_H
+#ifndef scala_DEVICE_TREZOR_H
+#define scala_DEVICE_TREZOR_H
 
 #include "trezor.hpp"
 #include "device/device.hpp"
@@ -69,7 +69,7 @@ namespace trezor {
 
       unsigned client_version();
       void transaction_versions_check(const ::tools::wallet2::unsigned_tx_set & unsigned_tx, hw::tx_aux_data & aux_data);
-      void transaction_pre_check(std::shared_ptr<messages::scala::ScalaTransactionInitRequest> init_msg);
+      void transaction_pre_check(std::shared_ptr<messages::scala::scalaTransactionInitRequest> init_msg);
       void transaction_check(const protocol::tx::TData & tdata, const hw::tx_aux_data & aux_data);
       void device_state_initialize_unsafe() override;
       void live_refresh_start_unsafe();
@@ -120,7 +120,7 @@ namespace trezor {
       /**
        * Get address. Throws.
        */
-      std::shared_ptr<messages::scala::ScalaAddress> get_address(
+      std::shared_ptr<messages::scala::scalaAddress> get_address(
           const boost::optional<cryptonote::subaddress_index> & subaddress = boost::none,
           const boost::optional<crypto::hash8> & payment_id = boost::none,
           bool show_address = false,
@@ -130,7 +130,7 @@ namespace trezor {
       /**
        * Get watch key from device. Throws.
        */
-      std::shared_ptr<messages::scala::ScalaWatchKey> get_view_key(
+      std::shared_ptr<messages::scala::scalaWatchKey> get_view_key(
           const boost::optional<std::vector<uint32_t>> & path = boost::none,
           const boost::optional<cryptonote::network_type> & network_type = boost::none);
 
@@ -205,10 +205,30 @@ namespace trezor {
                    const ::tools::wallet2::unsigned_tx_set & unsigned_tx,
                    ::tools::wallet2::signed_tx_set & signed_tx,
                    hw::tx_aux_data & aux_data) override;
+
+      /**
+      * Requests public address, uses empty passphrase if asked for.
+      */
+      bool get_public_address_with_no_passphrase(cryptonote::account_public_address &pubkey) override;
+
+      /**
+       * Reset session ID, restart with a new session.
+       */
+      virtual void reset_session() override;
+
+      /**
+       * Returns true if device already asked for passphrase entry before (i.e., obviously supports passphrase entry)
+       */
+      bool seen_passphrase_entry_prompt() override;
+
+      /**
+       * Uses empty passphrase for all passphrase queries.
+       */
+      void set_use_empty_passphrase(bool use_always_empty_passphrase) override;
     };
 
 #endif
 
 }
 }
-#endif //SCALA_DEVICE_TREZOR_H
+#endif //scala_DEVICE_TREZOR_H

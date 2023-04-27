@@ -1,5 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -33,7 +32,7 @@ set(core_proxy_sources
 set(core_proxy_headers
   core_proxy.h)
 
-add_executable(core_proxy
+scala_add_minimal_executable(core_proxy
   ${core_proxy_sources}
   ${core_proxy_headers})
 target_link_libraries(core_proxy

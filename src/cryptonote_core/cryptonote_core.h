@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -33,13 +32,14 @@
 
 #include <ctime>
 
+#include <boost/function.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+#include "cryptonote_basic/fwd.h"
 #include "cryptonote_core/i_core_events.h"
 #include "cryptonote_protocol/cryptonote_protocol_handler_common.h"
 #include "cryptonote_protocol/enums.h"
-#include "storages/portable_storage_template_helper.h"
 #include "common/download.h"
 #include "common/command_line.h"
 #include "tx_pool.h"
@@ -49,9 +49,12 @@
 #include "warnings.h"
 #include "crypto/hash.h"
 #include "span.h"
+#include "rpc/fwd.h"
 
 PUSH_WARNINGS
 DISABLE_VS_WARNINGS(4355)
+
+enum { HAVE_BLOCK_MAIN_CHAIN, HAVE_BLOCK_ALT_CHAIN, HAVE_BLOCK_INVALID };
 
 namespace cryptonote
 {
@@ -222,15 +225,22 @@ namespace cryptonote
       *
       * @return true if the block was added to the main chain, otherwise false
       */
-     virtual bool handle_block_found(block& b, block_verification_context &bvc);
+     virtual bool handle_block_found(block& b, block_verification_context &bvc) override;
 
      /**
       * @copydoc Blockchain::create_block_template
       *
       * @note see Blockchain::create_block_template
       */
-     virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
-     virtual bool get_block_template(block& b, const crypto::hash *prev_block, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
+     virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce, uint64_t &seed_height, crypto::hash &seed_hash) override;
+     virtual bool get_block_template(block& b, const crypto::hash *prev_block, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce, uint64_t &seed_height, crypto::hash &seed_hash);
+
+     /**
+      * @copydoc Blockchain::get_miner_data
+      *
+      * @note see Blockchain::get_miner_data
+      */
+     bool get_miner_data(uint8_t& major_version, uint64_t& height, crypto::hash& prev_id, crypto::hash& seed_hash, difficulty_type& difficulty, uint64_t& median_weight, uint64_t& already_generated_coins, std::vector<tx_block_template_backlog_entry>& tx_backlog);
 
      /**
       * @brief called when a transaction is relayed.
@@ -272,10 +282,11 @@ namespace cryptonote
       * @param vm command line parameters
       * @param test_options configuration options for testing
       * @param get_checkpoints if set, will be called to get checkpoints data, must return checkpoints data pointer and size or nullptr if there ain't any checkpoints for specific network type
+      * @param allow_dns whether or not to allow DNS requests
       *
       * @return false if one of the init steps fails, otherwise true
       */
-     bool init(const boost::program_options::variables_map& vm, const test_options *test_options = NULL, const GetCheckpointsCallback& get_checkpoints = nullptr);
+     bool init(const boost::program_options::variables_map& vm, const test_options *test_options = NULL, const GetCheckpointsCallback& get_checkpoints = nullptr, bool allow_dns = true);
 
      /**
       * @copydoc Blockchain::reset_and_set_genesis_block
@@ -327,7 +338,7 @@ namespace cryptonote
       *
       * @note see Blockchain::get_current_blockchain_height()
       */
-     uint64_t get_current_blockchain_height() const;
+     virtual uint64_t get_current_blockchain_height() const final;
 
      /**
       * @brief get the hash and height of the most recent block
@@ -381,7 +392,7 @@ namespace cryptonote
       *
       * @note see Blockchain::get_transactions
       */
-     bool get_transactions(const std::vector<crypto::hash>& txs_ids, std::vector<cryptonote::blobdata>& txs, std::vector<crypto::hash>& missed_txs) const;
+     bool get_transactions(const std::vector<crypto::hash>& txs_ids, std::vector<cryptonote::blobdata>& txs, std::vector<crypto::hash>& missed_txs, bool pruned = false) const;
 
      /**
       * @copydoc Blockchain::get_transactions
@@ -395,7 +406,7 @@ namespace cryptonote
       *
       * @note see Blockchain::get_transactions
       */
-     bool get_transactions(const std::vector<crypto::hash>& txs_ids, std::vector<transaction>& txs, std::vector<crypto::hash>& missed_txs) const;
+     bool get_transactions(const std::vector<crypto::hash>& txs_ids, std::vector<transaction>& txs, std::vector<crypto::hash>& missed_txs, bool pruned = false) const;
 
      /**
       * @copydoc Blockchain::get_block_by_hash
@@ -426,6 +437,13 @@ namespace cryptonote
      void set_cryptonote_protocol(i_cryptonote_protocol* pprotocol);
 
      /**
+      * @copydoc Blockchain::get_checkpoints
+      *
+      * @note see Blockchain::get_checkpoints()
+      */
+     const checkpoints& get_checkpoints() const;
+
+     /**
       * @copydoc Blockchain::set_checkpoints
       *
       * @note see Blockchain::set_checkpoints()
@@ -445,6 +463,13 @@ namespace cryptonote
       * @param enforce_dns enforce DNS checkpoints or not
       */
      void set_enforce_dns_checkpoints(bool enforce_dns);
+
+     /**
+      * @brief set a listener for txes being added to the txpool
+      *
+      * @param callable to notify, or empty function to disable.
+      */
+     void set_txpool_listener(boost::function<void(std::vector<txpool_event>)> zmq_pub);
 
      /**
       * @brief set whether or not to enable or disable DNS checkpoints
@@ -485,6 +510,23 @@ namespace cryptonote
      bool get_pool_transaction_hashes(std::vector<crypto::hash>& txs, bool include_sensitive_txes = false) const;
 
      /**
+      * @copydoc tx_memory_pool::get_pool_transactions_info
+      * @param include_sensitive_txes include private transactions
+      *
+      * @note see tx_memory_pool::get_pool_transactions_info
+      */
+     bool get_pool_transactions_info(const std::vector<crypto::hash>& txids, std::vector<std::pair<crypto::hash, tx_memory_pool::tx_details>>& txs, bool include_sensitive_txes = false) const;
+
+     /**
+      * @copydoc tx_memory_pool::get_pool_info
+      * @param include_sensitive_txes include private transactions
+      * @param max_tx_count max allowed added_txs in response
+      *
+      * @note see tx_memory_pool::get_pool_info
+      */
+     bool get_pool_info(time_t start_time, bool include_sensitive_txes, size_t max_tx_count, std::vector<std::pair<crypto::hash, tx_memory_pool::tx_details>>& added_txs, std::vector<crypto::hash>& remaining_added_txids, std::vector<crypto::hash>& removed_txs, bool& incremental) const;
+
+    /**
       * @copydoc tx_memory_pool::get_transactions
       * @param include_sensitive_txes include private transactions
       *
@@ -534,7 +576,8 @@ namespace cryptonote
       *
       * @note see Blockchain::have_block
       */
-     bool have_block(const crypto::hash& id) const;
+     bool have_block_unlocked(const crypto::hash& id, int *where = NULL) const;
+     bool have_block(const crypto::hash& id, int *where = NULL) const;
 
      /**
       * @copydoc Blockchain::get_short_chain_history
@@ -555,7 +598,7 @@ namespace cryptonote
       *
       * @note see Blockchain::find_blockchain_supplement(const uint64_t, const std::list<crypto::hash>&, std::vector<std::pair<cryptonote::blobdata, std::vector<transaction> > >&, uint64_t&, uint64_t&, size_t) const
       */
-     bool find_blockchain_supplement(const uint64_t req_start_block, const std::list<crypto::hash>& qblock_ids, std::vector<std::pair<std::pair<cryptonote::blobdata, crypto::hash>, std::vector<std::pair<crypto::hash, cryptonote::blobdata> > > >& blocks, uint64_t& total_height, uint64_t& start_height, bool pruned, bool get_miner_tx_hash, size_t max_count) const;
+     bool find_blockchain_supplement(const uint64_t req_start_block, const std::list<crypto::hash>& qblock_ids, std::vector<std::pair<std::pair<cryptonote::blobdata, crypto::hash>, std::vector<std::pair<crypto::hash, cryptonote::blobdata> > > >& blocks, uint64_t& total_height, uint64_t& start_height, bool pruned, bool get_miner_tx_hash, size_t max_block_count, size_t max_tx_count) const;
 
      /**
       * @copydoc Blockchain::get_tx_outputs_gindexs
@@ -627,6 +670,13 @@ namespace cryptonote
       * @note see tx_memory_pool::print_pool
       */
      std::string print_pool(bool short_format) const;
+
+     /**
+      * @brief gets the core synchronization status
+      *
+      * @return core synchronization status
+      */
+     virtual bool is_synchronized() const final;
 
      /**
       * @copydoc miner::on_synchronized
@@ -986,10 +1036,11 @@ namespace cryptonote
       * @brief verify that each ring uses distinct members
       *
       * @param tx the transaction to check
+      * @param hf_version the hard fork version rules to use
       *
       * @return false if any ring uses duplicate members, true otherwise
       */
-     bool check_tx_inputs_ring_members_diff(const transaction& tx) const;
+     bool check_tx_inputs_ring_members_diff(const transaction& tx, const uint8_t hf_version) const;
 
      /**
       * @brief verify that each input key image in a transaction is in
@@ -1007,6 +1058,13 @@ namespace cryptonote
       * @return true
       */
      bool relay_txpool_transactions();
+
+     /**
+      * @brief sends notification of txpool events to subscribers
+      *
+      * @return true on success, false otherwise
+      */
+     bool notify_txpool_event(const epee::span<const cryptonote::blobdata> tx_blobs, epee::span<const crypto::hash> tx_hashes, epee::span<const cryptonote::transaction> txs, const std::vector<bool> &just_broadcasted) const;
 
      /**
       * @brief checks DNS versions
@@ -1029,6 +1087,13 @@ namespace cryptonote
       */
      bool check_block_rate();
 
+     /**
+      * @brief recalculate difficulties after the last difficulty checklpoint to circumvent the annoying 'difficulty drift' bug
+      *
+      * @return true
+      */
+     bool recalculate_difficulties();
+
      bool m_test_drop_download = true; //!< whether or not to drop incoming blocks (for testing)
 
      uint64_t m_test_drop_download_height = 0; //!< height under which to drop incoming blocks, if doing so
@@ -1048,11 +1113,12 @@ namespace cryptonote
      cryptonote_protocol_stub m_protocol_stub; //!< cryptonote protocol stub instance
 
      epee::math_helper::once_a_time_seconds<60*60*12, false> m_store_blockchain_interval; //!< interval for manual storing of Blockchain, if enabled
-     epee::math_helper::once_a_time_seconds<60*2, false> m_txpool_auto_relayer; //!< interval for checking re-relaying txpool transactions
+     epee::math_helper::once_a_time_seconds<60*60*2, true> m_fork_moaner; //!< interval for checking HardFork status
      epee::math_helper::once_a_time_seconds<60*60*12, true> m_check_updates_interval; //!< interval for checking for new versions
      epee::math_helper::once_a_time_seconds<60*10, true> m_check_disk_space_interval; //!< interval for checking for disk space
      epee::math_helper::once_a_time_seconds<90, false> m_block_rate_interval; //!< interval for checking block rate
      epee::math_helper::once_a_time_seconds<60*60*5, true> m_blockchain_pruning_interval; //!< interval for incremental blockchain pruning
+     epee::math_helper::once_a_time_seconds<60*60*24*7, false> m_diff_recalc_interval; //!< interval for recalculating difficulties
 
      std::atomic<bool> m_starter_message_showed; //!< has the "daemon will sync now" message been shown?
 
@@ -1065,7 +1131,6 @@ namespace cryptonote
      std::string m_checkpoints_path; //!< path to json checkpoints file
      time_t m_last_dns_checkpoints_update; //!< time when dns checkpoints were last updated
      time_t m_last_json_checkpoints_update; //!< time when json checkpoints were last updated
-     time_t m_last_ipfs_checkpoints_update;
 
      std::atomic_flag m_checkpoints_updating; //!< set if checkpoints are currently updating to avoid multiple threads attempting to update at once
      bool m_disable_dns_checkpoints;
@@ -1091,7 +1156,12 @@ namespace cryptonote
      bool m_fluffy_blocks_enabled;
      bool m_offline;
 
+    /* `boost::function` is used because the implementation never allocates if
+       the callable object has a single `std::shared_ptr` or `std::weap_ptr`
+       internally. Whereas, the libstdc++ `std::function` will allocate. */
+
      std::shared_ptr<tools::Notify> m_block_rate_notify;
+     boost::function<void(std::vector<txpool_event>)> m_zmq_pub;
    };
 }
 

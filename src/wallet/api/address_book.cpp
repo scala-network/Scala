@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -38,7 +37,7 @@
 
 #include <vector>
 
-namespace Scala {
+namespace scala {
   
 AddressBook::~AddressBook() {}
   
@@ -69,6 +68,25 @@ bool AddressBookImpl::addRow(const std::string &dst_addr , const std::string &pa
   else
     m_errorCode = General_Error;
   return r;
+}
+
+bool AddressBookImpl::setDescription(std::size_t index, const std::string &description)
+{
+    clearStatus();
+
+    const auto ab = m_wallet->m_wallet->get_address_book();
+    if (index >= ab.size()){
+        return false;
+    }
+
+    tools::wallet2::address_book_row entry = ab[index];
+    entry.m_description = description;
+    bool r =  m_wallet->m_wallet->set_address_book_row(index, entry.m_address, entry.m_has_payment_id ? &entry.m_payment_id : nullptr, entry.m_description, entry.m_is_subaddress);
+    if (r)
+        refresh();
+    else
+        m_errorCode = General_Error;
+    return r;
 }
 
 void AddressBookImpl::refresh() 
@@ -148,5 +166,3 @@ AddressBookImpl::~AddressBookImpl()
 }
 
 } // namespace
-
-namespace Bitscala = Scala;

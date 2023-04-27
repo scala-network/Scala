@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -30,32 +29,20 @@
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include "checkpoints.h"
+
 #include "common/dns_utils.h"
 #include "string_tools.h"
 #include "storages/portable_storage_template_helper.h" // epee json include
 #include "serialization/keyvalue_serialization.h"
-
+#include <boost/system/error_code.hpp>
+#include <boost/filesystem.hpp>
+#include <functional>
 #include <vector>
-#include <boost/random.hpp>
-#include <iostream>
-#include <ctime>
-#include <cstdint>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <boost/algorithm/string.hpp>
-#include <algorithm>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/join.hpp>
 
-using namespace boost::property_tree;
-using namespace boost::algorithm;
 using namespace epee;
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "checkpoints"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "checkpoints"
 
 namespace cryptonote
 {
@@ -66,11 +53,9 @@ namespace cryptonote
   {
     uint64_t height; //!< the height of the checkpoint
     std::string hash; //!< the hash for the checkpoint
-    std::string c_difficulty; //!< the difficulty for the checkpoint
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(height)
           KV_SERIALIZE(hash)
-          KV_SERIALIZE(c_difficulty)
         END_KV_SERIALIZE_MAP()
   };
 
@@ -182,7 +167,7 @@ namespace cryptonote
   {
     return m_difficulty_points;
   }
-  //---------------------------------------------------------------------------
+
   bool checkpoints::check_for_conflicts(const checkpoints& other) const
   {
     for (auto& pt : other.get_points())
@@ -194,34 +179,24 @@ namespace cryptonote
     }
     return true;
   }
-  //---------------------------------------------------------------------------
+
   bool checkpoints::init_default_checkpoints(network_type nettype)
   {
-    if(nettype == MAINNET) {
-      ADD_CHECKPOINT(0, "3fa5c8976978f52ad7d8fc3663e902a229a232ef987fc11ca99628366652ba99");
-      ADD_CHECKPOINT(100, "61e49040154df814f90ff106dae115d79a0dc54480278de605f016f6451ce3b0");
-      ADD_CHECKPOINT(1000, "f0610f14129ca53cf4812334ddd8ae6bbec459113367a853adc36c163fab5cd2");
-      ADD_CHECKPOINT(10000, "4a220652f8fb723d1d627022b2fd556132d51915ad4f78964fda4ec071b89504");
-    }
-
     if (nettype == TESTNET)
     {
-      ADD_CHECKPOINT(0, "eb093694aef3a0fba15e64ff70260d04b65dfbf7b198e54936e99c9151c53e72");
-      ADD_CHECKPOINT(10, "fe03ce34b48581701b89b336917fab1155be4ef26d8fc3558e0cf83a2734eb5c");
-      ADD_CHECKPOINT(15, "a7a55845d4965e5b07746ba67a4f73f615b550cd1ec3be762fda003f89b6b0f0");
+      return true;
     }
-
     if (nettype == STAGENET)
-    {}
-    
+    {
+      return true;
+    }
     return true;
   }
-  //---------------------------------------------------------------------------
 
   bool checkpoints::load_checkpoints_from_json(const std::string &json_hashfile_fullpath)
   {
     boost::system::error_code errcode;
-    if (!(boost::filesystem::exists(json_hashfile_fullpath, errcode)))
+    if (! (boost::filesystem::exists(json_hashfile_fullpath, errcode)))
     {
       LOG_PRINT_L1("Blockchain checkpoints file not found");
       return true;
@@ -231,40 +206,51 @@ namespace cryptonote
 
     uint64_t prev_max_height = get_max_height();
     LOG_PRINT_L1("Hard-coded max checkpoint height is " << prev_max_height);
-
-    std::ifstream checkpoints_file(json_hashfile_fullpath);
-    if(checkpoints_file) {
-      std::stringstream buffer;
-      buffer << checkpoints_file.rdbuf();
-      checkpoints_file.close();
-
-      ptree stree;
-      read_json(buffer, stree);
-
+    t_hash_json hashes;
+    if (!epee::serialization::load_t_from_json_file(hashes, json_hashfile_fullpath))
+    {
+      MERROR("Error loading checkpoints from " << json_hashfile_fullpath);
+      return false;
+    }
+    for (std::vector<t_hashline>::const_iterator it = hashes.hashlines.begin(); it != hashes.hashlines.end(); )
+    {
       uint64_t height;
-      std::string hash;
-      std::string c_difficulty;
-
-      BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, stree) {
-        hash = v.second.get<std::string>("hash");
-        height = v.second.get<uint64_t>("height");
-        c_difficulty = v.second.get<std::string>("c_difficulty");
-
-        ADD_CHECKPOINT(height, hash);
+      height = it->height;
+      if (height <= prev_max_height) {
+	LOG_PRINT_L1("ignoring checkpoint height " << height);
+      } else {
+	std::string blockhash = it->hash;
+	LOG_PRINT_L1("Adding checkpoint height " << height << ", hash=" << blockhash);
+	ADD_CHECKPOINT(height, blockhash);
       }
+      ++it;
     }
 
     return true;
   }
-  //---------------------------------------------------------------------------
+
   bool checkpoints::load_checkpoints_from_dns(network_type nettype)
   {
     std::vector<std::string> records;
 
-    // All four ScalaPulse domains have DNSSEC on and valid
-    static const std::vector<std::string> dns_urls = { "checkpointsdns.scalaproject.io" };
-    static const std::vector<std::string> testnet_dns_urls = { "testcheckpointsdns.scalaproject.io" };
-    static const std::vector<std::string> stagenet_dns_urls = { "stagecheckpointsdns.scalaproject.io" };
+    // All four scalaPulse domains have DNSSEC on and valid
+    static const std::vector<std::string> dns_urls = { "checkpoints.scalapulse.se"
+						     , "checkpoints.scalapulse.org"
+						     , "checkpoints.scalapulse.net"
+						     , "checkpoints.scalapulse.co"
+    };
+
+    static const std::vector<std::string> testnet_dns_urls = { "testpoints.scalapulse.se"
+							     , "testpoints.scalapulse.org"
+							     , "testpoints.scalapulse.net"
+							     , "testpoints.scalapulse.co"
+    };
+
+    static const std::vector<std::string> stagenet_dns_urls = { "stagenetpoints.scalapulse.se"
+                   , "stagenetpoints.scalapulse.org"
+                   , "stagenetpoints.scalapulse.net"
+                   , "stagenetpoints.scalapulse.co"
+    };
 
     if (!tools::dns_utils::load_txt_records_from_dns(records, nettype == TESTNET ? testnet_dns_urls : nettype == STAGENET ? stagenet_dns_urls : dns_urls))
       return true; // why true ?
@@ -282,7 +268,7 @@ namespace cryptonote
         std::stringstream ss(record.substr(0, pos));
         if (!(ss >> height))
         {
-          continue;
+    continue;
         }
 
         // parse the second part as crypto::hash,
@@ -290,7 +276,7 @@ namespace cryptonote
         std::string hashStr = record.substr(pos + 1);
         if (!epee::string_tools::hex_to_pod(hashStr, hash))
         {
-          continue;
+    continue;
         }
 
         ADD_CHECKPOINT(height, hashStr);

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -27,8 +27,8 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef SCALA_DEVICE_COLD_H
-#define SCALA_DEVICE_COLD_H
+#ifndef scala_DEVICE_COLD_H
+#define scala_DEVICE_COLD_H
 
 #include "wallet/wallet2.h"
 #include <boost/optional/optional.hpp>
@@ -162,7 +162,27 @@ namespace hw {
      * Live refresh process termination
      */
     virtual void live_refresh_finish() =0;
+
+    /**
+     * Requests public address, uses empty passphrase if asked for.
+     */
+    virtual bool get_public_address_with_no_passphrase(cryptonote::account_public_address &pubkey) =0;
+
+    /**
+     * Reset session ID, restart with a new session.
+     */
+    virtual void reset_session() =0;
+
+    /**
+     * Returns true if device already asked for passphrase entry before (i.e., obviously supports passphrase entry)
+     */
+    virtual bool seen_passphrase_entry_prompt() =0;
+
+    /**
+     * Uses empty passphrase for all passphrase queries.
+     */
+    virtual void set_use_empty_passphrase(bool always_use_empty_passphrase) =0;
   };
 }
 
-#endif //SCALA_DEVICE_COLD_H
+#endif //scala_DEVICE_COLD_H

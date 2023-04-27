@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 // 
 // All rights reserved.
 // 
@@ -42,8 +43,8 @@
 #include "util.h"
 #include "spawn.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "spawn"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "spawn"
 
 namespace tools
 {

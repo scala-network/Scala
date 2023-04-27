@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -44,8 +44,8 @@
 
 namespace po = boost::program_options;
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "gen_ssl_cert"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "gen_ssl_cert"
 
 namespace gencert
 {
@@ -121,13 +121,13 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 0;
   }
   if (command_line::get_arg(vm, command_line::arg_version))
   {
-    std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL;
+    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL;
     return 0;
   }
 

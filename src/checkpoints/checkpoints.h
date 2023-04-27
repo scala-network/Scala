@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -34,11 +33,10 @@
 #include "misc_log_ex.h"
 #include "crypto/hash.h"
 #include "cryptonote_config.h"
-#include "net/http_client.h"
 #include "cryptonote_basic/difficulty.h"
 
 #define ADD_CHECKPOINT(h, hash)  CHECK_AND_ASSERT(add_checkpoint(h,  hash), false);
-#define ADD_CHECKPOINT_2(h, hash, difficulty)  CHECK_AND_ASSERT(add_checkpoint(h,  hash, difficulty), false);
+#define ADD_CHECKPOINT2(h, hash, difficulty)  CHECK_AND_ASSERT(add_checkpoint(h,  hash, difficulty), false);
 #define JSON_HASH_FILE_NAME "checkpoints.json"
 
 
@@ -200,6 +198,6 @@ namespace cryptonote
   private:
     std::map<uint64_t, crypto::hash> m_points; //!< the checkpoints container
     std::map<uint64_t, difficulty_type> m_difficulty_points; //!< the difficulty checkpoints container
-
   };
+
 }

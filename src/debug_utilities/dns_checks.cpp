@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -37,8 +37,8 @@
 #include "common/dns_utils.h"
 #include "version.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "debugtools.dnschecks"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "debugtools.dnschecks"
 
 namespace po = boost::program_options;
 
@@ -121,26 +121,26 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
 
   mlog_configure("", true);
-  mlog_set_categories("+" SCALA_DEFAULT_LOG_CATEGORY ":INFO");
+  mlog_set_categories("+" scala_DEFAULT_LOG_CATEGORY ":INFO");
 
   lookup(LOOKUP_A, {"seeds.scalaseeds.se", "seeds.scalaseeds.ae.org", "seeds.scalaseeds.ch", "seeds.scalaseeds.li"});
 
-  lookup(LOOKUP_TXT, {"updates.scalapulse.org", "updates.scalapulse.net", "updates.scalapulse.co", "updates.scalapulse.se"});
+  lookup(LOOKUP_TXT, {"updates.scalapulse.org", "updates.scalapulse.net", "updates.scalapulse.co", "updates.scalapulse.se", "updates.scalapulse.fr", "updates.scalapulse.de", "updates.scalapulse.no", "updates.scalapulse.ch"});
 
   lookup(LOOKUP_TXT, {"checkpoints.scalapulse.org", "checkpoints.scalapulse.net", "checkpoints.scalapulse.co", "checkpoints.scalapulse.se"});
 
   // those are in the code, but don't seem to actually exist
-#if 0
-  lookup(LOOKUP_TXT, {"testpoints.scalapulse.org", "testpoints.scalapulse.net", "testpoints.scalapulse.co", "testpoints.scalapulse.se");
+  #if 0
+    lookup(LOOKUP_TXT, {"testpoints.scalapulse.org", "testpoints.scalapulse.net", "testpoints.scalapulse.co", "testpoints.scalapulse.se");
 
-  lookup(LOOKUP_TXT, {"stagenetpoints.scalapulse.org", "stagenetpoints.scalapulse.net", "stagenetpoints.scalapulse.co", "stagenetpoints.scalapulse.se"});
-#endif
+    lookup(LOOKUP_TXT, {"stagenetpoints.scalapulse.org", "stagenetpoints.scalapulse.net", "stagenetpoints.scalapulse.co", "stagenetpoints.scalapulse.se"});
+  #endif
 
   lookup(LOOKUP_TXT, {"segheights.scalapulse.org", "segheights.scalapulse.net", "segheights.scalapulse.co", "segheights.scalapulse.se"});
 

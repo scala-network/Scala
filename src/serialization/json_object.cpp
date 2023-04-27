@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, The Monero Project
+// Copyright (c) 2016-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -32,6 +32,9 @@
 #include <boost/variant/apply_visitor.hpp>
 #include <limits>
 #include <type_traits>
+
+#include "cryptonote_basic/cryptonote_basic_impl.h"
+#include "cryptonote_core/cryptonote_tx_utils.h"
 
 // drop macro from windows.h
 #ifdef GetObject
@@ -120,7 +123,7 @@ void read_hex(const rapidjson::Value& val, epee::span<std::uint8_t> dest)
     throw WRONG_TYPE("string");
   }
 
-  if (!epee::from_hex::to_buffer(dest, {val.GetString(), val.Size()}))
+  if (!epee::from_hex::to_buffer(dest, {val.GetString(), val.GetStringLength()}))
   {
     throw BAD_INPUT();
   }
@@ -144,6 +147,26 @@ void fromJsonValue(const rapidjson::Value& val, std::string& str)
   }
 
   str = val.GetString();
+}
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const std::vector<std::uint8_t>& src)
+{
+  const std::string hex = epee::to_hex::string(epee::to_span(src));
+  dest.String(hex.data(), hex.size());
+}
+
+void fromJsonValue(const rapidjson::Value& val, std::vector<std::uint8_t>& dest)
+{
+  if (!val.IsString())
+  {
+    throw WRONG_TYPE("string");
+  }
+
+  dest.resize(val.GetStringLength() / 2);
+  if ((val.GetStringLength() % 2) != 0 || !epee::from_hex::to_buffer(epee::to_mut_span(dest), {val.GetString(), val.GetStringLength()}))
+  {
+    throw BAD_INPUT();
+  }
 }
 
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, bool i)
@@ -246,7 +269,10 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
   INSERT_INTO_JSON_OBJECT(dest, inputs, tx.vin);
   INSERT_INTO_JSON_OBJECT(dest, outputs, tx.vout);
   INSERT_INTO_JSON_OBJECT(dest, extra, tx.extra);
-  INSERT_INTO_JSON_OBJECT(dest, signatures, tx.signatures);
+  if (!tx.pruned)
+  {
+    INSERT_INTO_JSON_OBJECT(dest, signatures, tx.signatures);
+  }
   INSERT_INTO_JSON_OBJECT(dest, ringct, tx.rct_signatures);
 
   dest.EndObject();
@@ -265,8 +291,17 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::transaction& tx)
   GET_FROM_JSON_OBJECT(val, tx.vin, inputs);
   GET_FROM_JSON_OBJECT(val, tx.vout, outputs);
   GET_FROM_JSON_OBJECT(val, tx.extra, extra);
-  GET_FROM_JSON_OBJECT(val, tx.signatures, signatures);
   GET_FROM_JSON_OBJECT(val, tx.rct_signatures, ringct);
+
+  const auto& sigs = val.FindMember("signatures");
+  if (sigs != val.MemberEnd())
+  {
+    fromJsonValue(sigs->value, tx.signatures);
+  }
+
+  const auto& rsig = tx.rct_signatures;
+  if (!cryptonote::is_coinbase(tx) && rsig.p.bulletproofs.empty() && rsig.p.bulletproofs_plus.empty() && rsig.p.rangeSigs.empty() && rsig.p.MGs.empty() && rsig.get_pseudo_outs().empty() && sigs == val.MemberEnd())
+    tx.pruned = true;
 }
 
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::block& b)
@@ -278,7 +313,6 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::b
   INSERT_INTO_JSON_OBJECT(dest, timestamp, b.timestamp);
   INSERT_INTO_JSON_OBJECT(dest, prev_id, b.prev_id);
   INSERT_INTO_JSON_OBJECT(dest, nonce, b.nonce);
-  INSERT_INTO_JSON_OBJECT(dest, signature, b.signature);
   INSERT_INTO_JSON_OBJECT(dest, miner_tx, b.miner_tx);
   INSERT_INTO_JSON_OBJECT(dest, tx_hashes, b.tx_hashes);
 
@@ -298,7 +332,6 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::block& b)
   GET_FROM_JSON_OBJECT(val, b.timestamp, timestamp);
   GET_FROM_JSON_OBJECT(val, b.prev_id, prev_id);
   GET_FROM_JSON_OBJECT(val, b.nonce, nonce);
-  GET_FROM_JSON_OBJECT(val, b.signature, signature);
   GET_FROM_JSON_OBJECT(val, b.miner_tx, miner_tx);
   GET_FROM_JSON_OBJECT(val, b.tx_hashes, tx_hashes);
 }
@@ -530,6 +563,27 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_key& txout)
   GET_FROM_JSON_OBJECT(val, txout.key, key);
 }
 
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_tagged_key& txout)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, key, txout.key);
+  INSERT_INTO_JSON_OBJECT(dest, view_tag, txout.view_tag);
+
+  dest.EndObject();
+}
+
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_tagged_key& txout)
+{
+  if (!val.IsObject())
+  {
+    throw WRONG_TYPE("json object");
+  }
+
+  GET_FROM_JSON_OBJECT(val, txout.key, key);
+  GET_FROM_JSON_OBJECT(val, txout.view_tag, view_tag);
+}
+
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::tx_out& txout)
 {
   dest.StartObject();
@@ -544,6 +598,10 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
     void operator()(cryptonote::txout_to_key const& output) const
     {
       INSERT_INTO_JSON_OBJECT(dest, to_key, output);
+    }
+    void operator()(cryptonote::txout_to_tagged_key const& output) const
+    {
+      INSERT_INTO_JSON_OBJECT(dest, to_tagged_key, output);
     }
     void operator()(cryptonote::txout_to_script const& output) const
     {
@@ -580,6 +638,12 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::tx_out& txout)
     if (elem.name == "to_key")
     {
       cryptonote::txout_to_key tmpVal;
+      fromJsonValue(elem.value, tmpVal);
+      txout.target = std::move(tmpVal);
+    }
+    else if (elem.name == "to_tagged_key")
+    {
+      cryptonote::txout_to_tagged_key tmpVal;
       fromJsonValue(elem.value, tmpVal);
       txout.target = std::move(tmpVal);
     }
@@ -1059,17 +1123,22 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::rctSig& 
   };
 
   INSERT_INTO_JSON_OBJECT(dest, type, sig.type);
-  INSERT_INTO_JSON_OBJECT(dest, encrypted, sig.ecdhInfo);
-  INSERT_INTO_JSON_OBJECT(dest, commitments, transform(sig.outPk, just_mask));
-  INSERT_INTO_JSON_OBJECT(dest, fee, sig.txnFee);
+  if (sig.type != rct::RCTTypeNull)
+  {
+    INSERT_INTO_JSON_OBJECT(dest, encrypted, sig.ecdhInfo);
+    INSERT_INTO_JSON_OBJECT(dest, commitments, transform(sig.outPk, just_mask));
+    INSERT_INTO_JSON_OBJECT(dest, fee, sig.txnFee);
+  }
 
   // prunable
+  if (!sig.p.bulletproofs.empty() || !sig.p.bulletproofs_plus.empty() || !sig.p.rangeSigs.empty() || !sig.p.MGs.empty() || !sig.get_pseudo_outs().empty())
   {
     dest.Key("prunable");
     dest.StartObject();
 
     INSERT_INTO_JSON_OBJECT(dest, range_proofs, sig.p.rangeSigs);
     INSERT_INTO_JSON_OBJECT(dest, bulletproofs, sig.p.bulletproofs);
+    INSERT_INTO_JSON_OBJECT(dest, bulletproofs_plus, sig.p.bulletproofs_plus);
     INSERT_INTO_JSON_OBJECT(dest, mlsags, sig.p.MGs);
     INSERT_INTO_JSON_OBJECT(dest, pseudo_outs, sig.get_pseudo_outs());
 
@@ -1088,33 +1157,42 @@ void fromJsonValue(const rapidjson::Value& val, rct::rctSig& sig)
     throw WRONG_TYPE("json object");
   }
 
-  std::vector<rct::key> commitments;
-
   GET_FROM_JSON_OBJECT(val, sig.type, type);
-  GET_FROM_JSON_OBJECT(val, sig.ecdhInfo, encrypted);
-  GET_FROM_JSON_OBJECT(val, commitments, commitments);
-  GET_FROM_JSON_OBJECT(val, sig.txnFee, fee);
+  if (sig.type != rct::RCTTypeNull)
+  {
+    GET_FROM_JSON_OBJECT(val, sig.ecdhInfo, encrypted);
+    GET_FROM_JSON_OBJECT(val, sig.outPk, commitments);
+    GET_FROM_JSON_OBJECT(val, sig.txnFee, fee);
+  }
 
   // prunable
+  const auto prunable = val.FindMember("prunable");
+  if (prunable != val.MemberEnd())
   {
-    OBJECT_HAS_MEMBER_OR_THROW(val, "prunable");
-    const auto& prunable = val["prunable"];
+    rct::keyV pseudo_outs = std::move(sig.get_pseudo_outs());
 
-    rct::keyV pseudo_outs;
-
-    GET_FROM_JSON_OBJECT(prunable, sig.p.rangeSigs, range_proofs);
-    GET_FROM_JSON_OBJECT(prunable, sig.p.bulletproofs, bulletproofs);
-    GET_FROM_JSON_OBJECT(prunable, sig.p.MGs, mlsags);
-    GET_FROM_JSON_OBJECT(prunable, pseudo_outs, pseudo_outs);
+    GET_FROM_JSON_OBJECT(prunable->value, sig.p.rangeSigs, range_proofs);
+    GET_FROM_JSON_OBJECT(prunable->value, sig.p.bulletproofs, bulletproofs);
+    GET_FROM_JSON_OBJECT(prunable->value, sig.p.bulletproofs_plus, bulletproofs_plus);
+    GET_FROM_JSON_OBJECT(prunable->value, sig.p.MGs, mlsags);
+    GET_FROM_JSON_OBJECT(prunable->value, pseudo_outs, pseudo_outs);
 
     sig.get_pseudo_outs() = std::move(pseudo_outs);
   }
-
-  sig.outPk.reserve(commitments.size());
-  for (rct::key const& commitment : commitments)
+  else
   {
-    sig.outPk.push_back({{}, commitment});
+    sig.p.rangeSigs.clear();
+    sig.p.bulletproofs.clear();
+    sig.p.bulletproofs_plus.clear();
+    sig.p.MGs.clear();
+    sig.get_pseudo_outs().clear();
   }
+}
+
+void fromJsonValue(const rapidjson::Value& val, rct::ctkey& key)
+{
+  key.dest = {};
+  fromJsonValue(val, key.mask);
 }
 
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::ecdhTuple& tuple)
@@ -1214,6 +1292,41 @@ void fromJsonValue(const rapidjson::Value& val, rct::Bulletproof& p)
   GET_FROM_JSON_OBJECT(val, p.t, t);
 }
 
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::BulletproofPlus& p)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, V, p.V);
+  INSERT_INTO_JSON_OBJECT(dest, A, p.A);
+  INSERT_INTO_JSON_OBJECT(dest, A1, p.A1);
+  INSERT_INTO_JSON_OBJECT(dest, B, p.B);
+  INSERT_INTO_JSON_OBJECT(dest, r1, p.r1);
+  INSERT_INTO_JSON_OBJECT(dest, s1, p.s1);
+  INSERT_INTO_JSON_OBJECT(dest, d1, p.d1);
+  INSERT_INTO_JSON_OBJECT(dest, L, p.L);
+  INSERT_INTO_JSON_OBJECT(dest, R, p.R);
+
+  dest.EndObject();
+}
+
+void fromJsonValue(const rapidjson::Value& val, rct::BulletproofPlus& p)
+{
+  if (!val.IsObject())
+  {
+    throw WRONG_TYPE("json object");
+  }
+
+  GET_FROM_JSON_OBJECT(val, p.V, V);
+  GET_FROM_JSON_OBJECT(val, p.A, A);
+  GET_FROM_JSON_OBJECT(val, p.A1, A1);
+  GET_FROM_JSON_OBJECT(val, p.B, B);
+  GET_FROM_JSON_OBJECT(val, p.r1, r1);
+  GET_FROM_JSON_OBJECT(val, p.s1, s1);
+  GET_FROM_JSON_OBJECT(val, p.d1, d1);
+  GET_FROM_JSON_OBJECT(val, p.L, L);
+  GET_FROM_JSON_OBJECT(val, p.R, R);
+}
+
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::boroSig& sig)
 {
   dest.StartObject();
@@ -1305,6 +1418,7 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::r
   INSERT_INTO_JSON_OBJECT(dest, block_weight_limit, info.block_weight_limit);
   INSERT_INTO_JSON_OBJECT(dest, block_size_median, info.block_size_median);
   INSERT_INTO_JSON_OBJECT(dest, block_weight_median, info.block_weight_median);
+  INSERT_INTO_JSON_OBJECT(dest, adjusted_time, info.adjusted_time);
   INSERT_INTO_JSON_OBJECT(dest, start_time, info.start_time);
 
   dest.EndObject();
@@ -1338,6 +1452,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& inf
   GET_FROM_JSON_OBJECT(val, info.block_weight_limit, block_weight_limit);
   GET_FROM_JSON_OBJECT(val, info.block_size_median, block_size_median);
   GET_FROM_JSON_OBJECT(val, info.block_weight_median, block_weight_median);
+  GET_FROM_JSON_OBJECT(val, info.adjusted_time, adjusted_time);
   GET_FROM_JSON_OBJECT(val, info.start_time, start_time);
 }
 
@@ -1364,6 +1479,27 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_distribu
   GET_FROM_JSON_OBJECT(val, dist.amount, amount);
   GET_FROM_JSON_OBJECT(val, dist.data.start_height, start_height);
   GET_FROM_JSON_OBJECT(val, dist.data.base, base);
+}
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::tx_block_template_backlog_entry& entry)
+{
+  dest.StartObject();
+  INSERT_INTO_JSON_OBJECT(dest, id, entry.id);
+  INSERT_INTO_JSON_OBJECT(dest, weight, entry.weight);
+  INSERT_INTO_JSON_OBJECT(dest, fee, entry.fee);
+  dest.EndObject();
+}
+
+void fromJsonValue(const rapidjson::Value& val, cryptonote::tx_block_template_backlog_entry& entry)
+{
+  if (!val.IsObject())
+  {
+    throw WRONG_TYPE("json object");
+  }
+
+  GET_FROM_JSON_OBJECT(val, entry.id, id);
+  GET_FROM_JSON_OBJECT(val, entry.weight, weight);
+  GET_FROM_JSON_OBJECT(val, entry.fee, fee);
 }
 
 }  // namespace json

@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -170,7 +169,7 @@ namespace
       LOG_PRINT_L0("Closing connections. Number of opened connections: " << m_tcp_server.get_config_object().get_connections_count());
 
       size_t count = 0;
-      bool r = m_tcp_server.get_config_object().foreach_connection([&](test_connection_context& ctx) {
+      m_tcp_server.get_config_object().foreach_connection([&](test_connection_context& ctx) {
         if (ctx.m_connection_id != cmd_conn_id)
         {
           ++count;

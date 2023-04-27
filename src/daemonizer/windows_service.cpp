@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -197,7 +196,7 @@ bool install_service(
       , 0
       //, GENERIC_EXECUTE | GENERIC_READ
       , SERVICE_WIN32_OWN_PROCESS
-      , SERVICE_DEMAND_START
+      , SERVICE_AUTO_START
       , SERVICE_ERROR_NORMAL
       , full_command.c_str()
       , nullptr

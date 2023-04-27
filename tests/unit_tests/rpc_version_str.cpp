@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -34,7 +34,7 @@
 TEST(rpc, is_version_string_valid)
 {
   using namespace cryptonote::rpc;
-  ASSERT_TRUE(is_version_string_valid(SCALA_VERSION));
+  ASSERT_TRUE(is_version_string_valid(scala_VERSION));
   ASSERT_TRUE(is_version_string_valid("0.14.1.2"));
   ASSERT_TRUE(is_version_string_valid("0.15.0.0-release"));
   ASSERT_TRUE(is_version_string_valid("0.15.0.0-fe3f6a3e6"));

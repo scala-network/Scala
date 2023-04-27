@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 // 
 // All rights reserved.
 // 
@@ -37,13 +38,10 @@
 #include "ringdb.h"
 #include "cryptonote_config.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "wallet.ringdb"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "wallet.ringdb"
 
 #define V1TAG ((uint64_t)798237759845202)
-
-static const char zerokey[8] = {0};
-static const MDB_val zerokeyval = { sizeof(zerokey), (void *)zerokey };
 
 static int compare_hash32(const MDB_val *a, const MDB_val *b)
 {

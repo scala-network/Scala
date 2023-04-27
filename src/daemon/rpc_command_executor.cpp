@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -44,8 +43,8 @@
 #include <ctime>
 #include <string>
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "daemon"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize {
 
@@ -192,6 +191,9 @@ bool t_rpc_command_executor::print_peer_list(bool white, bool gray, size_t limit
   cryptonote::COMMAND_RPC_GET_PEER_LIST::response res;
 
   std::string failure_message = "Couldn't retrieve peer list";
+
+  req.include_blocked = true;
+
   if (m_is_rpc)
   {
     if (!m_rpc_client->rpc_request(req, res, "/get_peer_list", failure_message.c_str()))
@@ -238,6 +240,7 @@ bool t_rpc_command_executor::print_peer_list_stats() {
   std::string failure_message = "Couldn't retrieve peer list";
 
   req.public_only = false;
+  req.include_blocked = true;
 
   if (m_is_rpc)
   {
@@ -722,10 +725,11 @@ bool t_rpc_command_executor::print_net_stats()
   uint64_t average = seconds > 0 ? net_stats_res.total_bytes_in / seconds : 0;
   uint64_t limit = limit_res.limit_down * 1024;   // convert to bytes, as limits are always kB/s
   double percent = (double)average / (double)limit * 100.0;
-  tools::success_msg_writer() << boost::format("Received %u bytes (%s) in %u packets, average %s/s = %.2f%% of the limit of %s/s")
+  tools::success_msg_writer() << boost::format("Received %u bytes (%s) in %u packets in %s, average %s/s = %.2f%% of the limit of %s/s")
     % net_stats_res.total_bytes_in
     % tools::get_human_readable_bytes(net_stats_res.total_bytes_in)
     % net_stats_res.total_packets_in
+    % tools::get_human_readable_timespan(seconds)
     % tools::get_human_readable_bytes(average)
     % percent
     % tools::get_human_readable_bytes(limit);
@@ -733,10 +737,11 @@ bool t_rpc_command_executor::print_net_stats()
   average = seconds > 0 ? net_stats_res.total_bytes_out / seconds : 0;
   limit = limit_res.limit_up * 1024;
   percent = (double)average / (double)limit * 100.0;
-  tools::success_msg_writer() << boost::format("Sent %u bytes (%s) in %u packets, average %s/s = %.2f%% of the limit of %s/s")
+  tools::success_msg_writer() << boost::format("Sent %u bytes (%s) in %u packets in %s, average %s/s = %.2f%% of the limit of %s/s")
     % net_stats_res.total_bytes_out
     % tools::get_human_readable_bytes(net_stats_res.total_bytes_out)
     % net_stats_res.total_packets_out
+    % tools::get_human_readable_timespan(seconds)
     % tools::get_human_readable_bytes(average)
     % percent
     % tools::get_human_readable_bytes(limit);
@@ -770,7 +775,7 @@ bool t_rpc_command_executor::print_blockchain_info(int64_t start_block_index, ui
         return true;
       }
     }
-    if (start_block_index < 0 && (uint64_t)-start_block_index >= ires.height)
+    if ((uint64_t)-start_block_index >= ires.height)
     {
       tools::fail_msg_writer() << "start offset is larger than blockchain height";
       return true;
@@ -1002,7 +1007,9 @@ bool t_rpc_command_executor::print_transaction(crypto::hash transaction_hash,
     if (1 == res.txs.size())
     {
       // only available for new style answers
-      bool pruned = res.txs.front().prunable_as_hex.empty() && res.txs.front().prunable_hash != epee::string_tools::pod_to_hex(crypto::null_hash);
+      static const std::string empty_hash = epee::string_tools::pod_to_hex(crypto::cn_fast_hash("", 0));
+      // prunable_hash will equal empty_hash when nothing is prunable (mostly when the transaction is coinbase)
+      bool pruned = res.txs.front().prunable_as_hex.empty() && res.txs.front().prunable_hash != epee::string_tools::pod_to_hex(crypto::null_hash) && res.txs.front().prunable_hash != empty_hash;
       if (res.txs.front().in_pool)
         tools::success_msg_writer() << "Found in pool";
       else
@@ -1052,12 +1059,11 @@ bool t_rpc_command_executor::print_transaction(crypto::hash transaction_hash,
     // Print json if requested
     if (include_json)
     {
-      crypto::hash tx_hash, tx_prefix_hash;
       cryptonote::transaction tx;
       cryptonote::blobdata blob;
       std::string source = as_hex.empty() ? pruned_as_hex + prunable_as_hex : as_hex;
       bool pruned = !pruned_as_hex.empty() && prunable_as_hex.empty();
-      if (!string_tools::parse_hexstr_to_binbuff(source, blob))
+      if (!epee::string_tools::parse_hexstr_to_binbuff(source, blob))
       {
         tools::fail_msg_writer() << "Failed to parse tx to get json format";
       }
@@ -1307,7 +1313,7 @@ bool t_rpc_command_executor::print_transaction_pool_stats() {
   else
   {
     uint64_t backlog = (res.pool_stats.bytes_total + full_reward_zone - 1) / full_reward_zone;
-    backlog_message = (boost::format("estimated %u block (%u minutes) backlog") % backlog % (backlog * DIFFICULTY_TARGET / 60)).str();
+    backlog_message = (boost::format("estimated %u block (%u minutes) backlog") % backlog % (backlog * DIFFICULTY_TARGET_V2 / 60)).str();
   }
 
   tools::msg_writer() << n_transactions << " tx(es), " << res.pool_stats.bytes_total << " bytes total (min " << res.pool_stats.bytes_min << ", max " << res.pool_stats.bytes_max << ", avg " << avg_bytes << ", median " << res.pool_stats.bytes_med << ")" << std::endl
@@ -1408,8 +1414,8 @@ bool t_rpc_command_executor::stop_daemon()
 //# ifdef WIN32
 //    // Stop via service API
 //    // TODO - this is only temporary!  Get rid of hard-coded constants!
-//    bool ok = windows::stop_service("BitScala Daemon");
-//    ok = windows::uninstall_service("BitScala Daemon");
+//    bool ok = windows::stop_service("Bitscala Daemon");
+//    ok = windows::uninstall_service("Bitscala Daemon");
 //    //bool ok = windows::stop_service(SERVICE_NAME);
 //    //ok = windows::uninstall_service(SERVICE_NAME);
 //    if (ok)
@@ -2027,7 +2033,7 @@ bool t_rpc_command_executor::alt_chain_info(const std::string &tip, size_t above
         tools::msg_writer() << "Time span: " << tools::get_human_readable_timespan(dt);
         cryptonote::difficulty_type start_difficulty = bhres.block_headers.back().difficulty;
         if (start_difficulty > 0)
-          tools::msg_writer() << "Approximated " << 100.f * DIFFICULTY_TARGET * chain.length / dt << "% of network hash rate";
+          tools::msg_writer() << "Approximated " << 100.f * DIFFICULTY_TARGET_V2 * chain.length / dt << "% of network hash rate";
         else
           tools::fail_msg_writer() << "Bad cmumulative difficulty reported by dameon";
       }
@@ -2268,6 +2274,7 @@ bool t_rpc_command_executor::sync_info()
       tools::success_msg_writer() << "Next needed pruning seed: " << res.next_needed_pruning_seed;
 
     tools::success_msg_writer() << std::to_string(res.peers.size()) << " peers";
+    tools::success_msg_writer() << "Remote Host                        Peer_ID   State   Prune_Seed          Height  DL kB/s, Queued Blocks / MB";
     for (const auto &p: res.peers)
     {
       std::string address = epee::string_tools::pad_string(p.info.address, 24);
@@ -2398,7 +2405,8 @@ bool t_rpc_command_executor::check_blockchain_pruning()
 bool t_rpc_command_executor::set_bootstrap_daemon(
   const std::string &address,
   const std::string &username,
-  const std::string &password)
+  const std::string &password,
+  const std::string &proxy)
 {
     cryptonote::COMMAND_RPC_SET_BOOTSTRAP_DAEMON::request req;
     cryptonote::COMMAND_RPC_SET_BOOTSTRAP_DAEMON::response res;
@@ -2407,6 +2415,7 @@ bool t_rpc_command_executor::set_bootstrap_daemon(
     req.address = address;
     req.username = username;
     req.password = password;
+    req.proxy = proxy;
 
     if (m_is_rpc)
     {
@@ -2524,7 +2533,7 @@ bool t_rpc_command_executor::version()
         }
     }
 
-    if (res.version.empty())
+    if (res.version.empty() || !cryptonote::rpc::is_version_string_valid(res.version))
     {
         tools::fail_msg_writer() << "The daemon software version is not available.";
     }

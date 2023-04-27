@@ -99,7 +99,7 @@ if ( LibUSB_FOUND )
     check_library_exists ( "${LibUSB_LIBRARIES}" libusb_get_device_list "" LibUSB_VERSION_1.0 )
     check_library_exists ( "${LibUSB_LIBRARIES}" libusb_get_port_numbers "" LibUSB_VERSION_1.0.16 )
 
-    if((STATIC AND UNIX AND NOT APPLE) OR (DEPENDS AND CMAKE_SYSTEM_NAME STREQUAL "Linux"))
+    if((STATIC AND UNIX AND NOT APPLE) OR (DEPENDS AND CMAKE_SYSTEM_NAME STREQUAL "Linux") OR ANDROID)
         find_library(LIBUDEV_LIBRARY udev)
         if(LIBUDEV_LIBRARY)
             set(LibUSB_LIBRARIES "${LibUSB_LIBRARIES};${LIBUDEV_LIBRARY}")
@@ -113,7 +113,7 @@ if ( LibUSB_FOUND )
     if (APPLE OR LibUSB_VERSION_1.0.16 OR STATIC)
         if (APPLE)
             if(DEPENDS)
-                list(APPEND TEST_COMPILE_EXTRA_LIBRARIES "-framework Foundation -framework IOKit")
+                list(APPEND TEST_COMPILE_EXTRA_LIBRARIES "-framework Foundation -framework IOKit -framework Security")
             else()
                 find_library(COREFOUNDATION CoreFoundation)
                 find_library(IOKIT IOKit)
@@ -134,7 +134,7 @@ if ( LibUSB_FOUND )
 
         try_compile(LibUSB_COMPILE_TEST_PASSED
                 ${CMAKE_BINARY_DIR}
-                "${CMAKE_SOURCE_DIR}/cmake/test-libusb-version.c"
+                "${CMAKE_CURRENT_LIST_DIR}/test-libusb-version.c"
                 CMAKE_FLAGS
                     "-DINCLUDE_DIRECTORIES=${LibUSB_INCLUDE_DIRS}"
                     "-DLINK_DIRECTORIES=${LibUSB_LIBRARIES}"

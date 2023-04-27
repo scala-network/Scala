@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -36,7 +36,7 @@ namespace cryptonote
 namespace rpc
 {
 
-// Expected format of Scala software version string:
+// Expected format of scala software version string:
 // 1) Four numbers, one to two digits each, separated by periods
 // 2) Optionally, one of the following suffixes:
 //      a) -release

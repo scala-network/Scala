@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -44,8 +44,8 @@
 #include "wallet/api/unsigned_transaction.h"
 #include "wallet/api/pending_transaction.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "debugtools.objectsizes"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "debugtools.objectsizes"
 
 class size_logger
 {
@@ -110,12 +110,12 @@ int main(int argc, char* argv[])
   SL(tools::wallet2::unsigned_tx_set);
   SL(tools::wallet2::signed_tx_set);
 
-  SL(Scala::WalletImpl);
-  SL(Scala::AddressBookRow);
-  SL(Scala::TransactionInfoImpl);
-  SL(Scala::TransactionHistoryImpl);
-  SL(Scala::PendingTransactionImpl);
-  SL(Scala::UnsignedTransactionImpl);
+  SL(scala::WalletImpl);
+  SL(scala::AddressBookRow);
+  SL(scala::TransactionInfoImpl);
+  SL(scala::TransactionHistoryImpl);
+  SL(scala::PendingTransactionImpl);
+  SL(scala::UnsignedTransactionImpl);
 
   return 0;
 }

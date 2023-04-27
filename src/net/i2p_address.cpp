@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -38,7 +38,7 @@
 #include "net/error.h"
 #include "serialization/keyvalue_serialization.h"
 #include "storages/portable_storage.h"
-#include "string_tools.h"
+#include "string_tools_lexical.h"
 
 namespace net
 {
@@ -110,7 +110,7 @@ namespace net
         const boost::string_ref port =
             address.substr(host.size() + (host.size() == address.size() ? 0 : 1));
 
-        SCALA_CHECK(host_check(host));
+        scala_CHECK(host_check(host));
 
         std::uint16_t porti = default_port;
         if (!port.empty() && !epee::string_tools::get_xtype_from_string(porti, std::string{port}))

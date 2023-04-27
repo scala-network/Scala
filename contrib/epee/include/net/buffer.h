@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 // 
 // All rights reserved.
 // 
@@ -29,13 +30,11 @@
 #pragma once
 
 #include <vector>
-#include <stdexcept>
-#include <limits>
 #include "misc_log_ex.h"
 #include "span.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "net.buffer"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "net.buffer"
 
 //#define NET_BUFFER_LOG(x) MDEBUG(x)
 #define NET_BUFFER_LOG(x) ((void)0)

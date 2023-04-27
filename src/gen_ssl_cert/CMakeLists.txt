@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019, The Monero Project
+# Copyright (c) 2017-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -26,7 +26,6 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#[[
 set(gen_ssl_cert_sources
   gen_ssl_cert.cpp)
 
@@ -48,4 +47,3 @@ set_property(TARGET gen_ssl_cert
   PROPERTY
     OUTPUT_NAME "scala-gen-ssl-cert")
 install(TARGETS gen_ssl_cert DESTINATION bin)
-]]

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -247,7 +247,7 @@ bool mock_daemon::run_main()
 
     if (m_start_zmq)
     {
-      if (!zmq_server.addTCPSocket("127.0.0.1", m_zmq_bind_port))
+      if (!zmq_server.init_rpc("127.0.0.1", m_zmq_bind_port))
       {
         MERROR("Failed to add TCP Socket (127.0.0.1:" << m_zmq_bind_port << ") to ZMQ RPC Server");
 
@@ -313,7 +313,7 @@ void mock_daemon::mine_blocks(size_t num_blocks, const std::string &miner_addres
 {
   bool blocks_mined = false;
   const uint64_t start_height = get_height();
-  const auto mining_timeout = std::chrono::seconds(120);
+  const auto mining_timeout = std::chrono::seconds(360);
   MDEBUG("Current height before mining: " << start_height);
 
   start_mining(miner_address);

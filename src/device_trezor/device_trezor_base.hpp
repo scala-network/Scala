@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -27,8 +27,8 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef SCALA_DEVICE_TREZOR_BASE_H
-#define SCALA_DEVICE_TREZOR_BASE_H
+#ifndef scala_DEVICE_TREZOR_BASE_H
+#define scala_DEVICE_TREZOR_BASE_H
 
 
 #include <cstddef>
@@ -101,6 +101,9 @@ namespace trezor {
       messages::MessageType m_last_msg_type;
 
       cryptonote::network_type network_type;
+      bool m_reply_with_empty_passphrase;
+      bool m_always_use_empty_passphrase;
+      bool m_seen_passphrase_entry_message;
 
 #ifdef WITH_TREZOR_DEBUGGING
       std::shared_ptr<trezor_debug_callback> m_debug_callback;
@@ -165,7 +168,7 @@ namespace trezor {
 
         // Scoped session closer
         BOOST_SCOPE_EXIT_ALL(&, this) {
-          if (open_session){
+          if (open_session && this->get_transport()){
             this->get_transport()->close();
           }
         };
@@ -242,7 +245,7 @@ namespace trezor {
 
     bool reset();
 
-    // Default derivation path for Scala
+    // Default derivation path for scala
     static const uint32_t DEFAULT_BIP44_PATH[2];
 
     std::shared_ptr<Transport> get_transport(){
@@ -339,4 +342,4 @@ namespace trezor {
 
 }
 }
-#endif //SCALA_DEVICE_TREZOR_BASE_H
+#endif //scala_DEVICE_TREZOR_BASE_H

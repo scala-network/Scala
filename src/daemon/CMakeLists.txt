@@ -1,5 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -38,30 +37,7 @@ set(daemon_sources
 
 set(daemon_headers)
 
-set(daemon_private_headers
-  command_parser_executor.h
-  command_server.h
-  core.h
-  daemon.h
-  executor.h
-  p2p.h
-  protocol.h
-  rpc.h
-  rpc_command_executor.h
-
-  # cryptonote_protocol
-  ../cryptonote_protocol/cryptonote_protocol_defs.h
-  ../cryptonote_protocol/cryptonote_protocol_handler.h
-  ../cryptonote_protocol/cryptonote_protocol_handler.inl
-  ../cryptonote_protocol/cryptonote_protocol_handler_common.h
-
-  # p2p
-  ../p2p/net_node.h
-  ../p2p/net_node_common.h
-  ../p2p/net_peerlist.h
-  ../p2p/net_peerlist_boost_serialization.h
-  ../p2p/p2p_protocol_defs.h
-  ../p2p/stdafx.h)
+scala_find_all_headers(daemon_private_headers "${CMAKE_CURRENT_SOURCE_DIR}")
 
 scala_private_headers(daemon
   ${daemon_private_headers})
@@ -69,32 +45,6 @@ scala_add_executable(daemon
   ${daemon_sources}
   ${daemon_headers}
   ${daemon_private_headers})
-### fixes the duplicate libsodium/zmq errors for building a static build of MacOS
-if(APPLE)
-target_link_libraries(daemon
-  PRIVATE
-    rpc
-    blockchain_db
-    cryptonote_core
-    cncrypto
-    common
-    p2p
-    cryptonote_protocol
-    daemonizer
-    serialization
-    daemon_rpc_server
-    ${EPEE_READLINE}
-    version
-    ${Boost_CHRONO_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_REGEX_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${GNU_READLINE_LIBRARY}
-    ${EXTRA_LIBRARIES}
-    ${Blocks})
-else()	
 target_link_libraries(daemon
   PRIVATE
     rpc
@@ -119,8 +69,6 @@ target_link_libraries(daemon
     ${GNU_READLINE_LIBRARY}
     ${EXTRA_LIBRARIES}
     ${Blocks})
-endif()	
-### end of the fix
 set_property(TARGET daemon
   PROPERTY
     OUTPUT_NAME "scalad")

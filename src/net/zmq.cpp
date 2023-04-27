@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -134,7 +134,7 @@ namespace zmq
         {
             /* ZMQ documentation states that message parts are atomic - either
                all are received or none are. Looking through ZMQ code and
-               Github discussions indicates that after part 1 is returned,
+               GitHub discussions indicates that after part 1 is returned,
                `EAGAIN` cannot be returned to meet these guarantees. Unit tests
                verify (for the `inproc://` case) that this is the behavior. 
                Therefore, read errors after the first part are treated as a
@@ -158,26 +158,12 @@ namespace zmq
                 return unsigned(max_out) < added ? max_out : int(added);
             }
         };
-
-        template<typename F, typename... T>
-        expect<void> retry_op(F op, T&&... args) noexcept(noexcept(op(args...)))
-        {
-            for (;;)
-            {
-                if (0 <= op(args...))
-                    return success();
-
-                const int error = zmq_errno();
-                if (error != EINTR)
-                    return make_error_code(error);
-            }
-        }
     } // anonymous
 
     expect<std::string> receive(void* const socket, const int flags)
     {
         std::string payload{};
-        SCALA_CHECK(retry_op(do_receive{}, payload, socket, flags));
+        scala_CHECK(retry_op(do_receive{}, payload, socket, flags));
         return {std::move(payload)};
     }
 
@@ -193,7 +179,7 @@ namespace zmq
         auto buffer = payload.take_buffer(); // clears `payload` from callee
 
         zmq_msg_t msg{};
-        SCALA_ZMQ_CHECK(zmq_msg_init_data(std::addressof(msg), data, size, epee::release_byte_slice::call, buffer.get()));
+        scala_ZMQ_CHECK(zmq_msg_init_data(std::addressof(msg), data, size, epee::release_byte_slice::call, buffer.get()));
         buffer.release(); // zmq will now decrement byte_slice ref-count
 
         expect<void> sent = retry_op(zmq_msg_send, std::addressof(msg), socket, flags);

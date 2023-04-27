@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -32,17 +31,17 @@
 #include <string>
 #include <functional>
 #include <boost/optional/optional_fwd.hpp>
-
-#include "net/http_client.h"
+#include <boost/utility/string_ref_fwd.hpp>
 
 namespace tools
 {
 
 // RFC defines for record types and classes for DNS, gleaned from ldns source
-const static int DNS_CLASS_IN  = 1;
-const static int DNS_TYPE_A    = 1;
-const static int DNS_TYPE_TXT  = 16;
-const static int DNS_TYPE_AAAA = 8;
+constexpr const int DNS_CLASS_IN  = 1;
+constexpr const int DNS_TYPE_A    = 1;
+constexpr const int DNS_TYPE_TXT  = 16;
+constexpr const int DNS_TYPE_AAAA = 8;
+constexpr const int DNS_TYPE_TLSA = 52;
 
 struct DNSResolverData;
 
@@ -109,6 +108,17 @@ public:
    std::vector<std::string> get_txt_record(const std::string& url, bool& dnssec_available, bool& dnssec_valid);
 
   /**
+   * @brief gets all TLSA TCP records from a DNS query for the supplied URL;
+   * if no TLSA record present returns an empty vector.
+   *
+   * @param url A string containing a URL to query for
+   * @param port The service port number (as string) to query
+   *
+   * @return A vector of strings containing all TLSA records; or an empty vector
+   */
+  std::vector<std::string> get_tlsa_tcp_record(boost::string_ref url, boost::string_ref port, bool& dnssec_available, bool& dnssec_valid);
+
+  /**
    * @brief Gets a DNS address from OpenAlias format
    *
    * If the address looks good, but contains one @ symbol, replace that with a .
@@ -149,15 +159,6 @@ private:
   // TODO: modify this to accommodate DNSSEC
   std::vector<std::string> get_record(const std::string& url, int record_type, boost::optional<std::string> (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid);
 
-  /**
-   * @brief Checks a string to see if it looks like a URL
-   *
-   * @param addr the string to be checked
-   *
-   * @return true if it looks enough like a URL, false if not
-   */
-  bool check_address_syntax(const char *addr) const;
-
   DNSResolverData *m_data;
 }; // class DNSResolver
 
@@ -172,6 +173,7 @@ std::string get_account_address_as_str_from_url(const std::string& url, bool& dn
 bool load_txt_records_from_dns(std::vector<std::string> &records, const std::vector<std::string> &dns_urls);
 
 std::vector<std::string> parse_dns_public(const char *s);
+
 }  // namespace tools::dns_utils
 
 }  // namespace tools

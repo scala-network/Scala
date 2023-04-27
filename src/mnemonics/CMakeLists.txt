@@ -1,5 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -32,23 +31,7 @@ set(mnemonics_sources
 
 set(mnemonics_headers)
 
-set(mnemonics_private_headers
-  electrum-words.h
-  chinese_simplified.h
-  english.h
-  dutch.h
-  french.h
-  german.h
-  italian.h
-  japanese.h
-  language_base.h
-  english_old.h
-  portuguese.h
-  russian.h
-  singleton.h
-  spanish.h
-  esperanto.h
-  lojban.h)
+scala_find_all_headers(mnemonics_private_headers "${CMAKE_CURRENT_SOURCE_DIR}")
 
 scala_private_headers(mnemonics
   ${mnemonics_private_headers})

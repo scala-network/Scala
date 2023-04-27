@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 //
 // All rights reserved.
 //
@@ -70,7 +71,7 @@
 namespace
 {
     static constexpr const char v2_onion[] =
-        "xlato2bturnore26.onion";
+        "xmrto2bturnore26.onion";
     static constexpr const char v3_onion[] =
         "vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd.onion";
 }
@@ -162,7 +163,7 @@ TEST(tor_address, valid)
     EXPECT_FALSE(address2.less(*address1));
     EXPECT_FALSE(address1->less(address2));
 
-    address2 = SCALA_UNWRAP(net::tor_address::make(std::string{v2_onion} + ":6545"));
+    address2 = scala_UNWRAP(net::tor_address::make(std::string{v2_onion} + ":6545"));
 
     EXPECT_EQ(6545, address2.port());
     EXPECT_STREQ(v2_onion, address2.host_str());
@@ -179,7 +180,7 @@ TEST(tor_address, valid)
     EXPECT_FALSE(address2.less(*address1));
     EXPECT_TRUE(address1->less(address2));
 
-    net::tor_address address3 = SCALA_UNWRAP(net::tor_address::make(std::string{v3_onion} + ":", 65535));
+    net::tor_address address3 = scala_UNWRAP(net::tor_address::make(std::string{v3_onion} + ":", 65535));
 
     EXPECT_EQ(65535, address3.port());
     EXPECT_STREQ(v3_onion, address3.host_str());
@@ -210,8 +211,8 @@ TEST(tor_address, valid)
 
 TEST(tor_address, generic_network_address)
 {
-    const epee::net_utils::network_address tor1{SCALA_UNWRAP(net::tor_address::make(v3_onion, 8080))};
-    const epee::net_utils::network_address tor2{SCALA_UNWRAP(net::tor_address::make(v3_onion, 8080))};
+    const epee::net_utils::network_address tor1{scala_UNWRAP(net::tor_address::make(v3_onion, 8080))};
+    const epee::net_utils::network_address tor2{scala_UNWRAP(net::tor_address::make(v3_onion, 8080))};
     const epee::net_utils::network_address ip{epee::net_utils::ipv4_network_address{100, 200}};
 
     EXPECT_EQ(tor1, tor2);
@@ -245,9 +246,9 @@ namespace
 
 TEST(tor_address, epee_serializev_v2)
 {
-    std::string buffer{};
+    epee::byte_slice buffer{};
     {
-        test_command_tor command{SCALA_UNWRAP(net::tor_address::make(v2_onion, 10))};
+        test_command_tor command{scala_UNWRAP(net::tor_address::make(v2_onion, 10))};
         EXPECT_FALSE(command.tor.is_unknown());
         EXPECT_NE(net::tor_address{}, command.tor);
         EXPECT_STREQ(v2_onion, command.tor.host_str());
@@ -266,7 +267,7 @@ TEST(tor_address, epee_serializev_v2)
         EXPECT_EQ(0u, command.tor.port());
 
         epee::serialization::portable_storage stg{};
-        EXPECT_TRUE(stg.load_from_binary(buffer));
+        EXPECT_TRUE(stg.load_from_binary(epee::to_span(buffer)));
         EXPECT_TRUE(command.load(stg));
     }
     EXPECT_FALSE(command.tor.is_unknown());
@@ -277,7 +278,7 @@ TEST(tor_address, epee_serializev_v2)
     // make sure that exceeding max buffer doesn't destroy tor_address::_load
     {
         epee::serialization::portable_storage stg{};
-        stg.load_from_binary(buffer);
+        stg.load_from_binary(epee::to_span(buffer));
 
         std::string host{};
         ASSERT_TRUE(stg.get_value("host", host, stg.open_section("tor", nullptr, false)));
@@ -296,9 +297,9 @@ TEST(tor_address, epee_serializev_v2)
 
 TEST(tor_address, epee_serializev_v3)
 {
-    std::string buffer{};
+    epee::byte_slice buffer{};
     {
-        test_command_tor command{SCALA_UNWRAP(net::tor_address::make(v3_onion, 10))};
+        test_command_tor command{scala_UNWRAP(net::tor_address::make(v3_onion, 10))};
         EXPECT_FALSE(command.tor.is_unknown());
         EXPECT_NE(net::tor_address{}, command.tor);
         EXPECT_STREQ(v3_onion, command.tor.host_str());
@@ -317,7 +318,7 @@ TEST(tor_address, epee_serializev_v3)
         EXPECT_EQ(0u, command.tor.port());
 
         epee::serialization::portable_storage stg{};
-        EXPECT_TRUE(stg.load_from_binary(buffer));
+        EXPECT_TRUE(stg.load_from_binary(epee::to_span(buffer)));
         EXPECT_TRUE(command.load(stg));
     }
     EXPECT_FALSE(command.tor.is_unknown());
@@ -328,7 +329,7 @@ TEST(tor_address, epee_serializev_v3)
     // make sure that exceeding max buffer doesn't destroy tor_address::_load
     {
         epee::serialization::portable_storage stg{};
-        stg.load_from_binary(buffer);
+        stg.load_from_binary(epee::to_span(buffer));
 
         std::string host{};
         ASSERT_TRUE(stg.get_value("host", host, stg.open_section("tor", nullptr, false)));
@@ -347,7 +348,7 @@ TEST(tor_address, epee_serializev_v3)
 
 TEST(tor_address, epee_serialize_unknown)
 {
-    std::string buffer{};
+    epee::byte_slice buffer{};
     {
         test_command_tor command{net::tor_address::unknown()};
         EXPECT_TRUE(command.tor.is_unknown());
@@ -368,7 +369,7 @@ TEST(tor_address, epee_serialize_unknown)
         EXPECT_EQ(0u, command.tor.port());
 
         epee::serialization::portable_storage stg{};
-        EXPECT_TRUE(stg.load_from_binary(buffer));
+        EXPECT_TRUE(stg.load_from_binary(epee::to_span(buffer)));
         EXPECT_TRUE(command.load(stg));
     }
     EXPECT_TRUE(command.tor.is_unknown());
@@ -379,7 +380,7 @@ TEST(tor_address, epee_serialize_unknown)
     // make sure that exceeding max buffer doesn't destroy tor_address::_load
     {
         epee::serialization::portable_storage stg{};
-        stg.load_from_binary(buffer);
+        stg.load_from_binary(epee::to_span(buffer));
 
         std::string host{};
         ASSERT_TRUE(stg.get_value("host", host, stg.open_section("tor", nullptr, false)));
@@ -400,7 +401,7 @@ TEST(tor_address, boost_serialize_v2)
 {
     std::string buffer{};
     {
-        const net::tor_address tor = SCALA_UNWRAP(net::tor_address::make(v2_onion, 10));
+        const net::tor_address tor = scala_UNWRAP(net::tor_address::make(v2_onion, 10));
         EXPECT_FALSE(tor.is_unknown());
         EXPECT_NE(net::tor_address{}, tor);
         EXPECT_STREQ(v2_onion, tor.host_str());
@@ -435,7 +436,7 @@ TEST(tor_address, boost_serialize_v3)
 {
     std::string buffer{};
     {
-        const net::tor_address tor = SCALA_UNWRAP(net::tor_address::make(v3_onion, 10));
+        const net::tor_address tor = scala_UNWRAP(net::tor_address::make(v3_onion, 10));
         EXPECT_FALSE(tor.is_unknown());
         EXPECT_NE(net::tor_address{}, tor);
         EXPECT_STREQ(v3_onion, tor.host_str());
@@ -531,7 +532,7 @@ namespace
     static constexpr const char b32_i2p[] =
         "vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopn.b32.i2p";
     static constexpr const char b32_i2p_2[] =
-        "xlato2bturnore26xlato2bturnore26xlato2bturnore26xla2.b32.i2p";
+        "xmrto2bturnore26xmrto2bturnore26xmrto2bturnore26xmr2.b32.i2p";
 }
 
 TEST(i2p_address, constants)
@@ -617,7 +618,7 @@ TEST(i2p_address, valid)
     EXPECT_FALSE(address2.less(*address1));
     EXPECT_FALSE(address1->less(address2));
 
-    address2 = SCALA_UNWRAP(net::i2p_address::make(std::string{b32_i2p_2} + ":6545"));
+    address2 = scala_UNWRAP(net::i2p_address::make(std::string{b32_i2p_2} + ":6545"));
 
     EXPECT_EQ(6545, address2.port());
     EXPECT_STREQ(b32_i2p_2, address2.host_str());
@@ -634,7 +635,7 @@ TEST(i2p_address, valid)
     EXPECT_FALSE(address2.less(*address1));
     EXPECT_TRUE(address1->less(address2));
 
-    net::i2p_address address3 = SCALA_UNWRAP(net::i2p_address::make(std::string{b32_i2p} + ":", 65535));
+    net::i2p_address address3 = scala_UNWRAP(net::i2p_address::make(std::string{b32_i2p} + ":", 65535));
 
     EXPECT_EQ(65535, address3.port());
     EXPECT_STREQ(b32_i2p, address3.host_str());
@@ -665,8 +666,8 @@ TEST(i2p_address, valid)
 
 TEST(i2p_address, generic_network_address)
 {
-    const epee::net_utils::network_address i2p1{SCALA_UNWRAP(net::i2p_address::make(b32_i2p, 8080))};
-    const epee::net_utils::network_address i2p2{SCALA_UNWRAP(net::i2p_address::make(b32_i2p, 8080))};
+    const epee::net_utils::network_address i2p1{scala_UNWRAP(net::i2p_address::make(b32_i2p, 8080))};
+    const epee::net_utils::network_address i2p2{scala_UNWRAP(net::i2p_address::make(b32_i2p, 8080))};
     const epee::net_utils::network_address ip{epee::net_utils::ipv4_network_address{100, 200}};
 
     EXPECT_EQ(i2p1, i2p2);
@@ -700,9 +701,9 @@ namespace
 
 TEST(i2p_address, epee_serializev_b32)
 {
-    std::string buffer{};
+    epee::byte_slice buffer{};
     {
-        test_command_i2p command{SCALA_UNWRAP(net::i2p_address::make(b32_i2p, 10))};
+        test_command_i2p command{scala_UNWRAP(net::i2p_address::make(b32_i2p, 10))};
         EXPECT_FALSE(command.i2p.is_unknown());
         EXPECT_NE(net::i2p_address{}, command.i2p);
         EXPECT_STREQ(b32_i2p, command.i2p.host_str());
@@ -721,7 +722,7 @@ TEST(i2p_address, epee_serializev_b32)
         EXPECT_EQ(0u, command.i2p.port());
 
         epee::serialization::portable_storage stg{};
-        EXPECT_TRUE(stg.load_from_binary(buffer));
+        EXPECT_TRUE(stg.load_from_binary(epee::to_span(buffer)));
         EXPECT_TRUE(command.load(stg));
     }
     EXPECT_FALSE(command.i2p.is_unknown());
@@ -732,7 +733,7 @@ TEST(i2p_address, epee_serializev_b32)
     // make sure that exceeding max buffer doesn't destroy i2p_address::_load
     {
         epee::serialization::portable_storage stg{};
-        stg.load_from_binary(buffer);
+        stg.load_from_binary(epee::to_span(buffer));
 
         std::string host{};
         ASSERT_TRUE(stg.get_value("host", host, stg.open_section("i2p", nullptr, false)));
@@ -751,7 +752,7 @@ TEST(i2p_address, epee_serializev_b32)
 
 TEST(i2p_address, epee_serialize_unknown)
 {
-    std::string buffer{};
+    epee::byte_slice buffer{};
     {
         test_command_i2p command{net::i2p_address::unknown()};
         EXPECT_TRUE(command.i2p.is_unknown());
@@ -772,7 +773,7 @@ TEST(i2p_address, epee_serialize_unknown)
         EXPECT_EQ(0u, command.i2p.port());
 
         epee::serialization::portable_storage stg{};
-        EXPECT_TRUE(stg.load_from_binary(buffer));
+        EXPECT_TRUE(stg.load_from_binary(epee::to_span(buffer)));
         EXPECT_TRUE(command.load(stg));
     }
     EXPECT_TRUE(command.i2p.is_unknown());
@@ -783,7 +784,7 @@ TEST(i2p_address, epee_serialize_unknown)
     // make sure that exceeding max buffer doesn't destroy i2p_address::_load
     {
         epee::serialization::portable_storage stg{};
-        stg.load_from_binary(buffer);
+        stg.load_from_binary(epee::to_span(buffer));
 
         std::string host{};
         ASSERT_TRUE(stg.get_value("host", host, stg.open_section("i2p", nullptr, false)));
@@ -804,7 +805,7 @@ TEST(i2p_address, boost_serialize_b32)
 {
     std::string buffer{};
     {
-        const net::i2p_address i2p = SCALA_UNWRAP(net::i2p_address::make(b32_i2p, 10));
+        const net::i2p_address i2p = scala_UNWRAP(net::i2p_address::make(b32_i2p, 10));
         EXPECT_FALSE(i2p.is_unknown());
         EXPECT_NE(net::i2p_address{}, i2p);
         EXPECT_STREQ(b32_i2p, i2p.host_str());
@@ -933,6 +934,41 @@ TEST(get_network_address, ipv4subnet)
 
     address = net::get_ipv4_subnet_address("12.34.56.78/16");
     EXPECT_STREQ("12.34.0.0/16", address->str().c_str());
+}
+
+namespace
+{
+    void na_host_and_port_test(std::string addr, std::string exp_host, std::string exp_port)
+    {
+        std::string host{"xxxxx"};
+        std::string port{"xxxxx"};
+        net::get_network_address_host_and_port(addr, host, port);
+        EXPECT_EQ(exp_host, host);
+        EXPECT_EQ(exp_port, port);
+    }
+} // anonymous namespace
+
+TEST(get_network_address_host_and_port, ipv4)
+{
+    na_host_and_port_test("9.9.9.9", "9.9.9.9", "xxxxx");
+    na_host_and_port_test("9.9.9.9:18081", "9.9.9.9", "18081");
+}
+
+TEST(get_network_address_host_and_port, ipv6)
+{
+    na_host_and_port_test("::ffff", "::ffff", "xxxxx");
+    na_host_and_port_test("[::ffff]", "::ffff", "xxxxx");
+    na_host_and_port_test("[::ffff]:00231", "::ffff", "00231");
+    na_host_and_port_test("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", "xxxxx");
+    na_host_and_port_test("[7777:7777:7777:7777:7777:7777:7777:7777]", "7777:7777:7777:7777:7777:7777:7777:7777", "xxxxx");
+    na_host_and_port_test("[7777:7777:7777:7777:7777:7777:7777:7777]:48080", "7777:7777:7777:7777:7777:7777:7777:7777", "48080");
+}
+
+TEST(get_network_address_host_and_port, hostname)
+{
+    na_host_and_port_test("localhost", "localhost", "xxxxx");
+    na_host_and_port_test("bar:29080", "bar", "29080"); // Issue https://github.com/scala-project/scala/issues/8633
+    na_host_and_port_test("xmrchain.net:18081", "xmrchain.net", "18081");
 }
 
 namespace
@@ -1351,7 +1387,7 @@ TEST(dandelionpp_map, dropped_connection)
         }
 
         EXPECT_EQ(3u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(3u, entry.second);
 
         for (const boost::uuids::uuid& connection : in_connections)
@@ -1409,7 +1445,7 @@ TEST(dandelionpp_map, dropped_connection)
         }
 
         EXPECT_EQ(3u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(3u, entry.second);
     }
     {
@@ -1472,7 +1508,7 @@ TEST(dandelionpp_map, dropped_connection_remapped)
         }
 
         EXPECT_EQ(3u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(3u, entry.second);
 
         for (const boost::uuids::uuid& connection : in_connections)
@@ -1511,7 +1547,7 @@ TEST(dandelionpp_map, dropped_connection_remapped)
         }
 
         EXPECT_EQ(2u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(5u, entry.second);
     }
     // select 3 of 3 connections but do not remap existing links
@@ -1532,7 +1568,7 @@ TEST(dandelionpp_map, dropped_connection_remapped)
         }
 
         EXPECT_EQ(2u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(5u, entry.second);
     }
     // map 8 new incoming connections across 3 outgoing links
@@ -1555,7 +1591,7 @@ TEST(dandelionpp_map, dropped_connection_remapped)
         }
 
         EXPECT_EQ(3u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(6u, entry.second);
     }
 }
@@ -1609,7 +1645,7 @@ TEST(dandelionpp_map, dropped_all_connections)
         }
 
         EXPECT_EQ(3u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(3u, entry.second);
 
         for (const boost::uuids::uuid& connection : in_connections)
@@ -1641,7 +1677,7 @@ TEST(dandelionpp_map, dropped_all_connections)
         }
 
         EXPECT_EQ(3u, used.size());
-        for (const std::pair<boost::uuids::uuid, std::size_t>& entry : used)
+        for (const std::pair<const boost::uuids::uuid, std::size_t>& entry : used)
             EXPECT_EQ(3u, entry.second);
     }
 }
@@ -1660,7 +1696,7 @@ TEST(zmq, error_codes)
     EXPECT_TRUE(
         []() -> expect<void>
         {
-            SCALA_ZMQ_CHECK(zmq_msg_send(nullptr, nullptr, 0));
+            scala_ZMQ_CHECK(zmq_msg_send(nullptr, nullptr, 0));
             return success();
         }().matches(std::errc::not_a_socket)
     );
@@ -1668,7 +1704,7 @@ TEST(zmq, error_codes)
     bool thrown = false;
     try
     {
-        SCALA_ZMQ_THROW("stuff");
+        scala_ZMQ_THROW("stuff");
     }
     catch (const std::system_error& e)
     {

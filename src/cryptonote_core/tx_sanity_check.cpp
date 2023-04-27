@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -33,8 +33,8 @@
 #include "blockchain.h"
 #include "tx_sanity_check.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "verify"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "verify"
 
 namespace cryptonote
 {

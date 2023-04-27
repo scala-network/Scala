@@ -1,4 +1,4 @@
-# Brewfile for Scala
+# Brewfile for scala
 # A homebrew Brewfile installs all required dependencies in one shot
 # see https://coderwall.com/p/afmnbq/homebrew-s-new-feature-brewfiles
 #     https://github.com/Homebrew/homebrew-bundle
@@ -25,8 +25,8 @@ brew "unbound"
 brew "libsodium"
 brew "miniupnpc"
 brew "readline"
-brew "ldns"
 brew "expat"
+brew "ccache"
 brew "doxygen"
 brew "graphviz"
 brew "libunwind-headers"

@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -125,6 +124,8 @@ namespace crypto
      * \return      the name of the language in English
      */
     std::string get_english_name_for(const std::string &name);
+
+    bool is_valid_language(const std::string &language);
   }
 }
 

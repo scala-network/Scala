@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -29,8 +28,7 @@
 
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/archive/portable_binary_iarchive.hpp>
-#include <boost/archive/portable_binary_oarchive.hpp>
+#include <boost/filesystem.hpp>
 #include "common/unordered_containers_boost_serialization.h"
 #include "common/command_line.h"
 #include "common/varint.h"
@@ -43,15 +41,12 @@
 #include "wallet/ringdb.h"
 #include "version.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "bcutil"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "bcutil"
 
 namespace po = boost::program_options;
 using namespace epee;
 using namespace cryptonote;
-
-static const char zerokey[8] = {0};
-static const MDB_val zerokval = { sizeof(zerokey), (void *)zerokey };
 
 static uint64_t records_per_sync = 200;
 static uint64_t db_flags = 0;
@@ -393,9 +388,7 @@ static bool for_all_transactions(const std::string &filename, uint64_t &start_id
     cryptonote::transaction_prefix tx;
     blobdata bd;
     bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
-    std::stringstream ss;
-    ss << bd;
-    binary_archive<false> ba(ss);
+    binary_archive<false> ba{epee::strspan<std::uint8_t>(bd)};
     bool r = do_serialize(ba, tx);
     CHECK_AND_ASSERT_MES(r, false, "Failed to parse transaction from blob");
 
@@ -706,7 +699,6 @@ static void get_per_amount_outputs(MDB_txn *txn, uint64_t amount, uint64_t &tota
   int dbr = mdb_cursor_open(txn, dbi_per_amount, &cur);
   CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open cursor for per amount outputs: " + std::string(mdb_strerror(dbr)));
   MDB_val k, v;
-  mdb_size_t count = 0;
   k.mv_size = sizeof(uint64_t);
   k.mv_data = (void*)&amount;
   dbr = mdb_cursor_get(cur, &k, &v, MDB_SET);
@@ -729,7 +721,6 @@ static void inc_per_amount_outputs(MDB_txn *txn, uint64_t amount, uint64_t total
   int dbr = mdb_cursor_open(txn, dbi_per_amount, &cur);
   CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open cursor for per amount outputs: " + std::string(mdb_strerror(dbr)));
   MDB_val k, v;
-  mdb_size_t count = 0;
   k.mv_size = sizeof(uint64_t);
   k.mv_data = (void*)&amount;
   dbr = mdb_cursor_get(cur, &k, &v, MDB_SET);
@@ -1080,7 +1071,6 @@ static std::vector<std::pair<uint64_t, uint64_t>> load_outputs(const std::string
       s[len - 1] = 0;
     if (!s[0])
       continue;
-    std::pair<uint64_t, uint64_t> output;
     uint64_t offset, num_offsets;
     if (sscanf(s, "@%" PRIu64, &amount) == 1)
     {
@@ -1186,7 +1176,7 @@ int main(int argc, char* argv[])
   const command_line::arg_descriptor<bool> arg_rct_only  = {"rct-only", "Only work on ringCT outputs", false};
   const command_line::arg_descriptor<bool> arg_check_subsets  = {"check-subsets", "Check ring subsets (very expensive)", false};
   const command_line::arg_descriptor<bool> arg_verbose  = {"verbose", "Verbose output)", false};
-  const command_line::arg_descriptor<std::vector<std::string> > arg_inputs = {"inputs", "Path to Scala DB, and path to any fork DBs"};
+  const command_line::arg_descriptor<std::vector<std::string> > arg_inputs = {"inputs", "Path to scala DB, and path to any fork DBs"};
   const command_line::arg_descriptor<std::string> arg_db_sync_mode = {
     "db-sync-mode"
   , "Specify sync option, using format [safe|fast|fastest]:[nrecords_per_sync]." 
@@ -1229,7 +1219,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -1271,8 +1261,6 @@ int main(int argc, char* argv[])
   init(cache_dir);
 
   LOG_PRINT_L0("Scanning for spent outputs...");
-
-  size_t done = 0;
 
   const uint64_t start_blackballed_outputs = get_num_spent_outputs();
 

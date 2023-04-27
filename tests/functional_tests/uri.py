@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #encoding=utf-8
 
-# Copyright (c) 2019 The Monero Project
+# Copyright (c) 2019-2023, The scala Project
 # 
 # All rights reserved.
 # 
@@ -142,15 +142,11 @@ class URITest():
         assert res.uri.recipient_name == utf8string[0]
         assert not 'unknown_parameters' in res or len(res.unknown_parameters) == 0
 
-        res = wallet.make_uri(address = address, recipient_name = utf8string[0], tx_description = utf8string[1], amount = 1000000000000, payment_id = '1' * 64)
-        assert res.uri == 'scala:' + address + '?tx_payment_id=' + '1' * 64 + '&tx_amount=1.000000000000&recipient_name=' + quoted_utf8string[0] + '&tx_description=' + quoted_utf8string[1]
-        res = wallet.parse_uri(res.uri)
-        assert res.uri.address == address
-        assert res.uri.payment_id == '1' * 64
-        assert res.uri.amount == 1000000000000
-        assert res.uri.tx_description == utf8string[1]
-        assert res.uri.recipient_name == utf8string[0]
-        assert not 'unknown_parameters' in res or len(res.unknown_parameters) == 0
+        # external payment ids are not supported anymore
+        ok = False
+        try: res = wallet.make_uri(address = address, recipient_name = utf8string[0], tx_description = utf8string[1], amount = 1000000000000, payment_id = '1' * 64)
+        except: ok = True
+        assert ok
 
         # spaces must be encoded as %20
         res = wallet.make_uri(address = address, tx_description = ' ' + utf8string[1] + ' ' + utf8string[0] + ' ', amount = 1000000000000)
@@ -178,8 +174,8 @@ class URITest():
             ':',
             'scala',
             'notscala:42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm',
-            'SCALA:42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm',
-            'SCALA::42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm',
+            'scala:42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm',
+            'scala::42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm',
             'scala:',
             'scala:badaddress',
             'scala:tx_amount=10',

@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -77,3 +76,6 @@
 #define WALLET_RPC_ERROR_CODE_NON_DETERMINISTIC      -43
 #define WALLET_RPC_ERROR_CODE_INVALID_LOG_LEVEL      -44
 #define WALLET_RPC_ERROR_CODE_ATTRIBUTE_NOT_FOUND    -45
+#define WALLET_RPC_ERROR_CODE_ZERO_AMOUNT            -46
+#define WALLET_RPC_ERROR_CODE_INVALID_SIGNATURE_TYPE -47
+#define WALLET_RPC_ERROR_CODE_DISABLED               -48

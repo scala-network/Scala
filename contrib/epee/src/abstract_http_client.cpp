@@ -1,9 +1,10 @@
 #include "net/abstract_http_client.h"
 #include "net/http_base.h"
 #include "net/net_parse_helpers.h"
+#include "misc_log_ex.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "net.http"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "net.http"
 
 namespace epee
 {
@@ -136,6 +137,11 @@ namespace http
     CHECK_AND_ASSERT_MES(r, false, "failed to parse url: " << address);
     set_server(std::move(parsed.host), std::to_string(parsed.port), std::move(user), std::move(ssl_options));
     return true;
+  }
+
+  bool epee::net_utils::http::abstract_http_client::set_proxy(const std::string& address)
+  {
+    return false;
   }
 }
 }

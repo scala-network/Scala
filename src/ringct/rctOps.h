@@ -1,5 +1,5 @@
 //#define DBG
-// Copyright (c) 2016, Scala Research Labs
+// Copyright (c) 2016-2023, scala Research Labs
 //
 // Author: Shen Noether <shen.noether@gmx.com>
 //
@@ -100,17 +100,17 @@ namespace rct {
     void skpkGen(key &sk, key &pk);
     std::tuple<key, key> skpkGen();
     //generates a <secret , public> / Pedersen commitment to the amount
-    std::tuple<ctkey, ctkey> ctskpkGen(xla_amount amount);
+    std::tuple<ctkey, ctkey> ctskpkGen(xmr_amount amount);
     //generates C =aG + bH from b, a is random
-    void genC(key & C, const key & a, xla_amount amount);
+    void genC(key & C, const key & a, xmr_amount amount);
     //this one is mainly for testing, can take arbitrary amounts..
     std::tuple<ctkey, ctkey> ctskpkGen(const key &bH);
     // make a pedersen commitment with given key
-    key commit(xla_amount amount, const key &mask);
+    key commit(xmr_amount amount, const key &mask);
     // make a pedersen commitment with zero key
-    key zeroCommit(xla_amount amount);
+    key zeroCommit(xmr_amount amount);
     //generates a random uint long long
-    xla_amount randXmrAmount(xla_amount upperlimit);
+    xmr_amount randXmrAmount(xmr_amount upperlimit);
 
     //Scalar multiplications of curve points        
 
@@ -145,6 +145,10 @@ namespace rct {
     //B must be input after applying "precomp"
     void addKeys3(key &aAbB, const key &a, const key &A, const key &b, const ge_dsmp B);
     void addKeys3(key &aAbB, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B);
+
+    void addKeys_aGbBcC(key &aGbBcC, const key &a, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C);
+    void addKeys_aAbBcC(key &aAbBcC, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C);
+
     //AB = A - B where A, B are curve points
     void subKeys(key &AB, const key &A, const  key &B);
     //checks if A, B are equal as curve points
@@ -180,6 +184,7 @@ namespace rct {
 
     //Elliptic Curve Diffie Helman: encodes and decodes the amount b and mask a
     // where C= aG + bH
+    key genAmountEncodingFactor(const key &k);
     key genCommitmentMask(const key &sk);
     void ecdhEncode(ecdhTuple & unmasked, const key & sharedSec, bool v2);
     void ecdhDecode(ecdhTuple & masked, const key & sharedSec, bool v2);

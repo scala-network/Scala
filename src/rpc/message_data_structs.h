@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, The Monero Project
+// Copyright (c) 2016-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -162,9 +162,8 @@ namespace rpc
     uint64_t major_version;
     uint64_t minor_version;
     uint64_t timestamp;
-    crypto::hash prev_id;
+    crypto::hash  prev_id;
     uint32_t nonce;
-    crypto::signature signature;
     uint64_t height;
     uint64_t depth;
     crypto::hash hash;
@@ -197,6 +196,7 @@ namespace rpc
     uint64_t block_size_limit;
     uint64_t block_weight_limit;
     uint64_t block_size_median;
+    uint64_t adjusted_time;
     uint64_t block_weight_median;
     uint64_t start_time;
     std::string version;

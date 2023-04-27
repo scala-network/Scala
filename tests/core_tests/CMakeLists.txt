@@ -1,5 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -45,6 +44,8 @@ set(core_tests_sources
   v2_tests.cpp
   rct.cpp
   bulletproofs.cpp
+  bulletproof_plus.cpp
+  rct2.cpp
   wallet_tools.cpp)
 
 set(core_tests_headers
@@ -65,9 +66,11 @@ set(core_tests_headers
   v2_tests.h
   rct.h
   bulletproofs.h
+  bulletproof_plus.h
+  rct2.h
   wallet_tools.h)
 
-add_executable(core_tests
+scala_add_minimal_executable(core_tests
   ${core_tests_sources}
   ${core_tests_headers})
 target_link_libraries(core_tests

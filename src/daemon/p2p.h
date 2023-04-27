@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -34,9 +33,10 @@
 #include "cryptonote_protocol/cryptonote_protocol_handler.h"
 #include "p2p/net_node.h"
 #include "daemon/protocol.h"
+#include "daemon/command_line_args.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "daemon"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize
 {
@@ -62,7 +62,7 @@ public:
   {
     //initialize objects
     MGINFO("Initializing p2p server...");
-    if (!m_server.init(vm))
+    if (!m_server.init(vm, command_line::get_arg(vm, daemon_args::arg_proxy), command_line::get_arg(vm, daemon_args::arg_proxy_allow_dns_leaks)))
     {
       throw std::runtime_error("Failed to initialize p2p server.");
     }

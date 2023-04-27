@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -32,13 +31,16 @@
 #include <ctype.h>
 #include <string>
 #include <map>
-#include <algorithm>
 #include "file_io_utils.h"
 #include "common/i18n.h"
 #include "translation_files.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "i18n"
+#include <boost/system/error_code.hpp>
+#include <boost/filesystem.hpp>
+#include <algorithm>
+
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "i18n"
 
 #define MAX_LANGUAGE_SIZE 16
 

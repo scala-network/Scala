@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Scala Research Labs
+// Copyright (c) 2016-2023, scala Research Labs
 //
 // Author: Shen Noether <shen.noether@gmx.com>
 //
@@ -35,8 +35,8 @@
 using namespace crypto;
 using namespace std;
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "ringct"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "ringct"
 
 #define CHECK_AND_ASSERT_THROW_MES_L1(expr, message) {if(!(expr)) {MWARNING(message); throw std::runtime_error(message);}}
 
@@ -294,12 +294,12 @@ namespace rct {
     }
 
     //generates C =aG + bH from b, a is given..
-    void genC(key & C, const key & a, xla_amount amount) {
+    void genC(key & C, const key & a, xmr_amount amount) {
         addKeys2(C, a, d2h(amount), rct::H);
     }
 
     //generates a <secret , public> / Pedersen commitment to the amount
-    tuple<ctkey, ctkey> ctskpkGen(xla_amount amount) {
+    tuple<ctkey, ctkey> ctskpkGen(xmr_amount amount) {
         ctkey sk, pk;
         skpkGen(sk.dest, pk.dest);
         skpkGen(sk.mask, pk.mask);
@@ -319,7 +319,7 @@ namespace rct {
         return make_tuple(sk, pk);
     }
     
-    key zeroCommit(xla_amount amount) {
+    key zeroCommit(xmr_amount amount) {
         const zero_commitment *begin = zero_commitments;
         const zero_commitment *end = zero_commitments + sizeof(zero_commitments) / sizeof(zero_commitments[0]);
         const zero_commitment value{amount, rct::zero()};
@@ -333,14 +333,14 @@ namespace rct {
         return addKeys(G, bH);
     }
 
-    key commit(xla_amount amount, const key &mask) {
+    key commit(xmr_amount amount, const key &mask) {
         key c;
         genC(c, mask, amount);
         return c;
     }
 
     //generates a random uint long long (for testing)
-    xla_amount randXmrAmount(xla_amount upperlimit) {
+    xmr_amount randXmrAmount(xmr_amount upperlimit) {
         return h2d(skGen()) % (upperlimit);
     }
 
@@ -511,6 +511,23 @@ namespace rct {
         ge_tobytes(aAbB.bytes, &rv);
     }
 
+    // addKeys_aGbBcC
+    // computes aG + bB + cC
+    // G is the fixed basepoint and B,C require precomputation
+    void addKeys_aGbBcC(key &aGbBcC, const key &a, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C) {
+        ge_p2 rv;
+        ge_triple_scalarmult_base_vartime(&rv, a.bytes, b.bytes, B, c.bytes, C);
+        ge_tobytes(aGbBcC.bytes, &rv);
+    }
+
+    // addKeys_aAbBcC
+    // computes aA + bB + cC
+    // A,B,C require precomputation
+    void addKeys_aAbBcC(key &aAbBcC, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C) {
+        ge_p2 rv;
+        ge_triple_scalarmult_precomp_vartime(&rv, a.bytes, A, b.bytes, B, c.bytes, C);
+        ge_tobytes(aAbBcC.bytes, &rv);
+    }
 
     //subtract Keys (subtracts curve points)
     //AB = A - B where A, B are curve points
@@ -654,7 +671,7 @@ namespace rct {
 
     //Elliptic Curve Diffie Helman: encodes and decodes the amount b and mask a
     // where C= aG + bH
-    static key ecdhHash(const key &k)
+    key genAmountEncodingFactor(const key &k)
     {
         char data[38];
         rct::key hash;
@@ -683,7 +700,7 @@ namespace rct {
         if (v2)
         {
           unmasked.mask = zero();
-          xor8(unmasked.amount, ecdhHash(sharedSec));
+          xor8(unmasked.amount, genAmountEncodingFactor(sharedSec));
         }
         else
         {
@@ -698,7 +715,7 @@ namespace rct {
         if (v2)
         {
           masked.mask = genCommitmentMask(sharedSec);
-          xor8(masked.amount, ecdhHash(sharedSec));
+          xor8(masked.amount, genAmountEncodingFactor(sharedSec));
         }
         else
         {

@@ -1,5 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -32,7 +31,7 @@ set(transfers_sources
 
 set(transfers_headers)
 
-add_executable(transfers
+scala_add_minimal_executable(transfers
   ${transfers_sources}
   ${transfers_headers})
 target_link_libraries(transfers

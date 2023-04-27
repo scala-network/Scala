@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -26,6 +26,8 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#pragma once
+
 #include <memory>
 #include <string>
 #include <system_error>
@@ -35,7 +37,7 @@
 #include "span.h"
 
 //! If the expression is less than 0, return the current ZMQ error code.
-#define SCALA_ZMQ_CHECK(...)                      \
+#define scala_ZMQ_CHECK(...)                      \
     do                                             \
     {                                              \
         if (( __VA_ARGS__ ) < 0)                   \
@@ -43,15 +45,15 @@
     } while (0)
 
 //! Print a message followed by the current ZMQ error message. 
-#define SCALA_LOG_ZMQ_ERROR(...)                                                   \
+#define scala_LOG_ZMQ_ERROR(...)                                                   \
     do                                                                          \
     {                                                                           \
         MERROR( __VA_ARGS__ << ": " << ::net::zmq::get_error_code().message()); \
     } while (0)
 
 //! Throw an exception with a custom `msg`, current ZMQ error code, filename, and line number.
-#define SCALA_ZMQ_THROW(msg)                         \
-    SCALA_THROW( ::net::zmq::get_error_code(), msg )
+#define scala_ZMQ_THROW(msg)                         \
+    scala_THROW( ::net::zmq::get_error_code(), msg )
 
 namespace epee
 {
@@ -104,6 +106,26 @@ namespace zmq
 
     //! Unique ZMQ socket handle, calls `zmq_close` on destruction.
     using socket = std::unique_ptr<void, close>;
+
+  /*! Retry a ZMQ function on `EINTR` errors. `F` must return an int with
+      values less than 0 on error.
+
+      \param op The ZMQ function to execute + retry
+      \param args Forwarded to `op`. Must be resuable in case of retry.
+      \return All errors except for `EINTR`. */
+    template<typename F, typename... T>
+    expect<void> retry_op(F op, T&&... args) noexcept(noexcept(op(args...)))
+    {
+      for (;;)
+      {
+        if (0 <= op(args...))
+          return success();
+
+        const int error = zmq_errno();
+        if (error != EINTR)
+          return make_error_code(error);
+      }
+    }
 
     /*! Read all parts of the next message on `socket`. Blocks until the entire
         next message (all parts) are read, or until `zmq_term` is called on the

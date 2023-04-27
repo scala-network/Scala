@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 // 
 // All rights reserved.
 // 
@@ -33,8 +34,8 @@
 #include "spawn.h"
 #include "notify.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "notify"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "notify"
 
 namespace tools
 {
@@ -62,7 +63,7 @@ static void replace(std::vector<std::string> &v, const char *tag, const char *s)
     boost::replace_all(str, tag, s);
 }
 
-int Notify::notify(const char *tag, const char *s, ...)
+int Notify::notify(const char *tag, const char *s, ...) const
 {
   std::vector<std::string> margs = args;
 

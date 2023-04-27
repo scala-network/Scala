@@ -1,5 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -32,7 +31,7 @@ set(hash_sources
 
 set(hash_headers)
 
-add_executable(hash-tests
+scala_add_minimal_executable(hash-tests
   ${hash_sources}
   ${hash_headers})
 target_link_libraries(hash-tests

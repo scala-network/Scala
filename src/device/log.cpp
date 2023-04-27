@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -32,8 +32,8 @@
 
 namespace hw {
 
-  #undef SCALA_DEFAULT_LOG_CATEGORY
-  #define SCALA_DEFAULT_LOG_CATEGORY "device"
+  #undef scala_DEFAULT_LOG_CATEGORY
+  #define scala_DEFAULT_LOG_CATEGORY "device"
 
   void buffer_to_str(char *to_buff,  size_t to_len, const char *buff, size_t len) {
     CHECK_AND_ASSERT_THROW_MES(to_len > (len*2), "destination buffer too short. At least" << (len*2+1) << " bytes required");
@@ -56,8 +56,8 @@ namespace hw {
   #ifdef WITH_DEVICE_LEDGER    
     namespace ledger {
     
-    #undef SCALA_DEFAULT_LOG_CATEGORY
-    #define SCALA_DEFAULT_LOG_CATEGORY "device.ledger"
+    #undef scala_DEFAULT_LOG_CATEGORY
+    #define scala_DEFAULT_LOG_CATEGORY "device.ledger"
 
     
     #ifdef DEBUG_HWDEVICE
@@ -164,6 +164,10 @@ namespace hw {
 
     void check8(const std::string &msg, const std::string &info, const char *h, const char *d, bool crypted) {
       check(msg, info, h, d, 8, crypted);
+    }
+
+    void check1(const std::string &msg, const std::string &info, const char *h, const char *d, bool crypted) {
+      check(msg, info, h, d, 1, crypted);
     }
     #endif
 

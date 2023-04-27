@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -40,13 +39,9 @@
 #include "crypto/hash.h"
 #include "cryptonote_config.h"
 #include "difficulty.h"
-#include "misc_language.h"
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "difficulty"
-
-#define MAX_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*6   // 24 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/24  // 10s
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "difficulty"
 
 namespace cryptonote {
 
@@ -111,48 +106,21 @@ namespace cryptonote {
   bool check_hash_64(const crypto::hash &hash, uint64_t difficulty) {
     uint64_t low, high, top, cur;
     // First check the highest word, this will most likely fail for a random hash.
-    mul(swap64le(((const uint64_t *)&hash)[3]), difficulty, top, high);
+    mul(swap64le(((const uint64_t *) &hash)[3]), difficulty, top, high);
     if (high != 0) {
       return false;
     }
-    mul(swap64le(((const uint64_t *)&hash)[0]), difficulty, low, cur);
-    mul(swap64le(((const uint64_t *)&hash)[1]), difficulty, low, high);
+    mul(swap64le(((const uint64_t *) &hash)[0]), difficulty, low, cur);
+    mul(swap64le(((const uint64_t *) &hash)[1]), difficulty, low, high);
     bool carry = cadd(cur, low);
     cur = high;
-    mul(swap64le(((const uint64_t *)&hash)[2]), difficulty, low, high);
+    mul(swap64le(((const uint64_t *) &hash)[2]), difficulty, low, high);
     carry = cadc(cur, low, carry);
     carry = cadc(high, top, carry);
     return !carry;
   }
 
-  // LWMA difficulty algorithm
-  // Background:  https://github.com/zawy12/difficulty-algorithms/issues/3
-  // Copyright (c) 2017-2018 Zawy (pseudocode)
-  // MIT license http://www.opensource.org/licenses/mit-license.php
-  // Copyright (c) 2018 The Masari Project (10x for quicker recoveries, minimum to be symmetric with FTL)
-  // Copyright (c) 2018 Wownero Inc., a Monero Enterprise Alliance partner company
-  // Copyright (c) 2018 The Karbowanec developers (initial code)
-  // Copyright (c) 2018 Haven Protocol (refinements)
-  // Degnr8, Karbowanec, Masari, Bitcoin Gold, Bitcoin Candy, and Haven have contributed.
-
-  // This algorithm is: next_difficulty = harmonic_mean(Difficulties) * T / LWMA(Solvetimes)
-  // The harmonic_mean(Difficulties) = 1/average(Targets) so it is also:
-  // next_target = avg(Targets) * LWMA(Solvetimes) / T.
-  // This is "the best algorithm" because it has lowest root-mean-square error between
-  // needed & actual difficulty during hash attacks while having the lowest standard
-  // deviation during stable hashrate. That is, it's the fastest for a given stability and vice versa.
-  // Do not use "if solvetime < 1 then solvetime = 1" which allows a catastrophic exploit.
-  // Do not sort timestamps.  "Solvetimes" and "LWMA" variables must allow negatives.
-  // Do not use MTP as most recent block.  Do not use (POW)Limits, filtering, or tempering.
-  // Do not forget to set N (aka DIFFICULTY_WINDOW in Cryptonote) to recommendation below.
-  // The nodes' future time limit (FTL) aka CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT needs to
-  // be reduced from 60*60*2 to 500 seconds to prevent timestamp manipulation from miner's with
-  //  > 50% hash power.  If this is too small, it can be increased to 1000 at a cost in protection.
-
-  // Cryptonote clones:  #define DIFFICULTY_BLOCKS_COUNT_V2 DIFFICULTY_WINDOW_V2 + 1
-
   uint64_t next_difficulty_64(std::vector<std::uint64_t> timestamps, std::vector<uint64_t> cumulative_difficulties, size_t target_seconds) {
-
     const int64_t T = static_cast<int64_t>(target_seconds);
     size_t N = DIFFICULTY_WINDOW_NEW;
     int64_t FTL = static_cast<int64_t>(CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_NEW);
@@ -203,7 +171,6 @@ namespace cryptonote {
     return next_difficulty;
   }
 
-
 #if defined(_MSC_VER)
 #ifdef max
 #undef max
@@ -219,21 +186,21 @@ namespace cryptonote {
   bool check_hash_128(const crypto::hash &hash, difficulty_type difficulty) {
 #ifndef FORCE_FULL_128_BITS
     // fast check
-    if (difficulty >= max64bit && ((const uint64_t *)&hash)[3] > 0)
+    if (difficulty >= max64bit && ((const uint64_t *) &hash)[3] > 0)
       return false;
 #endif
     // usual slow check
     boost::multiprecision::uint512_t hashVal = 0;
 #ifdef FORCE_FULL_128_BITS
-    for (int i = 0; i < 4; i++) { // highest word is zero
+    for(int i = 0; i < 4; i++) { // highest word is zero
 #else
-    for (int i = 1; i < 4; i++) { // highest word is zero
+    for(int i = 1; i < 4; i++) { // highest word is zero
 #endif
       hashVal <<= 64;
-      hashVal |= swap64le(((const uint64_t *)&hash)[3 - i]);
+      hashVal |= swap64le(((const uint64_t *) &hash)[3 - i]);
     }
     return hashVal * difficulty <= max256bit;
-    }
+  }
 
   bool check_hash(const crypto::hash &hash, difficulty_type difficulty) {
     if (difficulty <= max64bit) // if can convert to small difficulty - do it
@@ -242,34 +209,7 @@ namespace cryptonote {
       return check_hash_128(hash, difficulty);
   }
 
-  // LWMA difficulty algorithm
-  // Background:  https://github.com/zawy12/difficulty-algorithms/issues/3
-  // Copyright (c) 2017-2018 Zawy (pseudocode)
-  // MIT license http://www.opensource.org/licenses/mit-license.php
-  // Copyright (c) 2018 The Masari Project (10x for quicker recoveries, minimum to be symmetric with FTL)
-  // Copyright (c) 2018 Wownero Inc., a Monero Enterprise Alliance partner company
-  // Copyright (c) 2018 The Karbowanec developers (initial code)
-  // Copyright (c) 2018 Haven Protocol (refinements)
-  // Degnr8, Karbowanec, Masari, Bitcoin Gold, Bitcoin Candy, and Haven have contributed.
-
-  // This algorithm is: next_difficulty = harmonic_mean(Difficulties) * T / LWMA(Solvetimes)
-  // The harmonic_mean(Difficulties) = 1/average(Targets) so it is also:
-  // next_target = avg(Targets) * LWMA(Solvetimes) / T.
-  // This is "the best algorithm" because it has lowest root-mean-square error between
-  // needed & actual difficulty during hash attacks while having the lowest standard
-  // deviation during stable hashrate. That is, it's the fastest for a given stability and vice versa.
-  // Do not use "if solvetime < 1 then solvetime = 1" which allows a catastrophic exploit.
-  // Do not sort timestamps.  "Solvetimes" and "LWMA" variables must allow negatives.
-  // Do not use MTP as most recent block.  Do not use (POW)Limits, filtering, or tempering.
-  // Do not forget to set N (aka DIFFICULTY_WINDOW in Cryptonote) to recommendation below.
-  // The nodes' future time limit (FTL) aka CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT needs to
-  // be reduced from 60*60*2 to 500 seconds to prevent timestamp manipulation from miner's with
-  //  > 50% hash power.  If this is too small, it can be increased to 1000 at a cost in protection.
-
-  // Cryptonote clones:  #define DIFFICULTY_BLOCKS_COUNT_V2 DIFFICULTY_WINDOW_V2 + 1
-
   difficulty_type next_difficulty(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
-
     const int64_t T = static_cast<int64_t>(target_seconds);
     size_t N = DIFFICULTY_WINDOW_NEW;
     int64_t FTL = static_cast<int64_t>(CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_NEW);

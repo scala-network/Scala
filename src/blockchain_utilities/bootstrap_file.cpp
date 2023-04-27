@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -29,12 +28,11 @@
 
 #include "bootstrap_serialization.h"
 #include "serialization/binary_utils.h" // dump_binary(), parse_binary()
-#include "serialization/json_utils.h" // dump_json()
 
 #include "bootstrap_file.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "bcutil"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "bcutil"
 
 namespace po = boost::program_options;
 
@@ -44,7 +42,7 @@ using namespace epee;
 namespace
 {
   // This number was picked by taking the leading 4 bytes from this output:
-  // echo Scala bootstrap file | sha1sum
+  // echo scala bootstrap file | sha1sum
   const uint32_t blockchain_raw_magic = 0x28721586;
   const uint32_t header_size = 1024;
 
@@ -53,7 +51,7 @@ namespace
 
 
 
-bool BootstrapFile::open_writer(const boost::filesystem::path& file_path)
+bool BootstrapFile::open_writer(const boost::filesystem::path& file_path, uint64_t start_block, uint64_t stop_block)
 {
   const boost::filesystem::path dir_path = file_path.parent_path();
   if (!dir_path.empty())
@@ -79,7 +77,7 @@ bool BootstrapFile::open_writer(const boost::filesystem::path& file_path)
   m_raw_data_file = new std::ofstream();
 
   bool do_initialize_file = false;
-  uint64_t num_blocks = 0;
+  uint64_t num_blocks = 0, block_first = 0;
 
   if (! boost::filesystem::exists(file_path))
   {
@@ -89,10 +87,12 @@ bool BootstrapFile::open_writer(const boost::filesystem::path& file_path)
   }
   else
   {
-    num_blocks = count_blocks(file_path.string());
-    MDEBUG("appending to existing file with height: " << num_blocks-1 << "  total blocks: " << num_blocks);
+    std::streampos dummy_pos;
+    uint64_t dummy_height = 0;
+    num_blocks = count_blocks(file_path.string(), dummy_pos, dummy_height, block_first);
+    MDEBUG("appending to existing file with height: " << num_blocks+block_first-1 << "  total blocks: " << num_blocks);
   }
-  m_height = num_blocks;
+  m_height = num_blocks+block_first;
 
   if (do_initialize_file)
     m_raw_data_file->open(file_path.string(), std::ios_base::binary | std::ios_base::out | std::ios::trunc);
@@ -107,13 +107,12 @@ bool BootstrapFile::open_writer(const boost::filesystem::path& file_path)
     return false;
 
   if (do_initialize_file)
-    initialize_file();
+    initialize_file(start_block, stop_block);
 
   return true;
 }
 
-
-bool BootstrapFile::initialize_file()
+bool BootstrapFile::initialize_file(uint64_t first_block, uint64_t last_block)
 {
   const uint32_t file_magic = blockchain_raw_magic;
 
@@ -130,8 +129,8 @@ bool BootstrapFile::initialize_file()
   bfi.header_size = header_size;
 
   bootstrap::blocks_info bbi;
-  bbi.block_first = 0;
-  bbi.block_last = 0;
+  bbi.block_first = first_block;
+  bbi.block_last = last_block;
   bbi.block_last_pos = 0;
 
   buffer_type buffer2;
@@ -262,7 +261,7 @@ bool BootstrapFile::close()
 }
 
 
-bool BootstrapFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_memory_pool* _tx_pool, boost::filesystem::path& output_file, uint64_t requested_block_stop)
+bool BootstrapFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_memory_pool* _tx_pool, boost::filesystem::path& output_file, uint64_t start_block, uint64_t requested_block_stop)
 {
   uint64_t num_blocks_written = 0;
   m_max_chunk = 0;
@@ -270,17 +269,11 @@ bool BootstrapFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
   m_tx_pool = _tx_pool;
   uint64_t progress_interval = 100;
   MINFO("Storing blocks raw data...");
-  if (!BootstrapFile::open_writer(output_file))
-  {
-    MFATAL("failed to open raw file for write");
-    return false;
-  }
   block b;
 
   // block_start, block_stop use 0-based height. m_height uses 1-based height. So to resume export
   // from last exported block, block_start doesn't need to add 1 here, as it's already at the next
   // height.
-  uint64_t block_start = m_height;
   uint64_t block_stop = 0;
   MINFO("source blockchain height: " <<  m_blockchain_storage->get_current_blockchain_height()-1);
   if ((requested_block_stop > 0) && (requested_block_stop < m_blockchain_storage->get_current_blockchain_height()))
@@ -293,6 +286,13 @@ bool BootstrapFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
     block_stop = m_blockchain_storage->get_current_blockchain_height() - 1;
     MINFO("Using block height of source blockchain: " << block_stop);
   }
+  if (!BootstrapFile::open_writer(output_file, start_block, block_stop))
+  {
+    MFATAL("failed to open raw file for write");
+    return false;
+  }
+  uint64_t block_start = m_height ? m_height : start_block;
+  MINFO("Starting block height: " << block_start);
   for (m_cur_height = block_start; m_cur_height <= block_stop; ++m_cur_height)
   {
     // this method's height refers to 0-based height (genesis block = height 0)
@@ -324,7 +324,8 @@ bool BootstrapFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
   return BootstrapFile::close();
 }
 
-uint64_t BootstrapFile::seek_to_first_chunk(std::ifstream& import_file, uint8_t &major_version, uint8_t &minor_version)
+uint64_t BootstrapFile::seek_to_first_chunk(std::ifstream& import_file, uint8_t &major_version, uint8_t &minor_version,
+	uint64_t &block_first, uint64_t &block_last)
 {
   uint32_t file_magic;
 
@@ -369,11 +370,35 @@ uint64_t BootstrapFile::seek_to_first_chunk(std::ifstream& import_file, uint8_t 
   MINFO("bootstrap magic size: " << sizeof(file_magic));
   MINFO("bootstrap header size: " << bfi.header_size);
 
+  uint32_t buflen_blocks_info;
+
+  import_file.read(buf1, sizeof(buflen_blocks_info));
+  str1.assign(buf1, sizeof(buflen_blocks_info));
+  if (! import_file)
+    throw std::runtime_error("Error reading expected number of bytes");
+  if (! ::serialization::parse_binary(str1, buflen_blocks_info))
+    throw std::runtime_error("Error in deserialization of buflen_blocks_info");
+  MINFO("bootstrap::blocks_info size: " << buflen_blocks_info);
+
+  if (buflen_blocks_info > sizeof(buf1))
+    throw std::runtime_error("Error: bootstrap::blocks_info size exceeds buffer size");
+  import_file.read(buf1, buflen_blocks_info);
+  if (! import_file)
+    throw std::runtime_error("Error reading expected number of bytes");
+  str1.assign(buf1, buflen_blocks_info);
+  bootstrap::blocks_info bbi;
+  if (! ::serialization::parse_binary(str1, bbi))
+    throw std::runtime_error("Error in deserialization of bootstrap::blocks_info");
+  MINFO("bootstrap first block:" << bbi.block_first);
+  MINFO("bootstrap last block:" << bbi.block_last);
+
   uint64_t full_header_size = sizeof(file_magic) + bfi.header_size;
   import_file.seekg(full_header_size);
 
   major_version = bfi.major_version;
   minor_version = bfi.minor_version;
+  block_first = bbi.block_first;
+  block_last = bbi.block_last;
   return full_header_size;
 }
 
@@ -437,13 +462,14 @@ uint64_t BootstrapFile::count_blocks(const std::string& import_file_path)
 {
   std::streampos dummy_pos;
   uint64_t dummy_height = 0;
-  return count_blocks(import_file_path, dummy_pos, dummy_height);
+  return count_blocks(import_file_path, dummy_pos, dummy_height, dummy_height);
 }
 
 // If seek_height is non-zero on entry, return a stream position <= this height when finished.
 // And return the actual height corresponding to this position. Allows the caller to locate its
 // starting position without having to reread the entire file again.
-uint64_t BootstrapFile::count_blocks(const std::string& import_file_path, std::streampos &start_pos, uint64_t& seek_height)
+uint64_t BootstrapFile::count_blocks(const std::string& import_file_path, std::streampos &start_pos,
+	uint64_t& seek_height, uint64_t &block_first)
 {
   boost::filesystem::path raw_file_path(import_file_path);
   boost::system::error_code ec;
@@ -465,7 +491,8 @@ uint64_t BootstrapFile::count_blocks(const std::string& import_file_path, std::s
 
   uint64_t full_header_size; // 4 byte magic + length of header structures
   uint8_t major_version, minor_version;
-  full_header_size = seek_to_first_chunk(import_file, major_version, minor_version);
+  uint64_t block_last;
+  full_header_size = seek_to_first_chunk(import_file, major_version, minor_version, block_first, block_last);
 
   MINFO("Scanning blockchain from bootstrap file...");
   bool quit = false;
@@ -474,11 +501,11 @@ uint64_t BootstrapFile::count_blocks(const std::string& import_file_path, std::s
 
   while (! quit)
   {
-    if (start_height && h + progress_interval >= start_height - 1)
+    if (start_height && h + block_first + progress_interval >= start_height - 1)
     {
       start_height = 0;
       start_pos = import_file.tellg();
-      seek_height = h;
+      seek_height = h + block_first;
     }
     bytes_read += count_bytes(import_file, progress_interval, blocks, quit);
     h += blocks;

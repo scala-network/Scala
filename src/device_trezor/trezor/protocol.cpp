@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -38,6 +38,7 @@
 #include <crypto/hmac-keccak.h>
 #include <ringct/rctSigs.h>
 #include <ringct/bulletproofs.h>
+#include <ringct/bulletproofs_plus.h>
 #include "cryptonote_config.h"
 #include <sodium.h>
 #include <sodium/crypto_verify_32.h>
@@ -145,8 +146,7 @@ namespace ki {
 
   bool key_image_data(wallet_shim * wallet,
                       const std::vector<tools::wallet2::transfer_details> & transfers,
-                      std::vector<ScalaTransferDetails> & res,
-                      bool need_all_additionals)
+                      std::vector<scalaTransferDetails> & res)
   {
     for(auto & td : transfers){
       ::crypto::public_key tx_pub_key = wallet->get_tx_pub_key_from_received_outs(td);
@@ -154,17 +154,12 @@ namespace ki {
 
       res.emplace_back();
       auto & cres = res.back();
-
-      cres.set_out_key(key_to_string(boost::get<cryptonote::txout_to_key>(td.m_tx.vout[td.m_internal_output_index].target).key));
+      cres.set_out_key(key_to_string(td.get_public_key()));
       cres.set_tx_pub_key(key_to_string(tx_pub_key));
       cres.set_internal_output_index(td.m_internal_output_index);
       cres.set_sub_addr_major(td.m_subaddr_index.major);
       cres.set_sub_addr_minor(td.m_subaddr_index.minor);
-      if (need_all_additionals) {
-        for (auto &aux : additional_tx_pub_keys) {
-          cres.add_additional_tx_pub_keys(key_to_string(aux));
-        }
-      } else if (!additional_tx_pub_keys.empty() && additional_tx_pub_keys.size() > td.m_internal_output_index) {
+      if (!additional_tx_pub_keys.empty() && additional_tx_pub_keys.size() > td.m_internal_output_index) {
         cres.add_additional_tx_pub_keys(key_to_string(additional_tx_pub_keys[td.m_internal_output_index]));
       }
     }
@@ -172,7 +167,7 @@ namespace ki {
     return true;
   }
 
-  std::string compute_hash(const ScalaTransferDetails & rr){
+  std::string compute_hash(const scalaTransferDetails & rr){
     KECCAK_CTX kck;
     uint8_t md[32];
 
@@ -193,12 +188,11 @@ namespace ki {
     return std::string(reinterpret_cast<const char*>(md), sizeof(md));
   }
 
-  void generate_commitment(std::vector<ScalaTransferDetails> & mtds,
+  void generate_commitment(std::vector<scalaTransferDetails> & mtds,
                            const std::vector<tools::wallet2::transfer_details> & transfers,
-                           std::shared_ptr<messages::scala::ScalaKeyImageExportInitRequest> & req,
-                           bool need_subaddr_indices)
+                           std::shared_ptr<messages::scala::scalaKeyImageExportInitRequest> & req)
   {
-    req = std::make_shared<messages::scala::ScalaKeyImageExportInitRequest>();
+    req = std::make_shared<messages::scala::scalaKeyImageExportInitRequest>();
 
     KECCAK_CTX kck;
     uint8_t final_hash[32];
@@ -210,7 +204,7 @@ namespace ki {
     }
     keccak_finish(&kck, final_hash);
 
-    req = std::make_shared<messages::scala::ScalaKeyImageExportInitRequest>();
+    req = std::make_shared<messages::scala::scalaKeyImageExportInitRequest>();
     req->set_hash(std::string(reinterpret_cast<const char*>(final_hash), 32));
     req->set_num(transfers.size());
 
@@ -220,21 +214,11 @@ namespace ki {
       auto & st = search.first->second;
       st.insert(cur.m_subaddr_index.minor);
     }
-
-    if (need_subaddr_indices) {
-      for (auto &x: sub_indices) {
-        auto subs = req->add_subs();
-        subs->set_account(x.first);
-        for (auto minor : x.second) {
-          subs->add_minor_indices(minor);
-        }
-      }
-    }
   }
 
   void live_refresh_ack(const ::crypto::secret_key & view_key_priv,
                         const ::crypto::public_key& out_key,
-                        const std::shared_ptr<messages::scala::ScalaLiveRefreshStepAck> & ack,
+                        const std::shared_ptr<messages::scala::scalaLiveRefreshStepAck> & ack,
                         ::cryptonote::keypair& in_ephemeral,
                         ::crypto::key_image& ki)
   {
@@ -280,12 +264,12 @@ namespace ki {
 // Cold transaction signing
 namespace tx {
 
-  void translate_address(ScalaAccountPublicAddress * dst, const cryptonote::account_public_address * src){
+  void translate_address(scalaAccountPublicAddress * dst, const cryptonote::account_public_address * src){
     dst->set_view_public_key(key_to_string(src->m_view_public_key));
     dst->set_spend_public_key(key_to_string(src->m_spend_public_key));
   }
 
-  void translate_dst_entry(ScalaTransactionDestinationEntry * dst, const cryptonote::tx_destination_entry * src){
+  void translate_dst_entry(scalaTransactionDestinationEntry * dst, const cryptonote::tx_destination_entry * src){
     dst->set_amount(src->amount);
     dst->set_is_subaddress(src->is_subaddress);
     dst->set_is_integrated(src->is_integrated);
@@ -293,19 +277,19 @@ namespace tx {
     translate_address(dst->mutable_addr(), &(src->addr));
   }
 
-  void translate_klrki(ScalaMultisigKLRki * dst, const rct::multisig_kLRki * src){
+  void translate_klrki(scalaMultisigKLRki * dst, const rct::multisig_kLRki * src){
     dst->set_k(key_to_string(src->k));
     dst->set_l(key_to_string(src->L));
     dst->set_r(key_to_string(src->R));
     dst->set_ki(key_to_string(src->ki));
   }
 
-  void translate_rct_key(ScalaRctKey * dst, const rct::ctkey * src){
+  void translate_rct_key(scalaRctKey * dst, const rct::ctkey * src){
     dst->set_dest(key_to_string(src->dest));
     dst->set_commitment(key_to_string(src->mask));
   }
 
-  std::string hash_addr(const ScalaAccountPublicAddress * addr, boost::optional<uint64_t> amount, boost::optional<bool> is_subaddr){
+  std::string hash_addr(const scalaAccountPublicAddress * addr, boost::optional<uint64_t> amount, boost::optional<bool> is_subaddr){
     return hash_addr(addr->spend_public_key(), addr->view_public_key(), amount, is_subaddr);
   }
 
@@ -400,7 +384,7 @@ namespace tx {
     m_tx_idx = tx_idx;
     m_ct.tx_data = cur_src_tx();
     m_multisig = false;
-    m_client_version = 1;
+    m_client_version = 3;
   }
 
   void Signer::extract_payment_id(){
@@ -466,7 +450,7 @@ namespace tx {
     }
   }
 
-  void Signer::set_tx_input(ScalaTransactionSourceEntry * dst, size_t idx, bool need_ring_keys, bool need_ring_indices){
+  void Signer::set_tx_input(scalaTransactionSourceEntry * dst, size_t idx, bool need_ring_keys, bool need_ring_indices){
     const cryptonote::tx_source_entry & src = cur_tx().sources[idx];
     const tools::wallet2::transfer_details & transfer = get_source_transfer(idx);
 
@@ -475,25 +459,19 @@ namespace tx {
       auto & cur = src.outputs[i];
       auto out = dst->add_outputs();
 
-      if (i == src.real_output || need_ring_indices || client_version() <= 1) {
+      if (i == src.real_output || need_ring_indices) {
         out->set_idx(cur.first);
       }
-      if (i == src.real_output || need_ring_keys || client_version() <= 1) {
+      if (i == src.real_output || need_ring_keys) {
         translate_rct_key(out->mutable_key(), &(cur.second));
       }
     }
 
     dst->set_real_out_tx_key(key_to_string(src.real_out_tx_key));
     dst->set_real_output_in_tx_index(src.real_output_in_tx_index);
-
-    if (client_version() <= 1) {
-      for (auto &cur : src.real_out_additional_tx_keys) {
-        dst->add_real_out_additional_tx_keys(key_to_string(cur));
-      }
-    } else if (!src.real_out_additional_tx_keys.empty()) {
+    if (!src.real_out_additional_tx_keys.empty()) {
       dst->add_real_out_additional_tx_keys(key_to_string(src.real_out_additional_tx_keys.at(src.real_output_in_tx_index)));
     }
-
     dst->set_amount(src.amount);
     dst->set_rct(src.rct);
     dst->set_mask(key_to_string(src.mask));
@@ -502,21 +480,9 @@ namespace tx {
   }
 
   void Signer::compute_integrated_indices(TsxData * tsx_data){
-    if (m_aux_data == nullptr || m_aux_data->tx_recipients.empty()){
-      return;
-    }
-
     auto & chg = tsx_data->change_dts();
     std::string change_hash = hash_addr(&chg.addr(), chg.amount(), chg.is_subaddress());
-
     std::vector<uint32_t> integrated_indices;
-    std::set<std::string> integrated_hashes;
-    for (auto & cur : m_aux_data->tx_recipients){
-      if (!cur.has_payment_id){
-        continue;
-      }
-      integrated_hashes.emplace(hash_addr(&cur.address.m_spend_public_key, &cur.address.m_view_public_key));
-    }
 
     ssize_t idx = -1;
     for (auto & cur : tsx_data->outputs()){
@@ -527,8 +493,7 @@ namespace tx {
         continue;
       }
 
-      c_hash = hash_addr(&cur.addr());
-      if (integrated_hashes.find(c_hash) != integrated_hashes.end()){
+      if (cur.is_integrated()){
         integrated_indices.push_back((uint32_t)idx);
       }
     }
@@ -538,7 +503,7 @@ namespace tx {
     }
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionInitRequest> Signer::step_init(){
+  std::shared_ptr<messages::scala::scalaTransactionInitRequest> Signer::step_init(){
     // extract payment ID from construction data
     auto & tsx_data = m_ct.tsx_data;
     auto & tx = cur_tx();
@@ -546,7 +511,7 @@ namespace tx {
 
     m_ct.tx.version = 2;
     m_ct.tx.unlock_time = tx.unlock_time;
-    m_client_version = (m_aux_data->client_version ? m_aux_data->client_version.get() : 1);
+    m_client_version = (m_aux_data->client_version ? m_aux_data->client_version.get() : 3);
 
     tsx_data.set_version(1);
     tsx_data.set_client_version(client_version());
@@ -554,26 +519,16 @@ namespace tx {
     tsx_data.set_num_inputs(static_cast<google::protobuf::uint32>(input_size));
     tsx_data.set_mixin(static_cast<google::protobuf::uint32>(tx.sources[0].outputs.size() - 1));
     tsx_data.set_account(tx.subaddr_account);
-    tsx_data.set_scala_version(std::string(SCALA_VERSION) + "|" + SCALA_VERSION_TAG);
+    tsx_data.set_scala_version(std::string(scala_VERSION) + "|" + scala_VERSION_TAG);
     tsx_data.set_hard_fork(m_aux_data->hard_fork ? m_aux_data->hard_fork.get() : 0);
-
-    if (client_version() <= 1){
-      assign_to_repeatable(tsx_data.mutable_minor_indices(), tx.subaddr_indices.begin(), tx.subaddr_indices.end());
-    }
-
-    // TODO: use HF_VERSION_CLSAG after CLSAG is merged
-    if (tsx_data.hard_fork() >= 13){
-      throw exc::ProtocolException("CLSAG is not yet implemented");
-    }
 
     // Rsig decision
     auto rsig_data = tsx_data.mutable_rsig_data();
     m_ct.rsig_type = get_rsig_type(tx.rct_config, tx.splitted_dsts.size());
     rsig_data->set_rsig_type(m_ct.rsig_type);
-    if (tx.rct_config.range_proof_type != rct::RangeProofBorromean){
-      m_ct.bp_version = (m_aux_data->bp_version ? m_aux_data->bp_version.get() : 1);
-      rsig_data->set_bp_version((uint32_t) m_ct.bp_version);
-    }
+    CHECK_AND_ASSERT_THROW_MES(tx.rct_config.range_proof_type != rct::RangeProofBorromean, "Borromean rsig not supported");
+    m_ct.bp_version = (m_aux_data->bp_version ? m_aux_data->bp_version.get() : 1);
+    rsig_data->set_bp_version((uint32_t) m_ct.bp_version);
 
     generate_rsig_batch_sizes(m_ct.grouping_vct, m_ct.rsig_type, tx.splitted_dsts.size());
     assign_to_repeatable(rsig_data->mutable_grouping(), m_ct.grouping_vct.begin(), m_ct.grouping_vct.end());
@@ -605,29 +560,29 @@ namespace tx {
     tsx_data.set_fee(static_cast<google::protobuf::uint64>(fee));
     this->extract_payment_id();
 
-    auto init_req = std::make_shared<messages::scala::ScalaTransactionInitRequest>();
+    auto init_req = std::make_shared<messages::scala::scalaTransactionInitRequest>();
     init_req->set_version(0);
     init_req->mutable_tsx_data()->CopyFrom(tsx_data);
     return init_req;
   }
 
-  void Signer::step_init_ack(std::shared_ptr<const messages::scala::ScalaTransactionInitAck> ack){
+  void Signer::step_init_ack(std::shared_ptr<const messages::scala::scalaTransactionInitAck> ack){
     if (ack->has_rsig_data()){
-      m_ct.rsig_param = std::make_shared<ScalaRsigData>(ack->rsig_data());
+      m_ct.rsig_param = std::make_shared<scalaRsigData>(ack->rsig_data());
     }
 
     assign_from_repeatable(&(m_ct.tx_out_entr_hmacs), ack->hmacs().begin(), ack->hmacs().end());
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionSetInputRequest> Signer::step_set_input(size_t idx){
+  std::shared_ptr<messages::scala::scalaTransactionSetInputRequest> Signer::step_set_input(size_t idx){
     CHECK_AND_ASSERT_THROW_MES(idx < cur_tx().sources.size(), "Invalid source index");
     m_ct.cur_input_idx = idx;
-    auto res = std::make_shared<messages::scala::ScalaTransactionSetInputRequest>();
+    auto res = std::make_shared<messages::scala::scalaTransactionSetInputRequest>();
     set_tx_input(res->mutable_src_entr(), idx, false, true);
     return res;
   }
 
-  void Signer::step_set_input_ack(std::shared_ptr<const messages::scala::ScalaTransactionSetInputAck> ack){
+  void Signer::step_set_input_ack(std::shared_ptr<const messages::scala::scalaTransactionSetInputAck> ack){
     auto & vini_str = ack->vini();
 
     cryptonote::txin_v vini;
@@ -671,30 +626,14 @@ namespace tx {
     });
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionInputsPermutationRequest> Signer::step_permutation(){
-    sort_ki();
-    if (client_version() >= 2){
-      return nullptr;
-    }
-
-    auto res = std::make_shared<messages::scala::ScalaTransactionInputsPermutationRequest>();
-    assign_to_repeatable(res->mutable_perm(), m_ct.source_permutation.begin(), m_ct.source_permutation.end());
-
-    return res;
-  }
-
-  void Signer::step_permutation_ack(std::shared_ptr<const messages::scala::ScalaTransactionInputsPermutationAck> ack){
-
-  }
-
-  std::shared_ptr<messages::scala::ScalaTransactionInputViniRequest> Signer::step_set_vini_input(size_t idx){
+  std::shared_ptr<messages::scala::scalaTransactionInputViniRequest> Signer::step_set_vini_input(size_t idx){
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.tx_data.sources.size(), "Invalid transaction index");
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.tx.vin.size(), "Invalid transaction index");
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.tx_in_hmacs.size(), "Invalid transaction index");
 
     m_ct.cur_input_idx = idx;
     auto tx = m_ct.tx_data;
-    auto res = std::make_shared<messages::scala::ScalaTransactionInputViniRequest>();
+    auto res = std::make_shared<messages::scala::scalaTransactionInputViniRequest>();
     auto & vini = m_ct.tx.vin[idx];
     set_tx_input(res->mutable_src_entr(), idx, false, false);
     res->set_vini(cryptonote::t_serializable_object_to_blob(vini));
@@ -703,18 +642,18 @@ namespace tx {
     return res;
   }
 
-  void Signer::step_set_vini_input_ack(std::shared_ptr<const messages::scala::ScalaTransactionInputViniAck> ack){
+  void Signer::step_set_vini_input_ack(std::shared_ptr<const messages::scala::scalaTransactionInputViniAck> ack){
 
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionAllInputsSetRequest> Signer::step_all_inputs_set(){
-    return std::make_shared<messages::scala::ScalaTransactionAllInputsSetRequest>();
+  std::shared_ptr<messages::scala::scalaTransactionAllInputsSetRequest> Signer::step_all_inputs_set(){
+    return std::make_shared<messages::scala::scalaTransactionAllInputsSetRequest>();
   }
 
-  void Signer::step_all_inputs_set_ack(std::shared_ptr<const messages::scala::ScalaTransactionAllInputsSetAck> ack){
+  void Signer::step_all_inputs_set_ack(std::shared_ptr<const messages::scala::scalaTransactionAllInputsSetAck> ack){
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionSetOutputRequest> Signer::step_set_output(size_t idx){
+  std::shared_ptr<messages::scala::scalaTransactionSetOutputRequest> Signer::step_set_output(size_t idx){
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.tx_data.splitted_dsts.size(), "Invalid transaction index");
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.tx_out_entr_hmacs.size(), "Invalid transaction index");
     CHECK_AND_ASSERT_THROW_MES(is_req_bulletproof(), "Borromean rsig not supported");
@@ -722,16 +661,18 @@ namespace tx {
     m_ct.cur_output_idx = idx;
     m_ct.cur_output_in_batch_idx += 1;   // assumes sequential call to step_set_output()
 
-    auto res = std::make_shared<messages::scala::ScalaTransactionSetOutputRequest>();
+    auto res = std::make_shared<messages::scala::scalaTransactionSetOutputRequest>();
     auto & cur_dst = m_ct.tx_data.splitted_dsts[idx];
     translate_dst_entry(res->mutable_dst_entr(), &cur_dst);
     res->set_dst_entr_hmac(m_ct.tx_out_entr_hmacs[idx]);
     return res;
   }
 
-  void Signer::step_set_output_ack(std::shared_ptr<const messages::scala::ScalaTransactionSetOutputAck> ack){
+  void Signer::step_set_output_ack(std::shared_ptr<const messages::scala::scalaTransactionSetOutputAck> ack){
+    CHECK_AND_ASSERT_THROW_MES(is_req_bulletproof(), "Borromean rsig not supported");
     cryptonote::tx_out tx_out;
     rct::Bulletproof bproof{};
+    rct::BulletproofPlus bproof_plus{};
     rct::ctkey out_pk{};
     rct::ecdhTuple ecdh{};
 
@@ -746,7 +687,7 @@ namespace tx {
         rsig_buff = rsig_data.rsig();
       }
 
-      if (client_version() >= 1 && rsig_data.has_mask()){
+      if (rsig_data.has_mask()){
         rct::key cmask{};
         string_to_key(cmask, rsig_data.mask());
         m_ct.rsig_gamma.emplace_back(cmask);
@@ -770,22 +711,32 @@ namespace tx {
       memcpy(ecdh.amount.bytes, ack->ecdh_info().data(), 8);
     }
 
-    if (has_rsig && is_req_bulletproof() && !cn_deserialize(rsig_buff, bproof)){
-      throw exc::ProtocolException("Cannot deserialize bulletproof rangesig");
-    }
-
     m_ct.tx.vout.emplace_back(tx_out);
     m_ct.tx_out_hmacs.push_back(ack->vouti_hmac());
     m_ct.tx_out_pk.emplace_back(out_pk);
     m_ct.tx_out_ecdh.emplace_back(ecdh);
 
-    // ClientV0, if no rsig was generated on Trezor, do not continue.
-    // ClientV1+ generates BP after all masks in the current batch are generated
-    if (!has_rsig || (client_version() >= 1 && is_offloading())){
+    rsig_v bp_obj{};
+    if (has_rsig) {
+      bool deserialize_success;
+      if (is_req_bulletproof_plus()) {
+        deserialize_success = cn_deserialize(rsig_buff, bproof_plus);
+        bp_obj = bproof_plus;
+      } else {
+        deserialize_success = cn_deserialize(rsig_buff, bproof);
+        bp_obj = bproof;
+      }
+      if (!deserialize_success) {
+        throw exc::ProtocolException("Cannot deserialize bulletproof rangesig");
+      }
+    }
+
+    // Generates BP after all masks in the current batch are generated
+    if (!has_rsig || is_offloading()){
       return;
     }
 
-    process_bproof(bproof);
+    process_bproof(bp_obj);
     m_ct.cur_batch_idx += 1;
     m_ct.cur_output_in_batch_idx = 0;
   }
@@ -795,7 +746,7 @@ namespace tx {
     return m_ct.grouping_vct[m_ct.cur_batch_idx] <= m_ct.cur_output_in_batch_idx;
   }
 
-  void Signer::compute_bproof(messages::scala::ScalaTransactionRsigData & rsig_data){
+  void Signer::compute_bproof(messages::scala::scalaTransactionRsigData & rsig_data){
     auto batch_size = m_ct.grouping_vct[m_ct.cur_batch_idx];
     std::vector<uint64_t> amounts;
     rct::keyV masks;
@@ -810,13 +761,21 @@ namespace tx {
       masks.push_back(m_ct.rsig_gamma[bidx]);
     }
 
-    auto bp = bulletproof_PROVE(amounts, masks);
-    auto serRsig = cn_serialize(bp);
-    m_ct.tx_out_rsigs.emplace_back(bp);
+    std::string serRsig;
+    if (is_req_bulletproof_plus()) {
+      auto bp = bulletproof_plus_PROVE(amounts, masks);
+      serRsig = cn_serialize(bp);
+      m_ct.tx_out_rsigs.emplace_back(bp);
+    } else {
+      auto bp = bulletproof_PROVE(amounts, masks);
+      serRsig = cn_serialize(bp);
+      m_ct.tx_out_rsigs.emplace_back(bp);
+    }
+
     rsig_data.set_rsig(serRsig);
   }
 
-  void Signer::process_bproof(rct::Bulletproof & bproof){
+  void Signer::process_bproof(rsig_v & bproof){
     CHECK_AND_ASSERT_THROW_MES(m_ct.cur_batch_idx < m_ct.grouping_vct.size(), "Invalid batch index");
     auto batch_size = m_ct.grouping_vct[m_ct.cur_batch_idx];
     for (size_t i = 0; i < batch_size; ++i){
@@ -825,21 +784,31 @@ namespace tx {
 
       rct::key commitment = m_ct.tx_out_pk[bidx].mask;
       commitment = rct::scalarmultKey(commitment, rct::INV_EIGHT);
-      bproof.V.push_back(commitment);
+      if (is_req_bulletproof_plus()) {
+        boost::get<rct::BulletproofPlus>(bproof).V.push_back(commitment);
+      } else {
+        boost::get<rct::Bulletproof>(bproof).V.push_back(commitment);
+      }
     }
 
     m_ct.tx_out_rsigs.emplace_back(bproof);
-    if (!rct::bulletproof_VERIFY(boost::get<rct::Bulletproof>(m_ct.tx_out_rsigs.back()))) {
-      throw exc::ProtocolException("Returned range signature is invalid");
+    if (is_req_bulletproof_plus()) {
+      if (!rct::bulletproof_plus_VERIFY(boost::get<rct::BulletproofPlus>(m_ct.tx_out_rsigs.back()))) {
+        throw exc::ProtocolException("Returned range signature is invalid");
+      }
+    } else {
+      if (!rct::bulletproof_VERIFY(boost::get<rct::Bulletproof>(m_ct.tx_out_rsigs.back()))) {
+        throw exc::ProtocolException("Returned range signature is invalid");
+      }
     }
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionSetOutputRequest> Signer::step_rsig(size_t idx){
+  std::shared_ptr<messages::scala::scalaTransactionSetOutputRequest> Signer::step_rsig(size_t idx){
     if (!is_offloading() || !should_compute_bp_now()){
       return nullptr;
     }
 
-    auto res = std::make_shared<messages::scala::ScalaTransactionSetOutputRequest>();
+    auto res = std::make_shared<messages::scala::scalaTransactionSetOutputRequest>();
     auto & cur_dst = m_ct.tx_data.splitted_dsts[idx];
     translate_dst_entry(res->mutable_dst_entr(), &cur_dst);
     res->set_dst_entr_hmac(m_ct.tx_out_entr_hmacs[idx]);
@@ -849,16 +818,17 @@ namespace tx {
     return res;
   }
 
-  void Signer::step_set_rsig_ack(std::shared_ptr<const messages::scala::ScalaTransactionSetOutputAck> ack){
+  void Signer::step_set_rsig_ack(std::shared_ptr<const messages::scala::scalaTransactionSetOutputAck> ack){
     m_ct.cur_batch_idx += 1;
     m_ct.cur_output_in_batch_idx = 0;
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionAllOutSetRequest> Signer::step_all_outs_set(){
-    return std::make_shared<messages::scala::ScalaTransactionAllOutSetRequest>();
+  std::shared_ptr<messages::scala::scalaTransactionAllOutSetRequest> Signer::step_all_outs_set(){
+    return std::make_shared<messages::scala::scalaTransactionAllOutSetRequest>();
   }
 
-  void Signer::step_all_outs_set_ack(std::shared_ptr<const messages::scala::ScalaTransactionAllOutSetAck> ack, hw::device &hwdev){
+  void Signer::step_all_outs_set_ack(std::shared_ptr<const messages::scala::scalaTransactionAllOutSetAck> ack, hw::device &hwdev){
+    CHECK_AND_ASSERT_THROW_MES(is_req_bulletproof(), "Borromean rsig not supported");
     m_ct.rv = std::make_shared<rct::rctSig>();
     m_ct.rv->txnFee = ack->rv().txn_fee();
     m_ct.rv->type = static_cast<uint8_t>(ack->rv().rv_type());
@@ -883,23 +853,14 @@ namespace tx {
 
     // RctSig
     auto num_sources = m_ct.tx_data.sources.size();
-    if (is_simple() || is_req_bulletproof()){
-      auto dst = &m_ct.rv->pseudoOuts;
-      if (is_bulletproof()){
-        dst = &m_ct.rv->p.pseudoOuts;
-      }
-
-      dst->clear();
-      for (const auto &pseudo_out : m_ct.pseudo_outs) {
-        dst->emplace_back();
-        string_to_key(dst->back(), pseudo_out);
-      }
-
-      m_ct.rv->mixRing.resize(num_sources);
-    } else {
-      m_ct.rv->mixRing.resize(m_ct.tsx_data.mixin());
-      m_ct.rv->mixRing[0].resize(num_sources);
+    auto dst = &m_ct.rv->p.pseudoOuts;
+    dst->clear();
+    for (const auto &pseudo_out : m_ct.pseudo_outs) {
+      dst->emplace_back();
+      string_to_key(dst->back(), pseudo_out);
     }
+
+    m_ct.rv->mixRing.resize(num_sources);
 
     CHECK_AND_ASSERT_THROW_MES(m_ct.tx_out_pk.size() == m_ct.tx_out_ecdh.size(), "Invalid vector sizes");
     for(size_t i = 0; i < m_ct.tx_out_ecdh.size(); ++i){
@@ -908,10 +869,10 @@ namespace tx {
     }
 
     for(size_t i = 0; i < m_ct.tx_out_rsigs.size(); ++i){
-      if (is_bulletproof()){
-        m_ct.rv->p.bulletproofs.push_back(boost::get<rct::Bulletproof>(m_ct.tx_out_rsigs[i]));
+      if (is_req_bulletproof_plus()) {
+        m_ct.rv->p.bulletproofs_plus.push_back(boost::get<rct::BulletproofPlus>(m_ct.tx_out_rsigs[i]));
       } else {
-        m_ct.rv->p.rangeSigs.push_back(boost::get<rct::rangeSig>(m_ct.tx_out_rsigs[i]));
+        m_ct.rv->p.bulletproofs.push_back(boost::get<rct::Bulletproof>(m_ct.tx_out_rsigs[i]));
       }
     }
 
@@ -928,7 +889,7 @@ namespace tx {
     }
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionSignInputRequest> Signer::step_sign_input(size_t idx){
+  std::shared_ptr<messages::scala::scalaTransactionSignInputRequest> Signer::step_sign_input(size_t idx){
     m_ct.cur_input_idx = idx;
 
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.tx_data.sources.size(), "Invalid transaction index");
@@ -937,7 +898,7 @@ namespace tx {
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.alphas.size(), "Invalid transaction index");
     CHECK_AND_ASSERT_THROW_MES(idx < m_ct.spend_encs.size(), "Invalid transaction index");
 
-    auto res = std::make_shared<messages::scala::ScalaTransactionSignInputRequest>();
+    auto res = std::make_shared<messages::scala::scalaTransactionSignInputRequest>();
     set_tx_input(res->mutable_src_entr(), idx, true, true);
     res->set_vini(cryptonote::t_serializable_object_to_blob(m_ct.tx.vin[idx]));
     res->set_vini_hmac(m_ct.tx_in_hmacs[idx]);
@@ -952,11 +913,11 @@ namespace tx {
     return res;
   }
 
-  void Signer::step_sign_input_ack(std::shared_ptr<const messages::scala::ScalaTransactionSignInputAck> ack){
+  void Signer::step_sign_input_ack(std::shared_ptr<const messages::scala::scalaTransactionSignInputAck> ack){
     m_ct.signatures.push_back(ack->signature());
 
-    // Sync updated pseudo_outputs, client_version>=1, HF10+
-    if (client_version() >= 1 && ack->has_pseudo_out()){
+    // Sync updated pseudo_outputs
+    if (ack->has_pseudo_out()){
       CHECK_AND_ASSERT_THROW_MES(m_ct.cur_input_idx < m_ct.pseudo_outs.size(), "Invalid pseudo-out index");
       m_ct.pseudo_outs[m_ct.cur_input_idx] = ack->pseudo_out();
       if (is_bulletproof()){
@@ -969,11 +930,13 @@ namespace tx {
     }
   }
 
-  std::shared_ptr<messages::scala::ScalaTransactionFinalRequest> Signer::step_final(){
-    return std::make_shared<messages::scala::ScalaTransactionFinalRequest>();
+  std::shared_ptr<messages::scala::scalaTransactionFinalRequest> Signer::step_final(){
+    return std::make_shared<messages::scala::scalaTransactionFinalRequest>();
   }
 
-  void Signer::step_final_ack(std::shared_ptr<const messages::scala::ScalaTransactionFinalAck> ack){
+  void Signer::step_final_ack(std::shared_ptr<const messages::scala::scalaTransactionFinalAck> ack){
+    CHECK_AND_ASSERT_THROW_MES(is_clsag(), "Only CLSAGs signatures are supported");
+
     if (m_multisig){
       auto & cout_key = ack->cout_key();
       for(auto & cur : m_ct.couts){
@@ -994,37 +957,34 @@ namespace tx {
     m_ct.enc_keys = ack->tx_enc_keys();
 
     // Opening the sealed signatures
-    if (client_version() >= 3){
-      if(!ack->has_opening_key()){
-        throw exc::ProtocolException("Client version 3+ requires sealed signatures");
-      }
-
-      for(size_t i = 0; i < m_ct.signatures.size(); ++i){
-        CHECK_AND_ASSERT_THROW_MES(m_ct.signatures[i].size() > crypto::chacha::TAG_SIZE, "Invalid signature size");
-        std::string nonce = compute_sealing_key(ack->opening_key(), i, true);
-        std::string key = compute_sealing_key(ack->opening_key(), i, false);
-        size_t plen = m_ct.signatures[i].size() - crypto::chacha::TAG_SIZE;
-        std::unique_ptr<uint8_t[]> plaintext(new uint8_t[plen]);
-        uint8_t * buff = plaintext.get();
-
-        protocol::crypto::chacha::decrypt(
-            m_ct.signatures[i].data(),
-            m_ct.signatures[i].size(),
-            reinterpret_cast<const uint8_t *>(key.data()),
-            reinterpret_cast<const uint8_t *>(nonce.data()),
-            reinterpret_cast<char *>(buff), &plen);
-        m_ct.signatures[i].assign(reinterpret_cast<const char *>(buff), plen);
-      }
+    if(!ack->has_opening_key()){
+      throw exc::ProtocolException("Client version 3+ requires sealed signatures");
     }
 
-    // CLSAG support comes here once it is merged to the Scala
-    m_ct.rv->p.MGs.reserve(m_ct.signatures.size());
-    for(size_t i = 0; i < m_ct.signatures.size(); ++i) {
-      rct::mgSig mg;
-      if (!cn_deserialize(m_ct.signatures[i], mg)) {
-        throw exc::ProtocolException("Cannot deserialize mg[i]");
+    for(size_t i = 0; i < m_ct.signatures.size(); ++i){
+      CHECK_AND_ASSERT_THROW_MES(m_ct.signatures[i].size() > crypto::chacha::TAG_SIZE, "Invalid signature size");
+      std::string nonce = compute_sealing_key(ack->opening_key(), i, true);
+      std::string key = compute_sealing_key(ack->opening_key(), i, false);
+      size_t plen = m_ct.signatures[i].size() - crypto::chacha::TAG_SIZE;
+      std::unique_ptr<uint8_t[]> plaintext(new uint8_t[plen]);
+      uint8_t * buff = plaintext.get();
+
+      protocol::crypto::chacha::decrypt(
+          m_ct.signatures[i].data(),
+          m_ct.signatures[i].size(),
+          reinterpret_cast<const uint8_t *>(key.data()),
+          reinterpret_cast<const uint8_t *>(nonce.data()),
+          reinterpret_cast<char *>(buff), &plen);
+      m_ct.signatures[i].assign(reinterpret_cast<const char *>(buff), plen);
+    }
+
+    m_ct.rv->p.CLSAGs.reserve(m_ct.signatures.size());
+    for (size_t i = 0; i < m_ct.signatures.size(); ++i) {
+      rct::clsag clsag;
+      if (!cn_deserialize(m_ct.signatures[i], clsag)) {
+        throw exc::ProtocolException("Cannot deserialize clsag[i]");
       }
-      m_ct.rv->p.MGs.push_back(mg);
+      m_ct.rv->p.CLSAGs.push_back(clsag);
     }
 
     m_ct.tx.rct_signatures = *(m_ct.rv);
@@ -1090,10 +1050,10 @@ namespace tx {
     res.tx_prefix_hash = field_tx_prefix_hash;
   }
 
-  std::shared_ptr<messages::scala::ScalaGetTxKeyRequest> get_tx_key(
+  std::shared_ptr<messages::scala::scalaGetTxKeyRequest> get_tx_key(
       const hw::device_cold::tx_key_data_t & tx_data)
   {
-    auto req = std::make_shared<messages::scala::ScalaGetTxKeyRequest>();
+    auto req = std::make_shared<messages::scala::scalaGetTxKeyRequest>();
     req->set_salt1(tx_data.salt1);
     req->set_salt2(tx_data.salt2);
     req->set_tx_enc_keys(tx_data.tx_enc_keys);
@@ -1107,7 +1067,7 @@ namespace tx {
       std::vector<::crypto::secret_key> & tx_keys,
       const std::string & tx_prefix_hash,
       const ::crypto::secret_key & view_key_priv,
-      std::shared_ptr<const messages::scala::ScalaGetTxKeyAck> ack
+      std::shared_ptr<const messages::scala::scalaGetTxKeyAck> ack
   )
   {
     auto enc_key = protocol::tx::compute_enc_key(view_key_priv, tx_prefix_hash, ack->salt());

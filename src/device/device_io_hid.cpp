@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -35,8 +35,8 @@
 namespace hw {
   namespace io {
  
-    #undef SCALA_DEFAULT_LOG_CATEGORY
-    #define SCALA_DEFAULT_LOG_CATEGORY "device.io"
+    #undef scala_DEFAULT_LOG_CATEGORY
+    #define scala_DEFAULT_LOG_CATEGORY "device.io"
  
     #define ASSERT_X(exp,msg)    CHECK_AND_ASSERT_THROW_MES(exp, msg); 
 
@@ -181,7 +181,6 @@ namespace hw {
       unsigned char padding_buffer[MAX_BLOCK+1];
       unsigned int  result;
                int  hid_ret;
-      unsigned int  sw_offset;
       unsigned int  remaining;
       unsigned int  offset = 0;
 

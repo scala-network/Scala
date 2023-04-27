@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -51,8 +50,8 @@
 #include "common/stack_trace.h"
 #endif // STACK_TRACE
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "daemon"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace po = boost::program_options;
 namespace bf = boost::filesystem;
@@ -67,10 +66,12 @@ uint16_t parse_public_rpc_port(const po::variables_map &vm)
   }
 
   std::string rpc_port_str;
+  std::string rpc_bind_address = command_line::get_arg(vm, cryptonote::rpc_args::descriptors().rpc_bind_ip);
   const auto &restricted_rpc_port = cryptonote::core_rpc_server::arg_rpc_restricted_bind_port;
   if (!command_line::is_arg_defaulted(vm, restricted_rpc_port))
   {
     rpc_port_str = command_line::get_arg(vm, restricted_rpc_port);
+    rpc_bind_address = command_line::get_arg(vm, cryptonote::rpc_args::descriptors().rpc_restricted_bind_ip);
   }
   else if (command_line::get_arg(vm, cryptonote::core_rpc_server::arg_restricted_rpc))
   {
@@ -82,12 +83,11 @@ uint16_t parse_public_rpc_port(const po::variables_map &vm)
   }
 
   uint16_t rpc_port;
-  if (!string_tools::get_xtype_from_string(rpc_port, rpc_port_str))
+  if (!epee::string_tools::get_xtype_from_string(rpc_port, rpc_port_str))
   {
     throw std::runtime_error("invalid RPC port " + rpc_port_str);
   }
 
-  const auto rpc_bind_address = command_line::get_arg(vm, cryptonote::rpc_args::descriptors().rpc_bind_ip);
   const auto address = net::get_network_address(rpc_bind_address, rpc_port);
   if (!address) {
     throw std::runtime_error("failed to parse RPC bind address");
@@ -107,6 +107,20 @@ uint16_t parse_public_rpc_port(const po::variables_map &vm)
 
   return rpc_port;
 }
+
+#ifdef WIN32
+bool isFat32(const wchar_t* root_path)
+{
+  std::vector<wchar_t> fs(MAX_PATH + 1);
+  if (!::GetVolumeInformationW(root_path, nullptr, 0, nullptr, 0, nullptr, &fs[0], MAX_PATH))
+  {
+    MERROR("Failed to get '" << root_path << "' filesystem name. Error code: " << ::GetLastError());
+    return false;
+  }
+
+  return wcscmp(L"FAT32", &fs[0]) == 0;
+}
+#endif
 
 int main(int argc, char const * argv[])
 {
@@ -138,9 +152,12 @@ int main(int argc, char const * argv[])
       command_line::add_arg(core_settings, daemon_args::arg_max_log_file_size);
       command_line::add_arg(core_settings, daemon_args::arg_max_log_files);
       command_line::add_arg(core_settings, daemon_args::arg_max_concurrency);
+      command_line::add_arg(core_settings, daemon_args::arg_proxy);
+      command_line::add_arg(core_settings, daemon_args::arg_proxy_allow_dns_leaks);
       command_line::add_arg(core_settings, daemon_args::arg_public_node);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_ip);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_port);
+      command_line::add_arg(core_settings, daemon_args::arg_zmq_pub);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_disabled);
 
       daemonizer::init_options(hidden_options, visible_options);
@@ -173,16 +190,16 @@ int main(int argc, char const * argv[])
 
     if (command_line::get_arg(vm, command_line::arg_help))
     {
-      std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL << ENDL;
+      std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL << ENDL;
       std::cout << "Usage: " + std::string{argv[0]} + " [options|settings] [daemon_command...]" << std::endl << std::endl;
       std::cout << visible_options << std::endl;
       return 0;
     }
 
-    // Scala Version
+    // scala Version
     if (command_line::get_arg(vm, command_line::arg_version))
     {
-      std::cout << "Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")" << ENDL;
+      std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL;
       return 0;
     }
 
@@ -201,6 +218,19 @@ int main(int argc, char const * argv[])
       try
       {
         po::store(po::parse_config_file<char>(config_path.string<std::string>().c_str(), core_settings), vm);
+      }
+      catch (const po::unknown_option &e)
+      {
+        std::string unrecognized_option = e.get_option_name();
+        if (all_options.find_nothrow(unrecognized_option, false))
+        {
+          std::cerr << "Option '" << unrecognized_option << "' is not allowed in the config file, please use it as a command line flag." << std::endl;
+        }
+        else
+        {
+          std::cerr << "Unrecognized option '" << unrecognized_option << "' in config file." << std::endl;
+        }
+        return 1;
       }
       catch (const std::exception &e)
       {
@@ -233,6 +263,13 @@ int main(int argc, char const * argv[])
     // Create data dir if it doesn't exist
     boost::filesystem::path data_dir = boost::filesystem::absolute(
         command_line::get_arg(vm, cryptonote::arg_data_dir));
+
+#ifdef WIN32
+    if (isFat32(data_dir.root_path().c_str()))
+    {
+      MERROR("Data directory resides on FAT32 volume that has 4GiB file size limit, blockchain might get corrupted.");
+    }
+#endif
 
     // FIXME: not sure on windows implementation default, needs further review
     //bf::path relative_path_base = daemonizer::get_relative_path_base(vm);
@@ -269,7 +306,7 @@ int main(int argc, char const * argv[])
       tools::set_max_concurrency(command_line::get_arg(vm, daemon_args::arg_max_concurrency));
 
     // logging is now set up
-    MGINFO("Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL << ")");
+    MGINFO("scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")");
 
     // If there are positional options, we're running a daemon command
     {

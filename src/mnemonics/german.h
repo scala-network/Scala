@@ -1,7 +1,6 @@
-// Word list created by Scala contributor Shrikez
+// Word list created by scala contributor Shrikez
 // 
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 

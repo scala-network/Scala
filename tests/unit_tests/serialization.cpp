@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -43,7 +42,7 @@
 #include "serialization/json_archive.h"
 #include "serialization/debug_archive.h"
 #include "serialization/variant.h"
-#include "serialization/vector.h"
+#include "serialization/containers.h"
 #include "serialization/binary_utils.h"
 #include "wallet/wallet2.h"
 #include "gtest/gtest.h"
@@ -133,11 +132,11 @@ TEST(Serialization, BinaryArchiveInts) {
   ASSERT_EQ(8, oss.str().size());
   ASSERT_EQ(string("\0\0\0\0\xff\0\0\0", 8), oss.str());
 
-  istringstream iss(oss.str());
-  binary_archive<false> iar(iss);
+  const std::string s = oss.str();
+  binary_archive<false> iar{epee::strspan<std::uint8_t>(s)};
   iar.serialize_int(x1);
-  ASSERT_EQ(8, iss.tellg());
-  ASSERT_TRUE(iss.good());
+  ASSERT_EQ(8, iar.getpos());
+  ASSERT_TRUE(iar.good());
 
   ASSERT_EQ(x, x1);
 }
@@ -152,10 +151,10 @@ TEST(Serialization, BinaryArchiveVarInts) {
   ASSERT_EQ(6, oss.str().size());
   ASSERT_EQ(string("\x80\x80\x80\x80\xF0\x1F", 6), oss.str());
 
-  istringstream iss(oss.str());
-  binary_archive<false> iar(iss);
+  const std::string s = oss.str();
+  binary_archive<false> iar{epee::strspan<std::uint8_t>(s)};
   iar.serialize_varint(x1);
-  ASSERT_TRUE(iss.good());
+  ASSERT_TRUE(iar.good());
   ASSERT_EQ(x, x1);
 }
 
@@ -478,6 +477,7 @@ TEST(Serialization, serializes_ringct_types)
   rct::ecdhTuple ecdh0, ecdh1;
   rct::boroSig boro0, boro1;
   rct::mgSig mg0, mg1;
+  rct::clsag clsag0, clsag1;
   rct::Bulletproof bp0, bp1;
   rct::rctSig s0, s1;
   cryptonote::transaction tx0, tx1;
@@ -593,9 +593,11 @@ TEST(Serialization, serializes_ringct_types)
   rct::skpkGen(Sk, Pk);
   destinations.push_back(Pk);
   //compute rct data with mixin 3
-  const rct::RCTConfig rct_config{ rct::RangeProofPaddedBulletproof, 0 };
-  s0 = rct::genRctSimple(rct::zero(), sc, pc, destinations, inamounts, amounts, amount_keys, NULL, NULL, 0, 3, rct_config, hw::get_device("default"));
+  const rct::RCTConfig rct_config{ rct::RangeProofPaddedBulletproof, 2 };
+  s0 = rct::genRctSimple(rct::zero(), sc, pc, destinations, inamounts, amounts, amount_keys, 0, 3, rct_config, hw::get_device("default"));
 
+  ASSERT_FALSE(s0.p.MGs.empty());
+  ASSERT_TRUE(s0.p.CLSAGs.empty());
   mg0 = s0.p.MGs[0];
   ASSERT_TRUE(serialization::dump_binary(mg0, blob));
   ASSERT_TRUE(serialization::parse_binary(blob, mg1));
@@ -615,6 +617,23 @@ TEST(Serialization, serializes_ringct_types)
   ASSERT_TRUE(serialization::parse_binary(blob, bp1));
   bp1.V = bp0.V; // this is not saved, as it is reconstructed from other tx data
   ASSERT_EQ(bp0, bp1);
+
+  const rct::RCTConfig rct_config_clsag{ rct::RangeProofPaddedBulletproof, 3 };
+  s0 = rct::genRctSimple(rct::zero(), sc, pc, destinations, inamounts, amounts, amount_keys, 0, 3, rct_config_clsag, hw::get_device("default"));
+
+  ASSERT_FALSE(s0.p.CLSAGs.empty());
+  ASSERT_TRUE(s0.p.MGs.empty());
+  clsag0 = s0.p.CLSAGs[0];
+  ASSERT_TRUE(serialization::dump_binary(clsag0, blob));
+  ASSERT_TRUE(serialization::parse_binary(blob, clsag1));
+  ASSERT_TRUE(clsag0.s.size() == clsag1.s.size());
+  for (size_t n = 0; n < clsag0.s.size(); ++n)
+  {
+    ASSERT_TRUE(clsag0.s[n] == clsag1.s[n]);
+  }
+  ASSERT_TRUE(clsag0.c1 == clsag1.c1);
+  // I is not serialized, they are meant to be reconstructed
+  ASSERT_TRUE(clsag0.D == clsag1.D);
 }
 
 TEST(Serialization, portability_wallet)
@@ -740,7 +759,7 @@ TEST(Serialization, portability_wallet)
   }
 }
 
-#define OUTPUT_EXPORT_FILE_MAGIC "Scala output export\003"
+#define OUTPUT_EXPORT_FILE_MAGIC "scala output export\003"
 TEST(Serialization, portability_outputs)
 {
   // read file
@@ -867,7 +886,7 @@ inline void serialize(Archive &a, unsigned_tx_set &x, const boost::serialization
   a & x.txes;
   a & x.transfers;
 }
-#define UNSIGNED_TX_PREFIX "Scala unsigned tx set\003"
+#define UNSIGNED_TX_PREFIX "scala unsigned tx set\003"
 TEST(Serialization, portability_unsigned_tx)
 {
   const boost::filesystem::path filename = unit_test::data_dir / "unsigned_scala_tx";
@@ -1015,7 +1034,7 @@ TEST(Serialization, portability_unsigned_tx)
   ASSERT_TRUE(td2.m_pk_index == 0);
 }
 
-#define SIGNED_TX_PREFIX "Scala signed tx set\003"
+#define SIGNED_TX_PREFIX "scala signed tx set\003"
 TEST(Serialization, portability_signed_tx)
 {
   const boost::filesystem::path filename = unit_test::data_dir / "signed_scala_tx";

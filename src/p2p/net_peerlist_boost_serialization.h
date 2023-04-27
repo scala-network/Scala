@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -38,10 +37,6 @@
 #include "net/tor_address.h"
 #include "net/i2p_address.h"
 #include "p2p/p2p_protocol_defs.h"
-
-#ifdef CRYPTONOTE_PRUNING_DEBUG_SPOOF_SEED
-#include "common/pruning.h"
-#endif
 
 BOOST_CLASS_VERSION(nodetool::peerlist_entry, 3)
 
@@ -137,7 +132,7 @@ namespace boost
     {
       const size_t length = std::strlen(na.host_str());
       if (length > 255)
-        SCALA_THROW(net::error::invalid_tor_address, "Tor address too long");
+        scala_THROW(net::error::invalid_tor_address, "Tor address too long");
 
       const uint16_t port{na.port()};
       const uint8_t len = length;
@@ -151,7 +146,7 @@ namespace boost
     {
       const size_t length = std::strlen(na.host_str());
       if (length > 255)
-        SCALA_THROW(net::error::invalid_i2p_address, "i2p address too long");
+        scala_THROW(net::error::invalid_i2p_address, "i2p address too long");
 
       const uint16_t port{na.port()};
       const uint8_t len = length;
@@ -170,7 +165,7 @@ namespace boost
 
       const size_t buffer_size = net::tor_address::buffer_size();
       if (length > buffer_size)
-        SCALA_THROW(net::error::invalid_tor_address, "Tor address too long");
+        scala_THROW(net::error::invalid_tor_address, "Tor address too long");
 
       char host[buffer_size] = {0};
       a.load_binary(host, length);
@@ -179,7 +174,7 @@ namespace boost
       if (std::strcmp(host, net::tor_address::unknown_str()) == 0)
         na = net::tor_address::unknown();
       else
-        na = SCALA_UNWRAP(net::tor_address::make(host, port));
+        na = scala_UNWRAP(net::tor_address::make(host, port));
     }
 
     template <class Archive, class ver_type>
@@ -192,7 +187,7 @@ namespace boost
 
       const size_t buffer_size = net::i2p_address::buffer_size();
       if (length > buffer_size)
-        SCALA_THROW(net::error::invalid_i2p_address, "i2p address too long");
+        scala_THROW(net::error::invalid_i2p_address, "i2p address too long");
 
       char host[buffer_size] = {0};
       a.load_binary(host, length);
@@ -201,7 +196,7 @@ namespace boost
       if (std::strcmp(host, net::i2p_address::unknown_str()) == 0)
         na = net::i2p_address::unknown();
       else
-        na = SCALA_UNWRAP(net::i2p_address::make(host, port));
+        na = scala_UNWRAP(net::i2p_address::make(host, port));
     }
 
     template <class Archive, class ver_type>
@@ -229,12 +224,6 @@ namespace boost
         return;
       }
       a & pl.pruning_seed;
-#ifdef CRYPTONOTE_PRUNING_DEBUG_SPOOF_SEED
-      if (!typename Archive::is_saving())
-      {
-        pl.pruning_seed = tools::make_pruning_seed(1+pl.adr.as<epee::net_utils::ipv4_network_address>().ip() % (1<<CRYPTONOTE_PRUNING_LOG_STRIPES), CRYPTONOTE_PRUNING_LOG_STRIPES);
-      }
-#endif
       if (ver < 2)
       {
         if (!typename Archive::is_saving())

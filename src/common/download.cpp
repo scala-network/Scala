@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -34,8 +34,8 @@
 #include "net/http_client.h"
 #include "download.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "net.dl"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "net.dl"
 
 namespace tools
 {
@@ -53,7 +53,7 @@ namespace tools
 
     download_thread_control(const std::string &path, const std::string &uri, std::function<void(const std::string&, const std::string&, bool)> result_cb, std::function<bool(const std::string&, const std::string&, size_t, ssize_t)> progress_cb):
         path(path), uri(uri), result_cb(result_cb), progress_cb(progress_cb), stop(false), stopped(false), success(false) {}
-    ~download_thread_control() { if (thread.joinable()) thread.detach(); }
+    ~download_thread_control() { if (thread.joinable()) { thread.detach(); thread = {}; } }
   };
 
   static void download_thread(download_async_handle control)
@@ -187,7 +187,7 @@ namespace tools
       uint16_t port = u_c.port ? u_c.port : ssl == epee::net_utils::ssl_support_t::e_ssl_support_enabled ? 443 : 80;
       MDEBUG("Connecting to " << u_c.host << ":" << port);
       client.set_server(u_c.host, std::to_string(port), boost::none, ssl);
-      if (!client.connect(std::chrono::seconds(5)))
+      if (!client.connect(std::chrono::seconds(30)))
       {
         boost::lock_guard<boost::mutex> lock(control->mutex);
         MERROR("Failed to connect to " << control->uri);
@@ -203,7 +203,7 @@ namespace tools
         MDEBUG("Asking for range: " << range);
         fields.push_back(std::make_pair("Range", range));
       }
-      if (!client.invoke_get(u_c.uri, std::chrono::seconds(5), "", &info, fields))
+      if (!client.invoke_get(u_c.uri, std::chrono::seconds(30), "", &info, fields))
       {
         boost::lock_guard<boost::mutex> lock(control->mutex);
         MERROR("Failed to connect to " << control->uri);
@@ -293,9 +293,13 @@ namespace tools
     {
       boost::lock_guard<boost::mutex> lock(control->mutex);
       if (control->stopped)
+      {
+        control->thread = {};
         return true;
+      }
     }
     control->thread.join();
+    control->thread = {};
     return true;
   }
 
@@ -305,10 +309,14 @@ namespace tools
     {
       boost::lock_guard<boost::mutex> lock(control->mutex);
       if (control->stopped)
+      {
+        control->thread = {};
         return true;
+      }
       control->stop = true;
     }
     control->thread.join();
+    control->thread = {};
     return true;
   }
 }

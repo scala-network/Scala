@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -43,8 +42,8 @@ extern "C"
 #include "cryptonote_format_utils.h"
 #include "cryptonote_config.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "account"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "account"
 
 using namespace std;
 
@@ -252,11 +251,6 @@ DISABLE_VS_WARNINGS(4244 4345)
     m_keys.m_spend_secret_key = spend_secret_key;
     m_keys.m_multisig_keys = multisig_keys;
     return crypto::secret_key_to_public_key(view_secret_key, m_keys.m_account_address.m_view_public_key);
-  }
-  //-----------------------------------------------------------------
-  void account_base::finalize_multisig(const crypto::public_key &spend_public_key)
-  {
-    m_keys.m_account_address.m_spend_public_key = spend_public_key;
   }
   //-----------------------------------------------------------------
   const account_keys& account_base::get_keys() const

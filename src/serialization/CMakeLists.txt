@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019, The Monero Project
+# Copyright (c) 2016-2023, The scala Project
 #
 # All rights reserved.
 #
@@ -31,8 +31,7 @@ set(serialization_sources
 
 set(serialization_headers)
 
-set(serialization_private_headers
-  json_object.h)
+scala_find_all_headers(serialization_private_headers "${CMAKE_CURRENT_SOURCE_DIR}")
 
 scala_private_headers(serialization
   ${serialization_private_headers})
@@ -42,6 +41,7 @@ scala_add_library(serialization
   ${serialization_private_headers})
 target_link_libraries(serialization
   LINK_PRIVATE
+    cryptonote_basic
     cryptonote_core
     cryptonote_protocol
     epee

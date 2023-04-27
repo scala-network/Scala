@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The scala Project
+
 //
 // All rights reserved.
 //
@@ -28,6 +29,7 @@
 
 #pragma once
 
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <cstdint>
 
@@ -36,6 +38,16 @@
 
 namespace net
 {
+    /*!
+     * \brief Takes a valid address string (IP, Tor, I2P, or DNS name) and splits it into host and port
+     *
+     * The host of an IPv6 addresses in the format "[x:x:..:x]:port" will have the braces stripped.
+     * For example, when the address is "[ffff::2023]", host will be set to "ffff::2023".
+     *
+     * \param address The address string one wants to split
+     * \param[out] host The host part of the address string. Is always set.
+     * \param[out] port The port part of the address string. Is only set when address string contains a port.
+    */
     void get_network_address_host_and_port(const std::string& address, std::string& host, std::string& port);
 
     /*!
@@ -65,5 +77,7 @@ namespace net
     */
     expect<epee::net_utils::ipv4_network_subnet>
         get_ipv4_subnet_address(boost::string_ref address, bool allow_implicit_32 = false);
+
+    expect<boost::asio::ip::tcp::endpoint> get_tcp_endpoint(const boost::string_ref address);
 }
 

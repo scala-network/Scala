@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -28,14 +28,16 @@
 //
 
 #include "device_trezor.hpp"
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace hw {
 namespace trezor {
 
 #ifdef WITH_DEVICE_TREZOR
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "device.trezor"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "device.trezor"
 
 #define HW_TREZOR_NAME "Trezor"
 
@@ -64,8 +66,8 @@ namespace trezor {
 
     device_trezor::~device_trezor() {
       try {
-        disconnect();
-        release();
+        device_trezor::disconnect();
+        device_trezor::release();
       } catch(std::exception const& e){
         MWARNING("Could not disconnect and release: " << e.what());
       }
@@ -176,6 +178,15 @@ namespace trezor {
       }
     }
 
+    bool device_trezor::get_public_address_with_no_passphrase(cryptonote::account_public_address &pubkey) {
+      m_reply_with_empty_passphrase = true;
+      const auto empty_passphrase_reverter = epee::misc_utils::create_scope_leave_handler([&]() {
+        m_reply_with_empty_passphrase = false;
+      });
+
+      return get_public_address(pubkey);
+    }
+
     bool device_trezor::get_secret_keys(crypto::secret_key &viewkey , crypto::secret_key &spendkey) {
       try {
         MDEBUG("Loading view-only key from the Trezor. Please check the Trezor for a confirmation.");
@@ -204,6 +215,18 @@ namespace trezor {
       get_address(index, payment_id, true);
     }
 
+    void device_trezor::reset_session() {
+      m_device_session_id.clear();
+    }
+
+    bool device_trezor::seen_passphrase_entry_prompt() {
+      return m_seen_passphrase_entry_message;
+    }
+
+    void device_trezor::set_use_empty_passphrase(bool always_use_empty_passphrase) {
+      m_always_use_empty_passphrase = always_use_empty_passphrase;
+    }
+
     /* ======================================================================= */
     /*  Helpers                                                                */
     /* ======================================================================= */
@@ -212,7 +235,7 @@ namespace trezor {
     /*                              TREZOR PROTOCOL                            */
     /* ======================================================================= */
 
-    std::shared_ptr<messages::scala::ScalaAddress> device_trezor::get_address(
+    std::shared_ptr<messages::scala::scalaAddress> device_trezor::get_address(
         const boost::optional<cryptonote::subaddress_index> & subaddress,
         const boost::optional<crypto::hash8> & payment_id,
         bool show_address,
@@ -224,8 +247,8 @@ namespace trezor {
       device_state_initialize_unsafe();
       require_initialized();
 
-      auto req = std::make_shared<messages::scala::ScalaGetAddress>();
-      this->set_msg_addr<messages::scala::ScalaGetAddress>(req.get(), path, network_type);
+      auto req = std::make_shared<messages::scala::scalaGetAddress>();
+      this->set_msg_addr<messages::scala::scalaGetAddress>(req.get(), path, network_type);
       req->set_show_display(show_address);
       if (subaddress){
         req->set_account(subaddress->major);
@@ -235,12 +258,12 @@ namespace trezor {
         req->set_payment_id(std::string(payment_id->data, 8));
       }
 
-      auto response = this->client_exchange<messages::scala::ScalaAddress>(req);
+      auto response = this->client_exchange<messages::scala::scalaAddress>(req);
       MTRACE("Get address response received");
       return response;
     }
 
-    std::shared_ptr<messages::scala::ScalaWatchKey> device_trezor::get_view_key(
+    std::shared_ptr<messages::scala::scalaWatchKey> device_trezor::get_view_key(
         const boost::optional<std::vector<uint32_t>> & path,
         const boost::optional<cryptonote::network_type> & network_type){
       TREZOR_AUTO_LOCK_CMD();
@@ -248,10 +271,10 @@ namespace trezor {
       device_state_initialize_unsafe();
       require_initialized();
 
-      auto req = std::make_shared<messages::scala::ScalaGetWatchKey>();
-      this->set_msg_addr<messages::scala::ScalaGetWatchKey>(req.get(), path, network_type);
+      auto req = std::make_shared<messages::scala::scalaGetWatchKey>();
+      this->set_msg_addr<messages::scala::scalaGetWatchKey>(req.get(), path, network_type);
 
-      auto response = this->client_exchange<messages::scala::ScalaWatchKey>(req);
+      auto response = this->client_exchange<messages::scala::scalaWatchKey>(req);
       MTRACE("Get watch key response received");
       return response;
     }
@@ -278,9 +301,9 @@ namespace trezor {
       require_initialized();
 
       auto req = protocol::tx::get_tx_key(tx_aux_data);
-      this->set_msg_addr<messages::scala::ScalaGetTxKeyRequest>(req.get());
+      this->set_msg_addr<messages::scala::scalaGetTxKeyRequest>(req.get());
 
-      auto response = this->client_exchange<messages::scala::ScalaGetTxKeyAck>(req);
+      auto response = this->client_exchange<messages::scala::scalaGetTxKeyAck>(req);
       MTRACE("Get TX key response received");
 
       protocol::tx::get_tx_key_ack(tx_keys, tx_aux_data.tx_prefix_hash, view_key_priv, response);
@@ -297,21 +320,21 @@ namespace trezor {
       device_state_initialize_unsafe();
       require_initialized();
 
-      std::shared_ptr<messages::scala::ScalaKeyImageExportInitRequest> req;
+      std::shared_ptr<messages::scala::scalaKeyImageExportInitRequest> req;
 
-      std::vector<protocol::ki::ScalaTransferDetails> mtds;
-      std::vector<protocol::ki::ScalaExportedKeyImage> kis;
-      protocol::ki::key_image_data(wallet, transfers, mtds, client_version() <= 1);
-      protocol::ki::generate_commitment(mtds, transfers, req, client_version() <= 1);
+      std::vector<protocol::ki::scalaTransferDetails> mtds;
+      std::vector<protocol::ki::scalaExportedKeyImage> kis;
+      protocol::ki::key_image_data(wallet, transfers, mtds);
+      protocol::ki::generate_commitment(mtds, transfers, req);
 
       EVENT_PROGRESS(0.);
-      this->set_msg_addr<messages::scala::ScalaKeyImageExportInitRequest>(req.get());
-      auto ack1 = this->client_exchange<messages::scala::ScalaKeyImageExportInitAck>(req);
+      this->set_msg_addr<messages::scala::scalaKeyImageExportInitRequest>(req.get());
+      auto ack1 = this->client_exchange<messages::scala::scalaKeyImageExportInitAck>(req);
 
       const auto batch_size = 10;
       const auto num_batches = (mtds.size() + batch_size - 1) / batch_size;
       for(uint64_t cur = 0; cur < num_batches; ++cur){
-        auto step_req = std::make_shared<messages::scala::ScalaKeyImageSyncStepRequest>();
+        auto step_req = std::make_shared<messages::scala::scalaKeyImageSyncStepRequest>();
         auto idx_finish = std::min(static_cast<uint64_t>((cur + 1) * batch_size), static_cast<uint64_t>(mtds.size()));
         for(uint64_t idx = cur * batch_size; idx < idx_finish; ++idx){
           auto added_tdis = step_req->add_tdis();
@@ -319,7 +342,7 @@ namespace trezor {
           *added_tdis = mtds[idx];
         }
 
-        auto step_ack = this->client_exchange<messages::scala::ScalaKeyImageSyncStepAck>(step_req);
+        auto step_ack = this->client_exchange<messages::scala::scalaKeyImageSyncStepAck>(step_req);
         auto kis_size = step_ack->kis_size();
         kis.reserve(static_cast<size_t>(kis_size));
         for(int i = 0; i < kis_size; ++i){
@@ -332,8 +355,8 @@ namespace trezor {
       }
       EVENT_PROGRESS(1.);
 
-      auto final_req = std::make_shared<messages::scala::ScalaKeyImageSyncFinalRequest>();
-      auto final_ack = this->client_exchange<messages::scala::ScalaKeyImageSyncFinalAck>(final_req);
+      auto final_req = std::make_shared<messages::scala::scalaKeyImageSyncFinalRequest>();
+      auto final_ack = this->client_exchange<messages::scala::scalaKeyImageSyncFinalAck>(final_req);
       ski.reserve(kis.size());
 
       for(auto & sub : kis){
@@ -389,9 +412,9 @@ namespace trezor {
       device_state_initialize_unsafe();
       require_initialized();
 
-      auto req = std::make_shared<messages::scala::ScalaLiveRefreshStartRequest>();
-      this->set_msg_addr<messages::scala::ScalaLiveRefreshStartRequest>(req.get());
-      this->client_exchange<messages::scala::ScalaLiveRefreshStartAck>(req);
+      auto req = std::make_shared<messages::scala::scalaLiveRefreshStartRequest>();
+      this->set_msg_addr<messages::scala::scalaLiveRefreshStartRequest>(req.get());
+      this->client_exchange<messages::scala::scalaLiveRefreshStartAck>(req);
       m_live_refresh_in_progress = true;
       m_last_live_refresh_time = std::chrono::steady_clock::now();
     }
@@ -416,21 +439,21 @@ namespace trezor {
 
       m_last_live_refresh_time = std::chrono::steady_clock::now();
 
-      auto req = std::make_shared<messages::scala::ScalaLiveRefreshStepRequest>();
+      auto req = std::make_shared<messages::scala::scalaLiveRefreshStepRequest>();
       req->set_out_key(out_key.data, 32);
       req->set_recv_deriv(recv_derivation.data, 32);
       req->set_real_out_idx(real_output_index);
       req->set_sub_addr_major(received_index.major);
       req->set_sub_addr_minor(received_index.minor);
 
-      auto ack = this->client_exchange<messages::scala::ScalaLiveRefreshStepAck>(req);
+      auto ack = this->client_exchange<messages::scala::scalaLiveRefreshStepAck>(req);
       protocol::ki::live_refresh_ack(view_key_priv, out_key, ack, in_ephemeral, ki);
     }
 
     void device_trezor::live_refresh_finish_unsafe()
     {
-      auto req = std::make_shared<messages::scala::ScalaLiveRefreshFinalRequest>();
-      this->client_exchange<messages::scala::ScalaLiveRefreshFinalAck>(req);
+      auto req = std::make_shared<messages::scala::scalaLiveRefreshFinalRequest>();
+      this->client_exchange<messages::scala::scalaLiveRefreshFinalAck>(req);
       m_live_refresh_in_progress = false;
     }
 
@@ -488,7 +511,7 @@ namespace trezor {
                                 tools::wallet2::signed_tx_set & signed_tx,
                                 hw::tx_aux_data & aux_data)
     {
-      CHECK_AND_ASSERT_THROW_MES(unsigned_tx.transfers.first == 0, "Unsuported non zero offset");
+      CHECK_AND_ASSERT_THROW_MES(std::get<0>(unsigned_tx.transfers) == 0, "Unsuported non zero offset");
 
       TREZOR_AUTO_LOCK_CMD();
       require_connected();
@@ -499,7 +522,7 @@ namespace trezor {
       const size_t num_tx = unsigned_tx.txes.size();
       m_num_transations_to_sign = num_tx;
       signed_tx.key_images.clear();
-      signed_tx.key_images.resize(unsigned_tx.transfers.second.size());
+      signed_tx.key_images.resize(std::get<2>(unsigned_tx.transfers).size());
 
       for(size_t tx_idx = 0; tx_idx < num_tx; ++tx_idx) {
         std::shared_ptr<protocol::tx::Signer> signer;
@@ -543,8 +566,8 @@ namespace trezor {
         cpend.key_images = key_images;
 
         // KI sync
-        for(size_t cidx=0, trans_max=unsigned_tx.transfers.second.size(); cidx < trans_max; ++cidx){
-          signed_tx.key_images[cidx] = unsigned_tx.transfers.second[cidx].m_key_image;
+        for(size_t cidx=0, trans_max=std::get<2>(unsigned_tx.transfers).size(); cidx < trans_max; ++cidx){
+          signed_tx.key_images[cidx] = std::get<2>(unsigned_tx.transfers)[cidx].m_key_image;
         }
 
         size_t num_sources = cdata.tx_data.sources.size();
@@ -556,9 +579,9 @@ namespace trezor {
           CHECK_AND_ASSERT_THROW_MES(src_idx < cdata.tx.vin.size(), "Invalid idx_mapped");
 
           size_t idx_map_src = cdata.tx_data.selected_transfers[idx_mapped];
-          CHECK_AND_ASSERT_THROW_MES(idx_map_src >= unsigned_tx.transfers.first, "Invalid offset");
+          CHECK_AND_ASSERT_THROW_MES(idx_map_src >= std::get<0>(unsigned_tx.transfers), "Invalid offset");
 
-          idx_map_src -= unsigned_tx.transfers.first;
+          idx_map_src -= std::get<0>(unsigned_tx.transfers);
           CHECK_AND_ASSERT_THROW_MES(idx_map_src < signed_tx.key_images.size(), "Invalid key image index");
 
           const auto vini = boost::get<cryptonote::txin_to_key>(cdata.tx.vin[src_idx]);
@@ -600,49 +623,45 @@ namespace trezor {
       transaction_pre_check(init_msg);
       EVENT_PROGRESS(1, 1, 1);
 
-      auto response = this->client_exchange<messages::scala::ScalaTransactionInitAck>(init_msg);
+      auto response = this->client_exchange<messages::scala::scalaTransactionInitAck>(init_msg);
       signer->step_init_ack(response);
 
       // Step: Set transaction inputs
       for(size_t cur_src = 0; cur_src < num_sources; ++cur_src){
         auto src = signer->step_set_input(cur_src);
-        auto ack = this->client_exchange<messages::scala::ScalaTransactionSetInputAck>(src);
+        auto ack = this->client_exchange<messages::scala::scalaTransactionSetInputAck>(src);
         signer->step_set_input_ack(ack);
         EVENT_PROGRESS(2, cur_src, num_sources);
       }
 
       // Step: sort
-      auto perm_req = signer->step_permutation();
-      if (perm_req){
-        auto perm_ack = this->client_exchange<messages::scala::ScalaTransactionInputsPermutationAck>(perm_req);
-        signer->step_permutation_ack(perm_ack);
-      }
+      signer->sort_ki();
       EVENT_PROGRESS(3, 1, 1);
 
       // Step: input_vini
       for(size_t cur_src = 0; cur_src < num_sources; ++cur_src){
         auto src = signer->step_set_vini_input(cur_src);
-        auto ack = this->client_exchange<messages::scala::ScalaTransactionInputViniAck>(src);
+        auto ack = this->client_exchange<messages::scala::scalaTransactionInputViniAck>(src);
         signer->step_set_vini_input_ack(ack);
         EVENT_PROGRESS(4, cur_src, num_sources);
       }
 
       // Step: all inputs set
       auto all_inputs_set = signer->step_all_inputs_set();
-      auto ack_all_inputs = this->client_exchange<messages::scala::ScalaTransactionAllInputsSetAck>(all_inputs_set);
+      auto ack_all_inputs = this->client_exchange<messages::scala::scalaTransactionAllInputsSetAck>(all_inputs_set);
       signer->step_all_inputs_set_ack(ack_all_inputs);
       EVENT_PROGRESS(5, 1, 1);
 
       // Step: outputs
       for(size_t cur_dst = 0; cur_dst < num_outputs; ++cur_dst){
         auto src = signer->step_set_output(cur_dst);
-        auto ack = this->client_exchange<messages::scala::ScalaTransactionSetOutputAck>(src);
+        auto ack = this->client_exchange<messages::scala::scalaTransactionSetOutputAck>(src);
         signer->step_set_output_ack(ack);
 
         // If BP is offloaded to host, another step with computed BP may be needed.
         auto offloaded_bp = signer->step_rsig(cur_dst);
         if (offloaded_bp){
-          auto bp_ack = this->client_exchange<messages::scala::ScalaTransactionSetOutputAck>(offloaded_bp);
+          auto bp_ack = this->client_exchange<messages::scala::scalaTransactionSetOutputAck>(offloaded_bp);
           signer->step_set_rsig_ack(ack);
         }
 
@@ -651,21 +670,21 @@ namespace trezor {
 
       // Step: all outs set
       auto all_out_set = signer->step_all_outs_set();
-      auto ack_all_out_set = this->client_exchange<messages::scala::ScalaTransactionAllOutSetAck>(all_out_set);
+      auto ack_all_out_set = this->client_exchange<messages::scala::scalaTransactionAllOutSetAck>(all_out_set);
       signer->step_all_outs_set_ack(ack_all_out_set, *this);
       EVENT_PROGRESS(7, 1, 1);
 
       // Step: sign each input
       for(size_t cur_src = 0; cur_src < num_sources; ++cur_src){
         auto src = signer->step_sign_input(cur_src);
-        auto ack_sign = this->client_exchange<messages::scala::ScalaTransactionSignInputAck>(src);
+        auto ack_sign = this->client_exchange<messages::scala::scalaTransactionSignInputAck>(src);
         signer->step_sign_input_ack(ack_sign);
         EVENT_PROGRESS(8, cur_src, num_sources);
       }
 
       // Step: final
       auto final_msg = signer->step_final();
-      auto ack_final = this->client_exchange<messages::scala::ScalaTransactionFinalAck>(final_msg);
+      auto ack_final = this->client_exchange<messages::scala::scalaTransactionFinalAck>(final_msg);
       signer->step_final_ack(ack_final);
       EVENT_PROGRESS(9, 1, 1);
 #undef EVENT_PROGRESS
@@ -674,12 +693,14 @@ namespace trezor {
     unsigned device_trezor::client_version()
     {
       auto trezor_version = get_version();
-      if (trezor_version <= pack_version(2, 0, 10)){
-        throw exc::TrezorException("Trezor firmware 2.0.10 and lower are not supported. Please update.");
+      if (trezor_version < pack_version(2, 4, 3)){
+        throw exc::TrezorException("Minimal Trezor firmware version is 2.4.3. Please update.");
       }
 
-      // default client version, higher versions check will be added
-      unsigned client_version = 1;
+      unsigned client_version = 3;
+      if (trezor_version >= pack_version(2, 5, 2)){
+        client_version = 4;
+      }
 
 #ifdef WITH_TREZOR_DEBUGGING
       // Override client version for tests
@@ -709,19 +730,11 @@ namespace trezor {
       aux_data.client_version = cversion;
     }
 
-    void device_trezor::transaction_pre_check(std::shared_ptr<messages::scala::ScalaTransactionInitRequest> init_msg)
+    void device_trezor::transaction_pre_check(std::shared_ptr<messages::scala::scalaTransactionInitRequest> init_msg)
     {
       CHECK_AND_ASSERT_THROW_MES(init_msg, "TransactionInitRequest is empty");
       CHECK_AND_ASSERT_THROW_MES(init_msg->has_tsx_data(), "TransactionInitRequest has no transaction data");
       CHECK_AND_ASSERT_THROW_MES(m_features, "Device state not initialized");  // make sure the caller did not reset features
-      const bool nonce_required = init_msg->tsx_data().has_payment_id() && init_msg->tsx_data().payment_id().size() > 0;
-
-      if (nonce_required && init_msg->tsx_data().payment_id().size() == 8){
-        // Versions 2.0.9 and lower do not support payment ID
-        if (get_version() <= pack_version(2, 0, 9)) {
-          throw exc::TrezorException("Trezor firmware 2.0.9 and lower does not support transactions with short payment IDs or integrated addresses. Please update.");
-        }
-      }
     }
 
     void device_trezor::transaction_check(const protocol::tx::TData & tdata, const hw::tx_aux_data & aux_data)

@@ -6,8 +6,7 @@
 
 */
 
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -44,11 +43,10 @@
 #include "common/common_fwd.h"
 #include "common/rpc_client.h"
 #include "cryptonote_basic/cryptonote_basic.h"
-#include "net/net_fwd.h"
 #include "rpc/core_rpc_server.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "daemon"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize {
 
@@ -169,7 +167,8 @@ public:
   bool set_bootstrap_daemon(
     const std::string &address,
     const std::string &username,
-    const std::string &password);
+    const std::string &password,
+    const std::string &proxy);
 
   bool rpc_payments();
 

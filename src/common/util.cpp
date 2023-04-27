@@ -1,5 +1,4 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The scala Project
 // 
 // All rights reserved.
 // 
@@ -60,7 +59,7 @@
 #include "include_base_utils.h"
 #include "file_io_utils.h"
 #include "wipeable_string.h"
-#include "misc_os_dependent.h"
+#include "time_helper.h"
 using namespace epee;
 
 #include "crypto/crypto.h"
@@ -86,10 +85,10 @@ using namespace epee;
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "util"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "util"
 
 namespace
 {
@@ -575,28 +574,28 @@ std::string get_nix_version_display_string()
 
 
 
-  #ifdef WIN32
-    std::string get_special_folder_path(int nfolder, bool iscreate)
+#ifdef WIN32
+  std::string get_special_folder_path(int nfolder, bool iscreate)
+  {
+    WCHAR psz_path[MAX_PATH] = L"";
+
+    if (SHGetSpecialFolderPathW(NULL, psz_path, nfolder, iscreate))
     {
-      WCHAR psz_path[MAX_PATH] = L"";
-
-      if (SHGetSpecialFolderPathW(NULL, psz_path, nfolder, iscreate))
+      try
       {
-        try
-        {
-          return string_tools::utf16_to_utf8(psz_path);
-        }
-        catch (const std::exception &e)
-        {
-          MERROR("utf16_to_utf8 failed: " << e.what());
-          return "";
-        }
+        return string_tools::utf16_to_utf8(psz_path);
       }
-
-      LOG_ERROR("SHGetSpecialFolderPathW() failed, could not obtain requested path.");
-      return "";
+      catch (const std::exception &e)
+      {
+        MERROR("utf16_to_utf8 failed: " << e.what());
+        return "";
+      }
     }
-  #endif
+
+    LOG_ERROR("SHGetSpecialFolderPathW() failed, could not obtain requested path.");
+    return "";
+  }
+#endif
   
   std::string get_default_data_dir()
   {
@@ -608,17 +607,17 @@ std::string get_nix_version_display_string()
     // Unix & Mac: ~/.CRYPTONOTE_NAME
     std::string config_folder;
 
-    #ifdef WIN32
-        config_folder = get_special_folder_path(CSIDL_COMMON_APPDATA, true) + "\\" + CRYPTONOTE_NAME;
-    #else
-        std::string pathRet;
-        char* pszHome = getenv("HOME");
-        if (pszHome == NULL || strlen(pszHome) == 0)
-          pathRet = "/";
-        else
-          pathRet = pszHome;
-        config_folder = (pathRet + "/." + CRYPTONOTE_NAME);
-    #endif
+#ifdef WIN32
+    config_folder = get_special_folder_path(CSIDL_COMMON_APPDATA, true) + "\\" + CRYPTONOTE_NAME;
+#else
+    std::string pathRet;
+    char* pszHome = getenv("HOME");
+    if (pszHome == NULL || strlen(pszHome) == 0)
+      pathRet = "/";
+    else
+      pathRet = pszHome;
+    config_folder = (pathRet + "/." + CRYPTONOTE_NAME);
+#endif
 
     return config_folder;
   }
@@ -872,10 +871,19 @@ std::string get_nix_version_display_string()
     return max_concurrency;
   }
 
+  bool is_privacy_preserving_network(const std::string &address)
+  {
+    if (boost::ends_with(address, ".onion"))
+      return true;
+    if (boost::ends_with(address, ".i2p"))
+      return true;
+    return false;
+  }
+
   bool is_local_address(const std::string &address)
   {
     // always assume Tor/I2P addresses to be untrusted by default
-    if (boost::ends_with(address, ".onion") || boost::ends_with(address, ".i2p"))
+    if (is_privacy_preserving_network(address))
     {
       MDEBUG("Address '" << address << "' is Tor/I2P, non local");
       return false;
@@ -933,14 +941,7 @@ std::string get_nix_version_display_string()
 
   bool sha256sum(const uint8_t *data, size_t len, crypto::hash &hash)
   {
-    SHA256_CTX ctx;
-    if (!SHA256_Init(&ctx))
-      return false;
-    if (!SHA256_Update(&ctx, data, len))
-      return false;
-    if (!SHA256_Final((unsigned char*)hash.data, &ctx))
-      return false;
-    return true;
+    return EVP_Digest(data, len, (unsigned char*) hash.data, NULL, EVP_sha256(), NULL) != 0;
   }
 
   bool sha256sum(const std::string &filename, crypto::hash &hash)
@@ -953,8 +954,8 @@ std::string get_nix_version_display_string()
     if (!f)
       return false;
     std::ifstream::pos_type file_size = f.tellg();
-    SHA256_CTX ctx;
-    if (!SHA256_Init(&ctx))
+    std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), &EVP_MD_CTX_free);
+    if (!EVP_DigestInit_ex(ctx.get(), EVP_sha256(), nullptr))
       return false;
     size_t size_left = file_size;
     f.seekg(0, std::ios::beg);
@@ -965,12 +966,12 @@ std::string get_nix_version_display_string()
       f.read(buf, read_size);
       if (!f || !f.good())
         return false;
-      if (!SHA256_Update(&ctx, buf, read_size))
+      if (!EVP_DigestUpdate(ctx.get(), buf, read_size))
         return false;
       size_left -= read_size;
     }
     f.close();
-    if (!SHA256_Final((unsigned char*)hash.data, &ctx))
+    if (!EVP_DigestFinal_ex(ctx.get(), (unsigned char*)hash.data, nullptr))
       return false;
     return true;
   }
@@ -1001,13 +1002,13 @@ std::string get_nix_version_display_string()
     for (char c: val)
     {
       if (c == '*')
-        newval += escape ? "*" : ".*";
+        newval += escape ? "*" : ".*", escape = false;
       else if (c == '?')
-        newval += escape ? "?" : ".";
+        newval += escape ? "?" : ".", escape = false;
       else if (c == '\\')
         newval += '\\', escape = !escape;
       else
-        newval += c;
+        newval += c, escape = false;
     }
     return newval;
   }
@@ -1066,7 +1067,7 @@ std::string get_nix_version_display_string()
     time_t tt = ts;
     struct tm tm;
     misc_utils::get_gmt_time(tt, tm);
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &tm);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%SZ", &tm);
     return std::string(buffer);
   }
 
@@ -1107,7 +1108,7 @@ std::string get_nix_version_display_string()
   std::string get_human_readable_bytes(uint64_t bytes)
   {
     // Use 1024 for "kilo", 1024*1024 for "mega" and so on instead of the more modern and standard-conforming
-    // 1000, 1000*1000 and so on, to be consistent with other Scala code that also uses base 2 units
+    // 1000, 1000*1000 and so on, to be consistent with other scala code that also uses base 2 units
     struct byte_map
     {
         const char* const format;
@@ -1117,7 +1118,7 @@ std::string get_nix_version_display_string()
     static constexpr const byte_map sizes[] =
     {
         {"%.0f B", 1024},
-        {"%.2f KB", 1024 * 1024},
+        {"%.2f kB", 1024 * 1024},
         {"%.2f MB", std::uint64_t(1024) * 1024 * 1024},
         {"%.2f GB", std::uint64_t(1024) * 1024 * 1024 * 1024},
         {"%.2f TB", std::uint64_t(1024) * 1024 * 1024 * 1024 * 1024}
@@ -1308,7 +1309,7 @@ std::string get_nix_version_display_string()
       return num_blocks;
     }
 
-    // The following is a table of average blocks sizes in bytes over the Scala mainnet
+    // The following is a table of average blocks sizes in bytes over the scala mainnet
     // blockchain, where the block size is averaged over ranges of 10,000 blocks
     // (about 2 weeks worth of blocks each).
     // The first array entry of 442 thus means "The average byte size of the blocks
@@ -1347,8 +1348,12 @@ std::string get_nix_version_display_string()
       100743, 92152, 57565, 22533, 37564, 21823, 19980, 18277, 18402, 14344,
       12142, 15842, 13677, 17631, 18294, 22270, 41422, 39296, 36688, 33512,
       33831, 27582, 22276, 27516, 27317, 25505, 24426, 20566, 23045, 26766,
-      28185, 26169, 27011,
-      28642    // Blocks 1,990,000 to 1,999,999 in December 2019
+      28185, 26169, 27011, 28642, 34994, 34442, 30682, 34357, 31640, 41167,
+      41301, 48616, 51075, 55061, 49909, 44606, 47091, 53828, 42520, 39023,
+      55245, 56145, 51119, 60398, 71821, 48142, 60310, 56041, 54176, 66220,
+      56336, 55248, 56656, 63305, 54029, 77136, 71902, 71618, 83587, 81068,
+      69062, 54848, 53681, 53555,
+      50616    // Blocks 2,400,000 to 2,409,999 in July 2021
     };
     const uint64_t block_range_size = 10000;
 
