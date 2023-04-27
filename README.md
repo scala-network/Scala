@@ -1,10 +1,22 @@
-# scala
+# Scala
 
-Copyright (c) 2014-2023, The scala Project
+Copyright (c) 2014-2023, The Monero Project
+Copyright (c) 2021-2023, Haku Labs MTÜ
 Portions Copyright (c) 2012-2013 The Cryptonote developers.
+
+[<img src="https://scalaproject.io/img/card.jpg">](https://scalaproject.io)
+
+
+Scala is a privacy-focused cryptocurrency project linking distributed technologies to build a globally scalable and mobile-friendly ecosystem. We provide an opaque blockchain, untraceable payments, unlinkable transactions, and blockchain-analysis resistance.
+
+Our vision is to distribute wealth for everyone and every device. We want to be the people’s coin. To achieve this goal, we focus on implementing solutions that are mobile-friendly and energy-efficient. There are about 4 billion mobile devices in the world, and we want to make sure that our ecosystem takes that into account. We also take a lot of time to improve the user experience so that our applications can be used easily by anyone.
+
+Obviously, our goal is also to bring useful utilities and to solve real-world problems, in a way that is economically viable for the project and to sustain our growth. We take advantage of next-gen technologies such as IPFS and custom software to provide the utility of data storage and we use the proven CryptoNote protocol for providing the financial aspects.
 
 ## Table of Contents
 
+- [Scala](#scala)
+  - [Table of Contents](#table-of-contents)
   - [Development resources](#development-resources)
   - [Vulnerability response](#vulnerability-response)
   - [Research](#research)
@@ -16,25 +28,46 @@ Portions Copyright (c) 2012-2013 The Cryptonote developers.
   - [Supporting the project](#supporting-the-project)
   - [License](#license)
   - [Contributing](#contributing)
-  - [Scheduled software upgrades](#scheduled-software-upgrades)
+  - [Scheduled software/network upgrades](#scheduled-softwarenetwork-upgrades)
   - [Release staging schedule and protocol](#release-staging-schedule-and-protocol)
   - [Compiling scala from source](#compiling-scala-from-source)
     - [Dependencies](#dependencies)
+    - [Cloning the repository](#cloning-the-repository)
+    - [Build instructions](#build-instructions)
+      - [On Linux and macOS](#on-linux-and-macos)
+      - [On the Raspberry Pi](#on-the-raspberry-pi)
+      - [*Note for Raspbian Jessie users:*](#note-for-raspbian-jessie-users)
+      - [On Windows:](#on-windows)
+    - [On FreeBSD:](#on-freebsd)
+    - [On OpenBSD:](#on-openbsd)
+    - [On NetBSD:](#on-netbsd)
+    - [On Solaris:](#on-solaris)
+    - [Building portable statically linked binaries](#building-portable-statically-linked-binaries)
+    - [Cross Compiling](#cross-compiling)
     - [Gitian builds](#gitian-builds)
-  - [Internationalization](#Internationalization)
+  - [Installing scala from a package](#installing-scala-from-a-package)
+  - [Running scalad](#running-scalad)
+  - [Internationalization](#internationalization)
   - [Using Tor](#using-tor)
-  - [Pruning](#Pruning)
-  - [Debugging](#Debugging)
-  - [Known issues](#known-issues)
+    - [Using Tor on Tails](#using-tor-on-tails)
+  - [Pruning](#pruning)
+  - [Debugging](#debugging)
+    - [Obtaining stack traces and core dumps on Unix systems](#obtaining-stack-traces-and-core-dumps-on-unix-systems)
+      - [To run scala within gdb:](#to-run-scala-within-gdb)
+    - [Analysing memory corruption](#analysing-memory-corruption)
+      - [ASAN](#asan)
+      - [valgrind](#valgrind)
+    - [LMDB](#lmdb)
+- [Known Issues](#known-issues)
+  - [Protocols](#protocols)
+    - [Socket-based](#socket-based)
+    - [Blockchain-based](#blockchain-based)
 
 ## Development resources
 
-- Web: [getscala.org](https://getscala.org)
-- Forum: [forum.getscala.org](https://forum.getscala.org)
-- Mail: [dev@getscala.org](mailto:dev@getscala.org)
-- GitHub: [https://github.com/scala-project/scala](https://github.com/scala-project/scala)
-- IRC: [#scala-dev on Libera](https://web.libera.chat/#scala-dev)
-- It is HIGHLY recommended that you join the #scala-dev IRC channel if you are developing software that uses scala. Due to the nature of this open source software project, joining this channel and idling is the best way to stay updated on best practices and new developments in the scala ecosystem. All you need to do is join the IRC channel and idle to stay updated with the latest in scala development. If you do not, you risk wasting resources on developing integrations that are not compatible with the scala network. The scala core team and community continuously make efforts to communicate updates, developments, and documentation via other platforms – but for the best information, you need to talk to other scala developers, and they are on IRC. #scala-dev is about scala development, not getting help about using scala, or help about development of other software, including yours, unless it also pertains to scala code itself. For these cases, checkout #scala.
+- Web: [scalaproject.io](https://scalaproject.io)
+- Mail: [dev@getscala.org](mailto:hello@scalaproject.io)
+- GitHub: [https://github.com/scala-network/scala](https://github.com/scala-network/scala)
 
 ## Vulnerability response
 
