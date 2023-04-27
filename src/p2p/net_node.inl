@@ -603,19 +603,15 @@ namespace nodetool
   {
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
-    {
-      /* Wanna be a testnet node seed? Contact hayzam on discord */
-      full_addrs.insert("65.21.221.2:22821"); /* Scala's Official Testnet node */
-      full_addrs.insert("167.235.151.213:22821"); /* Hayzam's Testnet Node */
-    }
+    {}
     else if (nettype == cryptonote::STAGENET)
     {}
     else if (nettype == cryptonote::FAKECHAIN)
     {}
     else
     {
-      full_addrs.insert("135.181.166.155:11811"); /* Scala Official Seed */
-      full_addrs.insert("51.79.146.20:11811"); /* Remote Four */
+      full_addrs.insert("65.21.221.2:11811");
+      full_addrs.insert("65.21.221.3:11811");
     }
     return full_addrs;
   }
