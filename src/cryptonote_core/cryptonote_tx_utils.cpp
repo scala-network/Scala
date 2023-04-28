@@ -371,8 +371,6 @@ namespace cryptonote
       }
     }
 
-    CHECK_AND_ASSERT_MES(summary_amounts == block_reward, false, "Failed to construct miner tx, summary_amounts = " << summary_amounts << " not equal block_reward = " << block_reward);
-
     if (hard_fork_version >= 4) {
       tx.version = 2;
     }
