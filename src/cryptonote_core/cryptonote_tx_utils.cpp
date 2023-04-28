@@ -326,19 +326,26 @@ namespace cryptonote
       r = crypto::derive_public_key(derivation, no, miner_address.m_spend_public_key, out_eph_public_key);
       CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to derive_public_key(" << derivation << ", " << no << ", "<< miner_address.m_spend_public_key << ")");
 
-      uint64_t amount = out_amounts[no];
-      summary_amounts += amount;
+      // uint64_t amount = out_amounts[no];
+      // summary_amounts += amount;
 
-      bool use_view_tags = hard_fork_version >= HF_VERSION_VIEW_TAGS;
-      crypto::view_tag view_tag;
-      if (use_view_tags)
-        crypto::derive_view_tag(derivation, no, view_tag);
+      // bool use_view_tags = hard_fork_version >= HF_VERSION_VIEW_TAGS;
+      // crypto::view_tag view_tag;
+      // if (use_view_tags)
+      //   crypto::derive_view_tag(derivation, no, view_tag);
+
+      // tx_out out;
+      // cryptonote::set_tx_out(amount, out_eph_public_key, use_view_tags, view_tag, out);
+
+      // tx.vout.push_back(out);
+
+      txout_to_key tk;
+      tk.key = out_eph_public_key;
 
       tx_out out;
-      cryptonote::set_tx_out(amount, out_eph_public_key, use_view_tags, view_tag, out);
-
+      summary_amounts += out.amount = out_amounts[no];
+      out.target = tk;
       tx.vout.push_back(out);
-
 
       if (hard_fork_version >= 2 && hard_fork_version <= 12 && (height >= 16)) {
         if (already_generated_coins != 0) {
