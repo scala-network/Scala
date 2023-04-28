@@ -3075,13 +3075,15 @@ void wallet2::pull_and_parse_next_blocks(bool first, bool try_incremental, uint6
         uint64_t height = blocks_start_height + i;
         bool wallet_is_outdated = false;
         bool daemon_is_outdated = false;
+        if(height > 100) {
         check_block_hard_fork_version(m_nettype, hf_version, height, wallet_is_outdated, daemon_is_outdated);
         THROW_WALLET_EXCEPTION_IF(wallet_is_outdated || daemon_is_outdated, error::incorrect_fork_version,
           "Unexpected hard fork version v" + std::to_string(hf_version) + " at height " + std::to_string(height) + ". " +
           (wallet_is_outdated
             ? "Make sure your wallet is up to date"
             : "Make sure the node you are connected to is running the latest version")
-        );
+          );
+        }
       }
 
       parsed_blocks[i].o_indices = std::move(o_indices[i]);
@@ -9510,10 +9512,12 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
   const bool bulletproof = use_fork_rules(get_bulletproof_fork(), 0);
   const bool bulletproof_plus = use_fork_rules(get_bulletproof_plus_fork(), 0);
   const bool clsag = use_fork_rules(get_clsag_fork(), 0);
+
   const rct::RCTConfig rct_config {
-    rct::RangeProofPaddedBulletproof,
-    bulletproof_plus ? 4 : 3
+      rct::RangeProofPaddedBulletproof,
+      bulletproof_plus ? 4 : 2
   };
+
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
   std::unordered_set<crypto::public_key> valid_public_keys_cache;
 
