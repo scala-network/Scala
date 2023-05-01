@@ -37,7 +37,6 @@ jobs:
           - name: "ARM v8"
             host: "aarch64-linux-gnu"
             packages: "python3 gperf g++-aarch64-linux-gnu"
-            packages: "gperf cmake g++-multilib python3-zmq"
           - name: "Win64"
             host: "x86_64-w64-mingw32"
             packages: "cmake python3 g++-mingw-w64-x86-64"
