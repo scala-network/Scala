@@ -37,11 +37,6 @@ jobs:
           - name: "ARM v8"
             host: "aarch64-linux-gnu"
             packages: "python3 gperf g++-aarch64-linux-gnu"
-          - name: "i686 Win"
-            host: "i686-w64-mingw32"
-            packages: "python3 g++-mingw-w64-i686"
-          - name: "i686 Linux"
-            host: "i686-pc-linux-gnu"
             packages: "gperf cmake g++-multilib python3-zmq"
           - name: "Win64"
             host: "x86_64-w64-mingw32"
@@ -108,5 +103,5 @@ jobs:
       with:
         name: ${{ matrix.toolchain.name }}
         path: |
-          /home/runner/work/scala/scala/build/${{ matrix.toolchain.host }}/release/bin/scala-wallet-cli*
-          /home/runner/work/scala/scala/build/${{ matrix.toolchain.host }}/release/bin/scalad*
+          /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala-wallet-cli*
+          /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scalad*

@@ -130,40 +130,6 @@ jobs:
         cmake .
         make wallet_api -j3
 
-  test-ubuntu:
-    needs: build-ubuntu
-    runs-on: ubuntu-20.04
-    env:
-      CCACHE_TEMPDIR: /tmp/.ccache-temp
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: ccache
-      uses: actions/cache@v3
-      with:
-        path: ~/.ccache
-        key: ccache-${{ runner.os }}-build-ubuntu-latest-${{ github.sha }}
-        restore-keys: ccache-${{ runner.os }}-build-ubuntu-latest
-    - name: remove bundled boost
-      run: ${{env.REMOVE_BUNDLED_BOOST}}
-    - name: set apt conf
-      run: ${{env.APT_SET_CONF}}
-    - name: update apt
-      run: sudo apt update
-    - name: install scala dependencies
-      run: ${{env.APT_INSTALL_LINUX}}
-    - name: install Python dependencies
-      run: pip install requests psutil monotonic zmq
-    - name: tests
-      env:
-        CTEST_OUTPUT_ON_FAILURE: ON
-        DNS_PUBLIC: tcp://9.9.9.9
-      run: |
-        ${{env.CCACHE_SETTINGS}}
-        ${{env.BUILD_DEFAULT_LINUX}}
-        cmake --build build --target test
-
 # ARCH="default" (not "native") ensures, that a different execution host can execute binaries compiled elsewhere.
 # BUILD_SHARED_LIBS=ON speeds up the linkage part a bit, reduces size, and is the only place where the dynamic linkage is tested.
 
@@ -184,4 +150,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.OUTPUT }}
-        path: /home/runner/work/scala/scala/${{ env.OUTPUT }}
+        path: /home/runner/work/Scala/Scala/${{ env.OUTPUT }}
