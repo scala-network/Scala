@@ -8417,9 +8417,9 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       uint64_t num_found = 0;
 
       // if we have a known ring, use it
+      /*
       if (td.m_key_image_known && !td.m_key_image_partial)
       {
-
         const auto it = existing_rings.find(td.m_key_image);
         const bool has_ring = it != existing_rings.end();
         if (has_ring)
@@ -8455,7 +8455,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
               "Known ring does not include the spent output: " + std::to_string(td.m_global_output_index));
         }
       }
-
+      */
       if (num_outs <= requested_outputs_count)
       {
         for (uint64_t i = 0; i < num_outs; i++)
@@ -8690,6 +8690,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       // pick real out first (it will be sorted when done)
       outs.back().push_back(std::make_tuple(td.m_global_output_index, td.get_public_key(), mask));
 
+      /*
       // then pick outs from an existing ring, if any
       if (td.m_key_image_known && !td.m_key_image_partial)
       {
@@ -8721,6 +8722,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
           }
         }
       }
+      */
 
       // then pick others in random order till we reach the required number
       // since we use an equiprobable pick here, we don't upset the triangular distribution
