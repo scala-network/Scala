@@ -3780,55 +3780,21 @@ uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_b
 //------------------------------------------------------------------
 bool Blockchain::check_fee(size_t tx_weight, uint64_t fee) const
 {
-  const uint8_t version = get_current_hard_fork_version();
-
-  uint64_t median = 0;
-  uint64_t already_generated_coins = 0;
-  uint64_t base_reward = 0;
-  if (version >= HF_VERSION_DYNAMIC_FEE)
-  {
-    median = m_current_block_cumul_weight_limit / 2;
-    const uint64_t blockchain_height = m_db->height();
-    already_generated_coins = blockchain_height ? m_db->get_block_already_generated_coins(blockchain_height - 1) : 0;
-    if (!get_block_reward(median, 1, already_generated_coins, base_reward, version, blockchain_height))
-      return false;
-  }
-
-  uint64_t needed_fee;
-  if (version >= HF_VERSION_PER_BYTE_FEE)
-  {
-    const bool use_long_term_median_in_fee = version >= HF_VERSION_LONG_TERM_BLOCK_WEIGHT;
-    uint64_t fee_per_byte = get_dynamic_base_fee(base_reward, use_long_term_median_in_fee ? std::min<uint64_t>(median, m_long_term_effective_median_block_weight) : median, version);
-    MDEBUG("Using " << print_money(fee_per_byte) << "/byte fee");
-    needed_fee = tx_weight * fee_per_byte;
-    // quantize fee up to 8 decimals
-    const uint64_t mask = get_fee_quantization_mask();
-    needed_fee = (needed_fee + mask - 1) / mask * mask;
-  }
-  else
-  {
+    uint64_t needed_fee;
     uint64_t fee_per_kb;
-    if (version < HF_VERSION_DYNAMIC_FEE)
-    {
-      fee_per_kb = FEE_PER_KB;
-    }
-    else
-    {
-      fee_per_kb = get_dynamic_base_fee(base_reward, median, version);
-    }
+    fee_per_kb = FEE_PER_KB;
     MDEBUG("Using " << print_money(fee_per_kb) << "/kB fee");
-
     needed_fee = tx_weight / 1024;
     needed_fee += (tx_weight % 1024) ? 1 : 0;
     needed_fee *= fee_per_kb;
-  }
 
-  if (fee < needed_fee - needed_fee / 50) // keep a little 2% buffer on acceptance - no integer overflow
-  {
-    MERROR_VER("transaction fee is not enough: " << print_money(fee) << ", minimum fee: " << print_money(needed_fee));
-    return false;
-  }
-  return true;
+    if (fee < needed_fee - needed_fee / 50) // keep a little 2% buffer on acceptance - no integer overflow
+    {
+      MERROR_VER("transaction fee is not enough: " << print_money(fee) << ", minimum fee: " << print_money(needed_fee));
+      return false;
+    }
+
+    return true;
 }
 
 //------------------------------------------------------------------

@@ -7592,22 +7592,12 @@ uint64_t wallet2::get_fee_multiplier(uint32_t priority, int fee_algorithm)
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_dynamic_base_fee_estimate()
 {
-  uint64_t fee;
-  boost::optional<std::string> result = m_node_rpc_proxy.get_dynamic_base_fee_estimate(FEE_ESTIMATE_GRACE_BLOCKS, fee);
-  if (!result)
-    return fee;
-  const uint64_t base_fee = use_fork_rules(HF_VERSION_PER_BYTE_FEE) ? FEE_PER_BYTE : FEE_PER_KB;
-  LOG_PRINT_L1("Failed to query base fee, using " << print_money(base_fee));
-  return base_fee;
+  return FEE_PER_KB;
 }
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_base_fee()
 {
-  bool use_dyn_fee = use_fork_rules(HF_VERSION_DYNAMIC_FEE, -30 * 1);
-  if (!use_dyn_fee)
-    return FEE_PER_KB;
-
-  return get_dynamic_base_fee_estimate();
+  return FEE_PER_KB;
 }
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_base_fee(uint32_t priority)
