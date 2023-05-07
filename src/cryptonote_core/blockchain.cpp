@@ -3734,47 +3734,8 @@ void Blockchain::check_ring_signature(const crypto::hash &tx_prefix_hash, const 
 //------------------------------------------------------------------
 uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_block_weight, uint8_t version)
 {
-  const uint64_t min_block_weight = get_min_block_weight(version);
-  if (median_block_weight < min_block_weight)
-    median_block_weight = min_block_weight;
-  uint64_t hi, lo;
-
-  if (version >= HF_VERSION_PER_BYTE_FEE)
-  {
-    lo = mul128(block_reward, DYNAMIC_FEE_REFERENCE_TRANSACTION_WEIGHT, &hi);
-    div128_64(hi, lo, median_block_weight, &hi, &lo, NULL, NULL);
-    if (version >= HF_VERSION_2021_SCALING)
-    {
-      // min_fee_per_byte = round_up( 0.95 * block_reward * ref_weight / (fee_median^2) )
-      // note: since hardfork HF_VERSION_2021_SCALING, fee_median (a.k.a. median_block_weight) equals effective long term median
-      div128_64(hi, lo, median_block_weight, &hi, &lo, NULL, NULL);
-      assert(hi == 0);
-      lo -= lo / 20;
-      return lo;
-    }
-    else
-    {
-      // min_fee_per_byte = 0.2 * block_reward * ref_weight / (min_penalty_free_zone * fee_median)
-      div128_64(hi, lo, min_block_weight, &hi, &lo, NULL, NULL);
-      assert(hi == 0);
-      lo /= 5;
-      return lo;
-    }
-  }
-
-  const uint64_t fee_base = version >= 5 ? DYNAMIC_FEE_PER_KB_BASE_FEE_V5 : DYNAMIC_FEE_PER_KB_BASE_FEE;
-
-  uint64_t unscaled_fee_base = (fee_base * min_block_weight / median_block_weight);
-  lo = mul128(unscaled_fee_base, block_reward, &hi);
-  div128_64(hi, lo, DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD, &hi, &lo, NULL, NULL);
-  assert(hi == 0);
-
-  // quantize fee up to 8 decimals
-  uint64_t mask = get_fee_quantization_mask();
-  uint64_t qlo = (lo + mask - 1) / mask * mask;
-  MDEBUG("lo " << print_money(lo) << ", qlo " << print_money(qlo) << ", mask " << mask);
-
-  return qlo;
+  const uint64_t fee_base = FEE_PER_KB;
+  return fee_base;
 }
 
 //------------------------------------------------------------------
