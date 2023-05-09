@@ -10222,7 +10222,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(const crypton
   const bool clsag = use_fork_rules(get_clsag_fork(), 0);
   const rct::RCTConfig rct_config {
     rct::RangeProofPaddedBulletproof,
-    bulletproof_plus ? 4 : 3
+    bulletproof_plus ? 4 : 2
   };
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
   const uint64_t base_fee  = get_base_fee(priority);
