@@ -2,7 +2,7 @@ name: ci/gh-actions/build
 on: [push, pull_request]
 jobs:
   build-all:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
       CCACHE_COMPRESS: 1
       CCACHE_TEMPDIR: /tmp/.ccache-temp
