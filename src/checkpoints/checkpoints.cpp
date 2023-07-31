@@ -52,22 +52,23 @@ namespace cryptonote
    */
   struct t_hashline
   {
-    uint64_t height; //!< the height of the checkpoint
+    uint64_t height;  //!< the height of the checkpoint
     std::string hash; //!< the hash for the checkpoint
-        BEGIN_KV_SERIALIZE_MAP()
-          KV_SERIALIZE(height)
-          KV_SERIALIZE(hash)
-        END_KV_SERIALIZE_MAP()
+    BEGIN_KV_SERIALIZE_MAP()
+    KV_SERIALIZE(height)
+    KV_SERIALIZE(hash)
+    END_KV_SERIALIZE_MAP()
   };
 
   /**
    * @brief struct for loading many checkpoints from json
    */
-  struct t_hash_json {
+  struct t_hash_json
+  {
     std::vector<t_hashline> hashlines; //!< the checkpoint lines from the file
-        BEGIN_KV_SERIALIZE_MAP()
-          KV_SERIALIZE(hashlines)
-        END_KV_SERIALIZE_MAP()
+    BEGIN_KV_SERIALIZE_MAP()
+    KV_SERIALIZE(hashlines)
+    END_KV_SERIALIZE_MAP()
   };
 
   //---------------------------------------------------------------------------
@@ -75,7 +76,7 @@ namespace cryptonote
   {
   }
   //---------------------------------------------------------------------------
-  bool checkpoints::add_checkpoint(uint64_t height, const std::string& hash_str, const std::string& difficulty_str)
+  bool checkpoints::add_checkpoint(uint64_t height, const std::string &hash_str, const std::string &difficulty_str)
   {
     crypto::hash h = crypto::null_hash;
     bool r = epee::string_tools::hex_to_pod(hash_str, h);
@@ -112,31 +113,32 @@ namespace cryptonote
     return !m_points.empty() && (height <= (--m_points.end())->first);
   }
   //---------------------------------------------------------------------------
-  bool checkpoints::check_block(uint64_t height, const crypto::hash& h, bool& is_a_checkpoint) const
+  bool checkpoints::check_block(uint64_t height, const crypto::hash &h, bool &is_a_checkpoint) const
   {
     auto it = m_points.find(height);
     is_a_checkpoint = it != m_points.end();
-    if(!is_a_checkpoint)
+    if (!is_a_checkpoint)
       return true;
 
-    if(it->second == h)
+    if (it->second == h)
     {
       MINFO("CHECKPOINT PASSED FOR HEIGHT " << height << " " << h);
       return true;
-    }else
+    }
+    else
     {
       MWARNING("CHECKPOINT FAILED FOR HEIGHT " << height << ". EXPECTED HASH: " << it->second << ", FETCHED HASH: " << h);
       return false;
     }
   }
   //---------------------------------------------------------------------------
-  bool checkpoints::check_block(uint64_t height, const crypto::hash& h) const
+  bool checkpoints::check_block(uint64_t height, const crypto::hash &h) const
   {
     bool ignored;
     return check_block(height, h, ignored);
   }
   //---------------------------------------------------------------------------
-  //FIXME: is this the desired behavior?
+  // FIXME: is this the desired behavior?
   bool checkpoints::is_alternative_block_allowed(uint64_t blockchain_height, uint64_t block_height) const
   {
     if (0 == block_height)
@@ -159,19 +161,19 @@ namespace cryptonote
     return m_points.rbegin()->first;
   }
   //---------------------------------------------------------------------------
-  const std::map<uint64_t, crypto::hash>& checkpoints::get_points() const
+  const std::map<uint64_t, crypto::hash> &checkpoints::get_points() const
   {
     return m_points;
   }
   //---------------------------------------------------------------------------
-  const std::map<uint64_t, difficulty_type>& checkpoints::get_difficulty_points() const
+  const std::map<uint64_t, difficulty_type> &checkpoints::get_difficulty_points() const
   {
     return m_difficulty_points;
   }
 
-  bool checkpoints::check_for_conflicts(const checkpoints& other) const
+  bool checkpoints::check_for_conflicts(const checkpoints &other) const
   {
-    for (auto& pt : other.get_points())
+    for (auto &pt : other.get_points())
     {
       if (m_points.count(pt.first))
       {
@@ -191,13 +193,18 @@ namespace cryptonote
     {
       return true;
     }
+
+    ADD_CHECKPOINT2(10, "dc374bd627e9bb9a8d0df502d29e45f9143a1254c752923c5468c89263315fcc", "0x25");
+    ADD_CHECKPOINT2(100, "61e49040154df814f90ff106dae115d79a0dc54480278de605f016f6451ce3b0", "0x2435b6e84");
+    ADD_CHECKPOINT2(1000, "f0610f14129ca53cf4812334ddd8ae6bbec459113367a853adc36c163fab5cd2", "0x604ee6771c");
+    ADD_CHECKPOINT2(10000, "4a220652f8fb723d1d627022b2fd556132d51915ad4f78964fda4ec071b89504", "0x59850cb4947");
     return true;
   }
 
   bool checkpoints::load_checkpoints_from_json(const std::string &json_hashfile_fullpath)
   {
     boost::system::error_code errcode;
-    if (! (boost::filesystem::exists(json_hashfile_fullpath, errcode)))
+    if (!(boost::filesystem::exists(json_hashfile_fullpath, errcode)))
     {
       LOG_PRINT_L1("Blockchain checkpoints file not found");
       return true;
@@ -213,16 +220,19 @@ namespace cryptonote
       MERROR("Error loading checkpoints from " << json_hashfile_fullpath);
       return false;
     }
-    for (std::vector<t_hashline>::const_iterator it = hashes.hashlines.begin(); it != hashes.hashlines.end(); )
+    for (std::vector<t_hashline>::const_iterator it = hashes.hashlines.begin(); it != hashes.hashlines.end();)
     {
       uint64_t height;
       height = it->height;
-      if (height <= prev_max_height) {
-	LOG_PRINT_L1("ignoring checkpoint height " << height);
-      } else {
-	std::string blockhash = it->hash;
-	LOG_PRINT_L1("Adding checkpoint height " << height << ", hash=" << blockhash);
-	ADD_CHECKPOINT(height, blockhash);
+      if (height <= prev_max_height)
+      {
+        LOG_PRINT_L1("ignoring checkpoint height " << height);
+      }
+      else
+      {
+        std::string blockhash = it->hash;
+        LOG_PRINT_L1("Adding checkpoint height " << height << ", hash=" << blockhash);
+        ADD_CHECKPOINT(height, blockhash);
       }
       ++it;
     }
@@ -235,28 +245,21 @@ namespace cryptonote
     std::vector<std::string> records;
 
     // All four scalaPulse domains have DNSSEC on and valid
-    static const std::vector<std::string> dns_urls = { "checkpoints.scalapulse.se"
-						     , "checkpoints.scalapulse.org"
-						     , "checkpoints.scalapulse.net"
-						     , "checkpoints.scalapulse.co"
+    static const std::vector<std::string> dns_urls = {
+        "checkpoints.scalaproject.io"
     };
 
-    static const std::vector<std::string> testnet_dns_urls = { "testpoints.scalapulse.se"
-							     , "testpoints.scalapulse.org"
-							     , "testpoints.scalapulse.net"
-							     , "testpoints.scalapulse.co"
-    };
+    static const std::vector<std::string> testnet_dns_urls = {};
 
-    static const std::vector<std::string> stagenet_dns_urls = { "stagenetpoints.scalapulse.se"
-                   , "stagenetpoints.scalapulse.org"
-                   , "stagenetpoints.scalapulse.net"
-                   , "stagenetpoints.scalapulse.co"
-    };
+    static const std::vector<std::string> stagenet_dns_urls = {};
 
-    if (!tools::dns_utils::load_txt_records_from_dns(records, nettype == TESTNET ? testnet_dns_urls : nettype == STAGENET ? stagenet_dns_urls : dns_urls))
+    if (!tools::dns_utils::load_txt_records_from_dns(records, nettype == TESTNET ? testnet_dns_urls : nettype == STAGENET ? stagenet_dns_urls
+                                                                                                                          : dns_urls))
+    {
       return true; // why true ?
+    }
 
-    for (const auto& record : records)
+    for (const auto &record : records)
     {
       auto pos = record.find(":");
       if (pos != std::string::npos)
@@ -269,7 +272,7 @@ namespace cryptonote
         std::stringstream ss(record.substr(0, pos));
         if (!(ss >> height))
         {
-    continue;
+          continue;
         }
 
         // parse the second part as crypto::hash,
@@ -277,7 +280,7 @@ namespace cryptonote
         std::string hashStr = record.substr(pos + 1);
         if (!epee::string_tools::hex_to_pod(hashStr, hash))
         {
-    continue;
+          continue;
         }
 
         ADD_CHECKPOINT(height, hashStr);

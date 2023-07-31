@@ -44,19 +44,11 @@ namespace tools
 
     MDEBUG("Checking updates for " << buildtag << " " << software);
 
-    // All four scalaPulse domains have DNSSEC on and valid
-    static const std::vector<std::string> dns_urls = {
-        "updates.scalapulse.org",
-        "updates.scalapulse.net",
-        "updates.scalapulse.fr",
-        "updates.scalapulse.de",
-        "updates.scalapulse.no",
-        "updates.scalapulse.ch",
-        "updates.scalapulse.se"
-    };
+    static const std::vector<std::string> dns_urls = {};
 
-    if (!tools::dns_utils::load_txt_records_from_dns(records, dns_urls))
+    if (!tools::dns_utils::load_txt_records_from_dns(records, dns_urls)) {
       return false;
+    }
 
     for (const auto& record : records)
     {
@@ -102,14 +94,14 @@ namespace tools
 
   std::string get_update_url(const std::string &software, const std::string &subdir, const std::string &buildtag, const std::string &version, bool user)
   {
-    const char *base = user ? "https://downloads.getscala.org/" : "https://updates.getscala.org/";
-#ifdef _WIN32
-    static const char *extension = strncmp(buildtag.c_str(), "source", 6) ? (strncmp(buildtag.c_str(), "install-", 8) ? ".zip" : ".exe") : ".tar.bz2";
-#elif defined(__APPLE__)
-    static const char *extension = strncmp(software.c_str(), "scala-gui", 10) ? ".tar.bz2" : ".dmg";
-#else
-    static const char extension[] = ".tar.bz2";
-#endif
+    const char *base = "https://updates.scalaproject.io/";
+    #ifdef _WIN32
+        static const char *extension = strncmp(buildtag.c_str(), "source", 6) ? (strncmp(buildtag.c_str(), "install-", 8) ? ".zip" : ".exe") : ".tar.bz2";
+    #elif defined(__APPLE__)
+        static const char *extension = strncmp(software.c_str(), "scala-gui", 10) ? ".tar.bz2" : ".dmg";
+    #else
+        static const char extension[] = ".tar.bz2";
+    #endif
 
     std::string url;
 
