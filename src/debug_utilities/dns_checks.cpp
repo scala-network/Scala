@@ -129,20 +129,9 @@ int main(int argc, char* argv[])
   mlog_configure("", true);
   mlog_set_categories("+" scala_DEFAULT_LOG_CATEGORY ":INFO");
 
-  lookup(LOOKUP_A, {"seeds.scalaseeds.se", "seeds.scalaseeds.ae.org", "seeds.scalaseeds.ch", "seeds.scalaseeds.li"});
-
-  lookup(LOOKUP_TXT, {"updates.scalapulse.org", "updates.scalapulse.net", "updates.scalapulse.co", "updates.scalapulse.se", "updates.scalapulse.fr", "updates.scalapulse.de", "updates.scalapulse.no", "updates.scalapulse.ch"});
-
-  lookup(LOOKUP_TXT, {"checkpoints.scalapulse.org", "checkpoints.scalapulse.net", "checkpoints.scalapulse.co", "checkpoints.scalapulse.se"});
-
-  // those are in the code, but don't seem to actually exist
-  #if 0
-    lookup(LOOKUP_TXT, {"testpoints.scalapulse.org", "testpoints.scalapulse.net", "testpoints.scalapulse.co", "testpoints.scalapulse.se");
-
-    lookup(LOOKUP_TXT, {"stagenetpoints.scalapulse.org", "stagenetpoints.scalapulse.net", "stagenetpoints.scalapulse.co", "stagenetpoints.scalapulse.se"});
-  #endif
-
-  lookup(LOOKUP_TXT, {"segheights.scalapulse.org", "segheights.scalapulse.net", "segheights.scalapulse.co", "segheights.scalapulse.se"});
+  lookup(LOOKUP_A, {});
+  lookup(LOOKUP_TXT, {"updates.scalaproject.io"});
+  lookup(LOOKUP_TXT, {"checkpoints.scalaproject.io"});
 
   return 0;
   CATCH_ENTRY_L0("main", 1);
