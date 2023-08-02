@@ -34,6 +34,8 @@
 #include <boost/optional/optional_fwd.hpp>
 #include <boost/utility/string_ref_fwd.hpp>
 
+#include "net/http_client.h"
+
 namespace tools
 {
 

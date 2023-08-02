@@ -702,18 +702,16 @@ namespace nodetool
   {
     std::set<std::string> full_addrs;
     if (m_nettype == cryptonote::TESTNET)
-    {
-    }
+    {}
     else if (m_nettype == cryptonote::STAGENET)
-    {
-    }
+    {}
     else if (m_nettype == cryptonote::FAKECHAIN)
-    {
-    }
+    {}
     else
     {
       full_addrs.insert("65.21.221.2:11811");
       full_addrs.insert("65.21.221.3:11811");
+      full_addrs.insert("95.111.237.231:11811");
     }
     return full_addrs;
   }
@@ -843,25 +841,13 @@ namespace nodetool
     case epee::net_utils::zone::tor:
       if (m_nettype == cryptonote::MAINNET)
       {
-        return {
-          "xwvz3ekocr3dkyxfkmgm2hvbpzx2ysqmaxgter7znnqrhoicygkfswid.onion:18083",
-          "4pixvbejrvihnkxmduo2agsnmc3rrulrqc7s3cbwwrep6h6hrzsibeqd.onion:18083",
-          "zbjkbsxc5munw3qusl7j2hpcmikhqocdf4pqhnhtpzw5nt5jrmofptid.onion:18083",
-          "qz43zul2x56jexzoqgkx2trzwcfnr6l3hbtfcfx54g4r3eahy3bssjyd.onion:18083",
-          "plowsof3t5hogddwabaeiyrno25efmzfxyro2vligremt7sxpsclfaid.onion:18083",
-          "plowsoffjexmxalw73tkjmf422gq6575fc7vicuu4javzn2ynnte6tyd.onion:18083",
-        };
+        return {};
       }
       return {};
     case epee::net_utils::zone::i2p:
       if (m_nettype == cryptonote::MAINNET)
       {
-        return {
-          "s3l6ke4ed3df466khuebb4poienoingwof7oxtbo6j4n56sghe3a.b32.i2p:18080",
-          "sel36x6fibfzujwvt4hf5gxolz6kd3jpvbjqg6o3ud2xtionyl2q.b32.i2p:18080",
-          "uqj3aphckqtjsitz7kxx5flqpwjlq5ppr3chazfued7xucv3nheq.b32.i2p:18080",
-          "vdmnehdjkpkg57nthgnjfuaqgku673r5bpbqg56ix6fyqoywgqrq.b32.i2p:18080",
-        };
+        return {};
       }
       return {};
     default:

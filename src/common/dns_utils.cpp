@@ -41,6 +41,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/optional.hpp>
 #include <boost/utility/string_ref.hpp>
+#include <rapidjson/document.h>
+
 using namespace epee;
 
 #undef scala_DEFAULT_LOG_CATEGORY
@@ -486,14 +488,85 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
 
 std::string get_account_address_as_str_from_url(const std::string& url, bool& dnssec_valid, std::function<std::string(const std::string&, const std::vector<std::string>&, bool)> dns_confirm)
 {
-  // attempt to get address from dns query
-  auto addresses = addresses_from_url(url, dnssec_valid);
-  if (addresses.empty())
+  std::vector<std::string> valid_ud_tlds{ ".crypto", ".nft", ".blockchain", ".bitcoin", ".wallet", ".888", ".dao", ".x", ".klever", ".zil", ".eth" };
+  
+  bool valid_tld = false;
+
+  for (const auto& tld : valid_ud_tlds)
   {
-    LOG_ERROR("wrong address: " << url);
-    return {};
+    if (url.find(tld) != std::string::npos)
+    {
+      valid_tld = true;
+      break;
+    }
   }
-  return dns_confirm(url, addresses, dnssec_valid);
+
+  if (!valid_tld)
+  {
+    // attempt to get address from dns query
+    auto addresses = addresses_from_url(url, dnssec_valid);
+    if (addresses.empty())
+    {
+      LOG_ERROR("wrong address: " << url);
+      return {};
+    }
+    return dns_confirm(url, addresses, dnssec_valid);
+  } else {
+    std::vector<std::string> addresses;
+    std::vector<std::string> ud_addresses;
+    std::string ud_bridge_api = "http://ud-bridge.scalaproject.io/fetch-records/" + url;
+
+    epee::net_utils::http::http_simple_client client;
+    epee::net_utils::http::url_content u_c;
+
+    if (!epee::net_utils::parse_url(ud_bridge_api, u_c)){
+        MERROR("Failed to parse URL " << ud_bridge_api);
+        return {};
+     }
+
+    epee::net_utils::ssl_support_t ssl_requirement = epee::net_utils::ssl_support_t::e_ssl_support_disabled;
+    uint16_t port = 80;
+
+    client.set_server(u_c.host, std::to_string(port), boost::none, ssl_requirement);
+    epee::net_utils::http::fields_list fields;
+    const epee::net_utils::http::http_response_info *info = NULL;
+
+    
+		 if (!client.invoke_get(u_c.uri, std::chrono::seconds(10), "", &info, fields)){
+				LOG_ERROR(ud_bridge_api << " is not responding, skipping.");
+				return {};
+		 } else{
+        if (info->m_response_code != 200){
+          LOG_ERROR("Failed to get address from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        std::string response = info->m_body;
+        rapidjson::Document doc;
+
+
+        if (doc.Parse(response.c_str()).HasParseError()){
+          LOG_ERROR("Failed to parse response from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        if (!doc.HasMember("records")){
+          LOG_ERROR("Failed to get records from " << ud_bridge_api << ", skipping.");
+          return {};
+        }
+
+        if (!doc["records"].HasMember("crypto.XLA.address")){
+          LOG_ERROR("Failed to get XLA address from " << ud_bridge_api << ", skipping.");
+          return {};
+        } else {
+          std::string address = doc["records"]["crypto.XLA.address"].GetString();
+
+          addresses.push_back(address);
+          return dns_confirm(url, addresses, true);
+        }
+     }
+  }
+
 }
 
 bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std::vector<std::string> &dns_urls)
