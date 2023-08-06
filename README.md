@@ -1,7 +1,9 @@
 # Scala
 
 Copyright (c) 2014-2023, The Monero Project
+
 Copyright (c) 2021-2023, Haku Labs MTÜ
+
 Portions Copyright (c) 2012-2013 The Cryptonote developers.
 
 [<img src="https://scalaproject.io/img/card.jpg">](https://scalaproject.io)

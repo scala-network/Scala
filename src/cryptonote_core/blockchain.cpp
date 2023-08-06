@@ -1416,6 +1416,65 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height, 
   return true;
 }
 //------------------------------------------------------------------
+bool Blockchain::validate_diardi_miner_v2(const block& b) {
+    LOG_PRINT_L3("Blockchain::" << __func__);
+    uint8_t version = b.major_version;
+    uint64_t block_height = (b.miner_tx.vin.size() < 1 || b.miner_tx.vin[0].type() != typeid(txin_gen)) ? m_db->height() : boost::get<txin_gen>(b.miner_tx.vin[0]).height;
+    bool isDiardiBlock = (version >= 13 && block_height % 4 == 0);
+
+    if (!isDiardiBlock) {
+        return true;
+    }
+
+    std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
+
+    std::string tM;
+    std::string dM;
+    std::string vM;
+
+    cryptonote::address_parse_info temp_miner_address;
+    cryptonote::address_parse_info diardi_miner_address;
+
+    for(auto const& sM : diardi_miners_list) {
+        cryptonote::get_account_address_from_str(temp_miner_address, m_nettype, tM);
+        cryptonote::get_account_address_from_str(diardi_miner_address, m_nettype, sM);
+
+        if (temp_miner_address.address == diardi_miner_address.address) {
+            if(temp_miner_address.address.m_view_public_key == diardi_miner_address.address.m_view_public_key) {
+                crypto::hash sig_data = get_sig_data(block_height);
+                crypto::signature signature = b.signature;
+                crypto::public_key o_pspendkey = diardi_miner_address.address.m_spend_public_key;
+
+                vM = sM;
+
+                if (!crypto::check_signature(sig_data, o_pspendkey, signature)) {
+                    LOG_PRINT_L1("Diardi: Miner Signature incorrect");
+                    return false;
+                }
+
+                cryptonote::block oDb;
+                bool oOb = false;
+                bool getOldBlock = get_block_by_hash(m_db->get_block_hash_from_height((block_height -4)), oDb, &oOb);
+
+                if(!getOldBlock) {
+                    LOG_PRINT_L1("Diardi: Could not get old block");
+                    return false;
+                }
+
+                if(check_last_diardi_miner(this, vM, m_nettype)) {
+                    LOG_PRINT_L1("Diardi: Miner already mined a block < 4 blocks ago");
+                    return false;
+                }
+
+                return true;
+            }
+        }
+    }
+
+    LOG_PRINT_L1("Diardi: Miner not in list");
+    return false;
+}
+//------------------------------------------------------------------
 // This function validates the miner transaction reward
 bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_block_weight, uint64_t fee, uint64_t& base_reward, uint64_t already_generated_coins, bool &partial_block_reward, uint8_t version)
 {
@@ -1798,7 +1857,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   //make blocks coin-base tx looks close to real coinbase tx to get truthful blob weight
   uint8_t hf_version = b.major_version;
   size_t max_outs = hf_version >= 4 ? 1 : 11;
-  bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
+  bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
   CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, first chance");
   size_t cumulative_weight = txs_weight + get_transaction_weight(b.miner_tx);
 #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
@@ -1807,7 +1866,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
 #endif
   for (size_t try_count = 0; try_count != 10; ++try_count)
   {
-    r = construct_miner_tx(height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
+    r = construct_miner_tx(height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version, m_nettype);
 
     CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, second chance");
     size_t coinbase_weight = get_transaction_weight(b.miner_tx);
@@ -4663,7 +4722,6 @@ bool Blockchain::add_new_block(const block& bl, block_verification_context& bvc)
 {
   try
   {
-
   LOG_PRINT_L3("Blockchain::" << __func__);
   crypto::hash id = get_block_hash(bl);
   CRITICAL_REGION_LOCAL(m_tx_pool);//to avoid deadlock lets lock tx_pool for whole add/reorganize process
@@ -4675,6 +4733,13 @@ bool Blockchain::add_new_block(const block& bl, block_verification_context& bvc)
     bvc.m_already_exists = true;
     m_blocks_txs_check.clear();
     return false;
+  }
+
+  if(!validate_diardi_miner_v2(bl)) {
+    LOG_PRINT_L1("Diardi validation failed for block with id <" << id << ">");
+    bvc.m_added_to_main_chain = false;
+    m_blocks_txs_check.clear();
+    return true;
   }
 
   //check that block refers to chain tail

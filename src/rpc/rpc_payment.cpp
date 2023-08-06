@@ -237,7 +237,13 @@ namespace cryptonote
     if (block.major_version >= RX_BLOCK_VERSION)
     {
       const crypto::hash &seed_hash = is_current ? info.seed_hash : info.previous_seed_hash;
-      crypto::rx_slow_hash(seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data);
+      const uint64_t height = cryptonote::get_block_height(block);
+
+      if(block.major_version >= 13 && (height % 4 == 0)) {
+          crypto::felidae_hash(hashing_blob.data(), hashing_blob.size(), hash.data, 1);
+      } else {
+          crypto::rx_slow_hash(seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data);
+      }
     }
     else
     {

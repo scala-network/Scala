@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include "felidae.h"
 #include "randomx.h"
 #include "c_threads.h"
 #include "hash-ops.h"
@@ -506,6 +507,10 @@ void rx_set_miner_thread(uint32_t value, size_t max_dataset_init_threads) {
 
 uint32_t rx_get_miner_thread() {
   return miner_thread;
+}
+
+void felidae_hash(const void *data, size_t length, char *hash, size_t extra_iterations) {
+    felidae_calculate_hash(data, length, hash, extra_iterations);
 }
 
 void rx_slow_hash_allocate_state() {}

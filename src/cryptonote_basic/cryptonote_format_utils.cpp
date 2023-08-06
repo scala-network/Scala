@@ -131,17 +131,17 @@ namespace cryptonote
   //---------------------------------------------------------------
   void get_transaction_prefix_hash(const transaction_prefix& tx, crypto::hash& h, hw::device &hwdev)
   {
-    hwdev.get_transaction_prefix_hash(tx,h);    
+    hwdev.get_transaction_prefix_hash(tx,h);
   }
 
-  //---------------------------------------------------------------  
+  //---------------------------------------------------------------
   crypto::hash get_transaction_prefix_hash(const transaction_prefix& tx, hw::device &hwdev)
   {
     crypto::hash h = null_hash;
     get_transaction_prefix_hash(tx, h, hwdev);
     return h;
   }
-  
+
   bool expand_transaction_1(transaction &tx, bool base_only)
   {
     if (tx.version >= 2 && !is_coinbase(tx))
@@ -1480,6 +1480,26 @@ namespace cryptonote
     crypto::hash p = null_hash;
     get_block_hash(b, p);
     return p;
+  }
+  //---------------------------------------------------------------
+  crypto::hash get_sig_data(uint64_t height)
+  {
+   crypto::hash sig_data;
+   unsigned char input[sizeof(height)];
+   memcpy(input, &height, sizeof(height));
+   crypto::felidae_hash(input, sizeof(input), sig_data.data, 1);
+   return sig_data;
+  }
+  //---------------------------------------------------------------
+  blobdata get_block_hashing_blob_sig_data(const block& b)
+  {
+   block_header tmp = static_cast<const block_header&>(b);
+   memset(&tmp.signature, 0, sizeof(tmp.signature));
+   blobdata blob = t_serializable_object_to_blob(tmp);
+   crypto::hash tree_root_hash = get_tx_tree_hash(b);
+   blob.append(reinterpret_cast<const char*>(&tree_root_hash), sizeof(tree_root_hash));
+   blob.append(tools::get_varint_data(b.tx_hashes.size()+1));
+   return blob;
   }
   //---------------------------------------------------------------
   std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off)

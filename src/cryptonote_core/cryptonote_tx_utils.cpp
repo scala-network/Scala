@@ -142,7 +142,7 @@ namespace cryptonote
       std::list<std::string>::iterator it = listOfAddresses.begin();
       std::advance(it, 15);
       return *it;
-    }else{
+    } else{
       std::list<std::string>::iterator it = listOfAddresses.begin();
       uint64_t y = (height % 16) - 1;
       std::advance(it, y);
@@ -186,41 +186,41 @@ namespace cryptonote
   std::list<std::string> diardi_addresses_v2(network_type nettype) {
     std::list<std::string> mainnet_addresses = {};
     std::list<std::string> testnet_addresses = {
-      "Tsz4ksnHAQxP7pjCxyZ2fmh4yc7QFSS5zftXAWqXpEhtGTtQt3qvLMdE1Db1nvvLVN2d5npSMxWd3Poom1G6VDey7QGUeGnde5:09473dc481843b92a1b757dc8cef8de0f93ef97acde87f70fa0a0ccf0f5c7359",
-      "Tsz54FHBmwwdoiVuAcigRbELu6W3paXxWU9g8hccp9zDZLfBFRVLnhqDComgXoHGtui88qMCWtAsgRRTsnGwzEYW5TfpgJ9GAL:a33e8145b2dc0b9bbc5063d2464fc5e4674e8cc6e3a2510f1b9563a7fec15784",
-      "Tsz52AyB4AmhzN6x8hjM6bSGiSbVUjXCL9eA9gJ62ppf7aNnLKw7UuK4CEzintMuge8ZVMaREXSCxjNt9dqjUDkN3yCXQ8LPaA:90dbb9d292f50eb259c5c91fc49715c79d4786638933a8b93b3af2f240274fde",
-      "Tsz4xjr6EA78LMR3qzweAEgwW7Yw4xUjvQU533Ps4jUnGXQLzqqMvi68BzvZ9z3kKa2iRUxP81E3M3sR8F8pPzbt9LAbiG7RYy:726db0083c2bd855a9b0a2a9cbeec8a6f1d20717cd8c4c5f88a904450b5cd021",
-      "Tsz4k8ofKTpWhz8pUhBTxUWS8YpxzM2eWeEvbDMR7yYfEiVvwZ3vz8K939vZLG1DhnWJ8LXqFs3qkbsP5vyQJD2f7Ae6TZnEXQ:02b5ee660bb19ab9763dc90669aff856cbac643ef3dea4d17c2fe9d8fc51ffe5",
-      "Tsz4yAo5vynhHE44YSMLrHX3kTjzvYuHcCNNwbhc3CmGYgiWN76vXLibxy62sTJfaUH3ZmchtcpAQLb9VzB5YWo84jnYDyasWx:763db55bf1f0d11cb31234d426b3a4452b5a188d5b43f7e6e3e5a4e793bd6e46",
-      "Tsz4omXdhN8fjoSmMSoSBPLzTW5CduzX3X7LomQPuM9CbxNeZ4YsufLHbm4e4wBtHoPwjDLysm8p9AKMqT7FJ7tv7aQjuU4V6Q:22e9d7f369e7995a6d26d1d89e778426210c9a0192b4030fb38e8bc68bd0fb06",
-      "Tsz53NS37gf1ZwGy1B3F1WKwezQbZBGwuExhRaBxs4z2KYk5fK1dr8LbN3QwZEAWeLHv9B6ivZfGh6FEdx2UMsmRASKjG7e4LX:9b7941e45403651ee84b310085713fafd60215479c53769003e067f3176ee312",
-      "Tsz53E4u7HeKwVTTEYRuJihgDtNzGp8YSNBvFY5NUTj8eDMQ6iNdktzBTo1p8qDSWhcUt9WSZgAgTbLNLyDZZTPt4WngGmesby:9a32062e8d713b596b9f4ee4a3f32ff7d4b2f441c37ead1d6c387d4bfbde7b54",
-      "Tsz4tDBp2MtBGhAQW4KXvYHYPwD2PskRp3cjN9ch723NSAoqRjQ2PskUsKeoKY3RMcMkr94qQYcf9JbESVULNKSy1WUrVyvgRq:4a49ed38973d675679c25e6bb962e4db75796dc97b0fa3ea2dee1ad87d9679e7",
-      "Tsz514QzPKsj96oseEgVbNZfXWz1yuBtq2vko45X5xM8Ygb9wJNEM4KHq4uBEcZGRMYRaRufNu4LdXnQtcqoxxfA2XoswQHVVD:86fe370496fbefc1db38b51641c34968cea52889860b85080368eee50bbd6aed",
-      "Tsz54UiDc48CN9KNz8ULQYN36GXT8pQ7nFME3MeHha5e1MwrQ3DBSi2APXv7gQgZzS58aNTv5mKwjQQTJiDFvgag5czEGnXSg9:a54bf957b143f1b402f5bd43897dc42d63c7be50cd55c90936826559110228b9",
-      "Tsz5C1N2dwNF8vS6wzEWM2jktkwN2C5KPVu3j4xTyNcxYoZzz2DTcTz1nRLASsSEZ3eeme1USFarMTpzynzsgr4q8Pee9cYk82:e806a1b59954845d634a2516b5ffa041462b2939a2acc41b17fa2c5399be231f",
-      "Tsz5ASRjtcf3551DxC77RGKgbHT4xyMPBBrqnmZESVac7agZ169WSndX5zPZsbNTrSBMv4etujgsn1jEvZUnwmuw5UH5ys2KFK:da210a7e300c606c4aa8bfa5576fb22cece0269e6640ec776ec879e0c52757f4",
-      "Tsz59wAhTbXVV46A7yeXkr8pLcQRfUT17BpY15iWJVKPdMHi86qRXBhQFeUYd8YSMybcBmjSJmmHJ8goXcumZQMM9yGhck1pta:d5a85c0a0aaa4af373ff72b0ef2ebad7a5df1b038640af98d1799c2832d9523b",
-      "Tsz4uCSMeLyTXdsRtwyFGq6oEuAEpQr4VGVzNZYbmsKUcXUTyhSshRpVYiDukfJRKvDQJ43foLEShfjTwYNJVKxw56yAsvVQgu:5309afc3ca9e9a0c8299a41f8e22a8cec16814c4965caad60d6018a017d4647c",
-      "Tsz4rgd26kBLZdx2C4qcnb88TJGhSVJMJD7EHQC1TJh4Tdjp1c6eA7hfCS8EDQdGT4HNsHSJdXqmmjBCMmWDA24W4ToG1fB4hT:3cc1146e0474f5318e95b3ea902a9e59e4479a442d4862a94cd16e6f279f3b14",
-      "Tsz4pv3mna6AF3e4gYAumvjhpKbqXWRMYJyTvjfwnU7vS9VncxKuSpoP2JQrB4aAtEgSpRifXhzLAVJ5ck9UVz3A2pi3d6Gb6D:2d1438243337415a7eca9f6a75ff4f124134f684ef6b74e7f3fbac558596574d",
-      "Tsz4u4W5mwqb4AtQ7r7Dy945BinjHm5iSdCqGpsMoMQ8YobGKhRH1pAdiiULqVAmEZQry2orioA1jLtsb4hqs5pg7dbsP2KskY:51d3398c6ccb997a9aa8232f68125e00bd90dbffd3d873193862d97efdbe23b2",
-      "Tsz4kVWhmyKL3zd5Xou2j3Skyb23gh7VAQRgaTqijEXpUebMTtbYNx95SGApCS5Zs1hKiyyrdKZx5WQpx7yDE6eH4ME6HPZWDt:05e00d9ec271e6f2f4ccdad46a99ff8b4696cfb9698c0d60eda8fb11efa54c25",
-      "Tsz4t1gJLpvKXMKCZvK8Cc2neKb7tniubV4Ytnv6WT6VJtWCtucicBbQjus7JURViyfNCgUhXUnnEE6H4eZrugs8A8Kk99KFVd:4887adf1df6ebe53134bec877d0aaefab18b654826a7c458ee4000b69e6af200",
-      "Tsz4vpMv4TuSW3whtfHo9HdHMAxTAv7quhp8qqzcGKXuNXAZiNThephWsL14ce8Q9RMJA8FZg2xCq8pskRPz6gWrAgYvCF9EAq:73e5d5da42b291421622e52d2c79573bc401d635022ec9026678b99bd7ff7d46",
-      "Tsz4xFWGV8DGBXahWmnuGnPccAuz13oTdLtjxSxZ9s1oYEhHi6iumiDVvg3E3GvHjE6ipFJFbQuwXVxTrfAgPGWf5YbKYnmePx:6e18e72fba5ac3a82b9ac1ac4b87331f2eb3bdd3f076ed4e28e7eecb96babf9f",
-      "Tsz4x4Vd1hSLGk7aqywaZaazyvsRDiQUCMj14WAbDmEZ3NZLTQpTiHK75YQkETtGkYRg2ZxfvEBfMRsLasCf4cmd1HhQYtm6Qd:6c6a2051a9733765853d8eb135cb45541dff69b38d7be6d164212f06a20e2dea",
-      "Tsz4tNtPoER4VrbcJd14GcQcfuoBdRwovL9xgM1J7CpZhiuyPjoE35eDN2TEGpLS5VURhrtVrmuraC4m11by6F5V5sqyTJKXsk:4bc565b28214e902bf802205958d2f58dbf56883f97284651195b87fd2f376fb",
-      "Tsz554Psk2aVwrXtUgRFDxJpPZi2EBukBgzfiDJPShNq2vdhWnGjotmeH948Fd9YL1hYtLEHD1JMu9xexicRqJ695rhiVAUigQ:aa71bf2977ad0e2db0bbd74ab76a856d166a800a58ef1c2f0d9d1414fa0b81cd",
-      "Tsz55cLju1Z9o1JuB1urUZ5k3cVcvhkHK1sJkRazKpTcdiAazjsNJiRZiSuyJ4Jo8UUjgi5WAc4eY265TmJ1bdms5ewq6fzU68:af53887b103492323e26ff96021c59fbb223f546ae052f7e0d0f153723db7925",
-      "Tsz4nucXCkaL5DW7GY8ersPxNQWvxtqYjWzPNsWVUuTPfxm12ip4sFAL3cf6ctNvSa1gRaBoUVaWjHcMoK9HiStZ76N8coeHeG:1b490b868b7207328547deb7e8893ca034c0b8c638b34b833695531d62e8ef4a",
-      "Tsz58e325DVNsY2vZ3X7y7asxeBXeuSE9112fsfBMdHCNEEPYPuZVAPbWAAMGatRuhCqsrrgJwwRGX6uFHM3fiz61RZRpNtgGD:ca2d09568c82c28a58b7ea171eca8c0638173019ae0000c2894de988bb7eea24",
-      "Tsz4qauJvUDLNFUXLpXcAcYiqgsqkaVyQNfCMZTthN26DhREJq7Cgo4URteCZ1oLBGEFSKVFrrAEjdUhaVT4uRqs5kKvANSAoY:330443eca673c8b25c1d9a5299bda65149daa2e38f817ced5275d3abe34be8d8",
-      "Tsz4oBSMpmiZ5wZ3VQfpyuU2CMCidkNcG9YE9KnL4X6HWMz6x2RkajcKTTEu6JaZ4kdDZ4Xnbz4pdKzjKBAnKvWF8PtS8tkNqr:1db42431adbfd324229e06fce0a18bb3105a79b549330c35ea0f2dd6b2af8af1",
-      "Tsz4uyPv4MA6uLVekkBXWTQjZjgAQRauG6qmsTz76m34iGbrtjv3D5u8V7cJDjXL713BLCwd2maL3X2bcaXRmiRR3e24ko44Ni:65ab7540ec2cbf8c61006ba7980d05ab697ce65064b385db3e809ef32c459e75",
-      "Tsz5AJhtGhdPMasefYx6LHRTgZWCPzSz6a3fUDkCHb9T3HX9AkNcZPZcshHEtLVA3fWjgYFc44hb9eJqyC2bY6P19B4hkLwW8Y:d8f2f495a885a6b4cbf924249a923cabfa5f4b25dbc5919232935799420da8f9",
-      "Tsz5AYGtLpHL9UfaeJ9H6Gb4ETbRDJi2GADSqsDrv5jBJFo8ET2WkcXVLvh9jamcTTZJQaeHhPfRk7vCjkKtVdVK7Fjx1qFRRW:db05ccd3ea7277a64c1b371721cb9b1aaeb077a3f53717223c58895176672954",
-      "Tsz5DrBvZa8SATZzTnZRDdMsnX7PUBEQmXwZCvfjkFckfx1iSF7iGo7cd4y51UDBdCBwYcAFAYq7NK8SJLHyrYcs2MYp9aXD7Z:f859dc46899670aee0f329dd8c7cce9b6c872f23b6b8fb57dce7ff71e9e8db98"
+      "Tsz4ksnHAQxP7pjCxyZ2fmh4yc7QFSS5zftXAWqXpEhtGTtQt3qvLMdE1Db1nvvLVN2d5npSMxWd3Poom1G6VDey7QGUeGnde5",
+      "Tsz54FHBmwwdoiVuAcigRbELu6W3paXxWU9g8hccp9zDZLfBFRVLnhqDComgXoHGtui88qMCWtAsgRRTsnGwzEYW5TfpgJ9GAL",
+      "Tsz52AyB4AmhzN6x8hjM6bSGiSbVUjXCL9eA9gJ62ppf7aNnLKw7UuK4CEzintMuge8ZVMaREXSCxjNt9dqjUDkN3yCXQ8LPaA",
+      "Tsz4xjr6EA78LMR3qzweAEgwW7Yw4xUjvQU533Ps4jUnGXQLzqqMvi68BzvZ9z3kKa2iRUxP81E3M3sR8F8pPzbt9LAbiG7RYy",
+      "Tsz4k8ofKTpWhz8pUhBTxUWS8YpxzM2eWeEvbDMR7yYfEiVvwZ3vz8K939vZLG1DhnWJ8LXqFs3qkbsP5vyQJD2f7Ae6TZnEXQ",
+      "Tsz4yAo5vynhHE44YSMLrHX3kTjzvYuHcCNNwbhc3CmGYgiWN76vXLibxy62sTJfaUH3ZmchtcpAQLb9VzB5YWo84jnYDyasWx",
+      "Tsz4omXdhN8fjoSmMSoSBPLzTW5CduzX3X7LomQPuM9CbxNeZ4YsufLHbm4e4wBtHoPwjDLysm8p9AKMqT7FJ7tv7aQjuU4V6Q",
+      "Tsz53NS37gf1ZwGy1B3F1WKwezQbZBGwuExhRaBxs4z2KYk5fK1dr8LbN3QwZEAWeLHv9B6ivZfGh6FEdx2UMsmRASKjG7e4LX",
+      "Tsz53E4u7HeKwVTTEYRuJihgDtNzGp8YSNBvFY5NUTj8eDMQ6iNdktzBTo1p8qDSWhcUt9WSZgAgTbLNLyDZZTPt4WngGmesby",
+      "Tsz4tDBp2MtBGhAQW4KXvYHYPwD2PskRp3cjN9ch723NSAoqRjQ2PskUsKeoKY3RMcMkr94qQYcf9JbESVULNKSy1WUrVyvgRq",
+      "Tsz514QzPKsj96oseEgVbNZfXWz1yuBtq2vko45X5xM8Ygb9wJNEM4KHq4uBEcZGRMYRaRufNu4LdXnQtcqoxxfA2XoswQHVVD",
+      "Tsz54UiDc48CN9KNz8ULQYN36GXT8pQ7nFME3MeHha5e1MwrQ3DBSi2APXv7gQgZzS58aNTv5mKwjQQTJiDFvgag5czEGnXSg9",
+      "Tsz5C1N2dwNF8vS6wzEWM2jktkwN2C5KPVu3j4xTyNcxYoZzz2DTcTz1nRLASsSEZ3eeme1USFarMTpzynzsgr4q8Pee9cYk82",
+      "Tsz5ASRjtcf3551DxC77RGKgbHT4xyMPBBrqnmZESVac7agZ169WSndX5zPZsbNTrSBMv4etujgsn1jEvZUnwmuw5UH5ys2KFK",
+      "Tsz59wAhTbXVV46A7yeXkr8pLcQRfUT17BpY15iWJVKPdMHi86qRXBhQFeUYd8YSMybcBmjSJmmHJ8goXcumZQMM9yGhck1pta",
+      "Tsz4uCSMeLyTXdsRtwyFGq6oEuAEpQr4VGVzNZYbmsKUcXUTyhSshRpVYiDukfJRKvDQJ43foLEShfjTwYNJVKxw56yAsvVQgu",
+      "Tsz4rgd26kBLZdx2C4qcnb88TJGhSVJMJD7EHQC1TJh4Tdjp1c6eA7hfCS8EDQdGT4HNsHSJdXqmmjBCMmWDA24W4ToG1fB4hT",
+      "Tsz4pv3mna6AF3e4gYAumvjhpKbqXWRMYJyTvjfwnU7vS9VncxKuSpoP2JQrB4aAtEgSpRifXhzLAVJ5ck9UVz3A2pi3d6Gb6D",
+      "Tsz4u4W5mwqb4AtQ7r7Dy945BinjHm5iSdCqGpsMoMQ8YobGKhRH1pAdiiULqVAmEZQry2orioA1jLtsb4hqs5pg7dbsP2KskY",
+      "Tsz4kVWhmyKL3zd5Xou2j3Skyb23gh7VAQRgaTqijEXpUebMTtbYNx95SGApCS5Zs1hKiyyrdKZx5WQpx7yDE6eH4ME6HPZWDt",
+      "Tsz4t1gJLpvKXMKCZvK8Cc2neKb7tniubV4Ytnv6WT6VJtWCtucicBbQjus7JURViyfNCgUhXUnnEE6H4eZrugs8A8Kk99KFVd",
+      "Tsz4vpMv4TuSW3whtfHo9HdHMAxTAv7quhp8qqzcGKXuNXAZiNThephWsL14ce8Q9RMJA8FZg2xCq8pskRPz6gWrAgYvCF9EAq",
+      "Tsz4xFWGV8DGBXahWmnuGnPccAuz13oTdLtjxSxZ9s1oYEhHi6iumiDVvg3E3GvHjE6ipFJFbQuwXVxTrfAgPGWf5YbKYnmePx",
+      "Tsz4x4Vd1hSLGk7aqywaZaazyvsRDiQUCMj14WAbDmEZ3NZLTQpTiHK75YQkETtGkYRg2ZxfvEBfMRsLasCf4cmd1HhQYtm6Qd",
+      "Tsz4tNtPoER4VrbcJd14GcQcfuoBdRwovL9xgM1J7CpZhiuyPjoE35eDN2TEGpLS5VURhrtVrmuraC4m11by6F5V5sqyTJKXsk",
+      "Tsz554Psk2aVwrXtUgRFDxJpPZi2EBukBgzfiDJPShNq2vdhWnGjotmeH948Fd9YL1hYtLEHD1JMu9xexicRqJ695rhiVAUigQ",
+      "Tsz55cLju1Z9o1JuB1urUZ5k3cVcvhkHK1sJkRazKpTcdiAazjsNJiRZiSuyJ4Jo8UUjgi5WAc4eY265TmJ1bdms5ewq6fzU68",
+      "Tsz4nucXCkaL5DW7GY8ersPxNQWvxtqYjWzPNsWVUuTPfxm12ip4sFAL3cf6ctNvSa1gRaBoUVaWjHcMoK9HiStZ76N8coeHeG",
+      "Tsz58e325DVNsY2vZ3X7y7asxeBXeuSE9112fsfBMdHCNEEPYPuZVAPbWAAMGatRuhCqsrrgJwwRGX6uFHM3fiz61RZRpNtgGD",
+      "Tsz4qauJvUDLNFUXLpXcAcYiqgsqkaVyQNfCMZTthN26DhREJq7Cgo4URteCZ1oLBGEFSKVFrrAEjdUhaVT4uRqs5kKvANSAoY",
+      "Tsz4oBSMpmiZ5wZ3VQfpyuU2CMCidkNcG9YE9KnL4X6HWMz6x2RkajcKTTEu6JaZ4kdDZ4Xnbz4pdKzjKBAnKvWF8PtS8tkNqr",
+      "Tsz4uyPv4MA6uLVekkBXWTQjZjgAQRauG6qmsTz76m34iGbrtjv3D5u8V7cJDjXL713BLCwd2maL3X2bcaXRmiRR3e24ko44Ni",
+      "Tsz5AJhtGhdPMasefYx6LHRTgZWCPzSz6a3fUDkCHb9T3HX9AkNcZPZcshHEtLVA3fWjgYFc44hb9eJqyC2bY6P19B4hkLwW8Y",
+      "Tsz5AYGtLpHL9UfaeJ9H6Gb4ETbRDJi2GADSqsDrv5jBJFo8ET2WkcXVLvh9jamcTTZJQaeHhPfRk7vCjkKtVdVK7Fjx1qFRRW",
+      "Tsz5DrBvZa8SATZzTnZRDdMsnX7PUBEQmXwZCvfjkFckfx1iSF7iGo7cd4y51UDBdCBwYcAFAYq7NK8SJLHyrYcs2MYp9aXD7Z"
     };
 
     std::list <std::string> stagenet_addresses = {
@@ -245,13 +245,46 @@ namespace cryptonote
     }
   }
   //---------------------------------------------------------------
-  bool construct_miner_tx(size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version) {
+  bool construct_miner_tx(size_t height, size_t median_weight, uint64_t already_generated_coins, size_t current_block_weight, uint64_t fee, const account_public_address &miner_address, transaction& tx, const blobdata& extra_nonce, size_t max_outs, uint8_t hard_fork_version, network_type nettype) {
     tx.vin.clear();
     tx.vout.clear();
     tx.extra.clear();
 
-    keypair txkey = keypair::generate(hw::get_device("default"));
+    bool isDiardiBlock = false;
+    bool isDiardiMiner = false;
+
+    if(hard_fork_version >= 13) {
+        cryptonote::address_parse_info diardi_miner_address;
+        cryptonote::address_parse_info temp_miner_address;
+
+        std::string sA;
+        isDiardiBlock = height % 4 == 0;
+        if(isDiardiBlock) {
+            for(const auto &tA: diardi_addresses_v2(nettype)) {
+                cryptonote::get_account_address_from_str(temp_miner_address, nettype, tA);
+                if(temp_miner_address.address.m_view_public_key == miner_address.m_view_public_key){
+                    diardi_miner_address = temp_miner_address;
+                    sA = tA;
+                    break;
+                }
+            }
+        }
+
+        if(!sA.empty() && temp_miner_address.address.m_view_public_key == miner_address.m_view_public_key) {
+            isDiardiMiner = true;
+        }
+    }
+
+    keypair txkey;
+
+    if(isDiardiBlock && isDiardiMiner) {
+        txkey = get_deterministic_keypair_from_height(height);
+    } else {
+        txkey = keypair::generate(hw::get_device("default"));
+    }
+
     add_tx_pub_key_to_extra(tx, txkey.pub);
+
     if(!extra_nonce.empty())
       if(!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
         return false;
@@ -325,19 +358,6 @@ namespace cryptonote
 
       r = crypto::derive_public_key(derivation, no, miner_address.m_spend_public_key, out_eph_public_key);
       CHECK_AND_ASSERT_MES(r, false, "while creating outs: failed to derive_public_key(" << derivation << ", " << no << ", "<< miner_address.m_spend_public_key << ")");
-
-      // uint64_t amount = out_amounts[no];
-      // summary_amounts += amount;
-
-      // bool use_view_tags = hard_fork_version >= HF_VERSION_VIEW_TAGS;
-      // crypto::view_tag view_tag;
-      // if (use_view_tags)
-      //   crypto::derive_view_tag(derivation, no, view_tag);
-
-      // tx_out out;
-      // cryptonote::set_tx_out(amount, out_eph_public_key, use_view_tags, view_tag, out);
-
-      // tx.vout.push_back(out);
 
       txout_to_key tk;
       tk.key = out_eph_public_key;
@@ -889,7 +909,11 @@ namespace cryptonote
   void get_altblock_longhash(const block& b, crypto::hash& res, const crypto::hash& seed_hash)
   {
     blobdata bd = get_block_hashing_blob(b);
-    rx_slow_hash(seed_hash.data, bd.data(), bd.size(), res.data);
+    if(b.major_version >= 13 && (get_block_height(b) % 4 == 0)) {
+        felidae_hash(bd.data(), bd.size(), res.data, 1);
+    } else {
+        rx_slow_hash(seed_hash.data, bd.data(), bd.size(), res.data);
+    }
   }
 
   bool get_block_longhash(const Blockchain *pbc, const blobdata& bd, crypto::hash& res, const uint64_t height, const int major_version, const crypto::hash *seed_hash, const int miners)
@@ -905,7 +929,12 @@ namespace cryptonote
       {
         memset(&hash, 0, sizeof(hash));  // only happens when generating genesis block
       }
-      rx_slow_hash(hash.data, bd.data(), bd.size(), res.data);
+
+      if(major_version >= 13 && (height % 4 == 0)) {
+        felidae_hash(bd.data(), bd.size(), res.data, 1);
+      } else {
+          rx_slow_hash(hash.data, bd.data(), bd.size(), res.data);
+      }
     } else {
       const int pow_variant = major_version >= 7 ? major_version - 6 : 0;
       crypto::cn_slow_hash(bd.data(), bd.size(), res, pow_variant, height);
@@ -925,4 +954,24 @@ namespace cryptonote
     get_block_longhash(pbc, b, p, height, seed_hash, miners);
     return p;
   }
+
+    bool check_last_diardi_miner(const Blockchain *pbc, std::string wallet_address, network_type nettype) {
+        uint64_t current_height = pbc->get_current_blockchain_height();
+        uint64_t last_diardi_height = current_height - 4;
+
+        crypto::hash last_diardi_hash = pbc->get_block_id_by_height(last_diardi_height);
+        cryptonote::block last_diardi_block;
+        bool get_last_diardi_block = pbc->get_block_by_hash(last_diardi_hash, last_diardi_block);
+
+        if(!get_last_diardi_block) {
+            return false;
+        }
+
+        if(validate_diardi_reward_key(last_diardi_height, wallet_address, last_diardi_block.miner_tx.vout.size() - 1,
+                                      boost::get<txout_to_key>(last_diardi_block.miner_tx.vout.back().target).key, nettype)) {
+            return true;
+        }
+
+        return false;
+    }
 }

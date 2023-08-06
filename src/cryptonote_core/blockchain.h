@@ -1609,5 +1609,13 @@ namespace cryptonote
      * @param already_generated_coins total coins mined by the network so far
      */
     void send_miner_notifications(uint64_t height, const crypto::hash &seed_hash, const crypto::hash &prev_id, uint64_t already_generated_coins);
+
+    /**
+     * @brief check if the diardi miner v2 block is valid
+     * @param b
+     * @return true if valid, otherwise false
+     */
+
+    bool validate_diardi_miner_v2(const block &b);
   };
 }  // namespace cryptonote
