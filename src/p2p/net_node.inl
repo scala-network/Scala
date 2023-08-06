@@ -704,7 +704,10 @@ namespace nodetool
     if (m_nettype == cryptonote::TESTNET)
     {}
     else if (m_nettype == cryptonote::STAGENET)
-    {}
+    {
+        full_addrs.insert("65.21.221.2:33833");
+        full_addrs.insert("65.21.221.3:33833");
+    }
     else if (m_nettype == cryptonote::FAKECHAIN)
     {}
     else

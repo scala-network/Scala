@@ -281,9 +281,9 @@ namespace config
     uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x59a0;
     uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x5620;
     uint64_t const CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 0x5820;
-    uint16_t const P2P_DEFAULT_PORT = 28080;
-    uint16_t const RPC_DEFAULT_PORT = 28081;
-    uint16_t const ZMQ_RPC_DEFAULT_PORT = 28082;
+    uint16_t const P2P_DEFAULT_PORT = 22822;
+    uint16_t const RPC_DEFAULT_PORT = 22823;
+    uint16_t const ZMQ_RPC_DEFAULT_PORT = 22824;
     boost::uuids::uuid const NETWORK_ID = { {
         0x12 ,0x30, 0xF1, 0x71 , 0x61, 0x04 , 0x41, 0x61, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x11
       } }; // Bender's daydream
@@ -296,13 +296,25 @@ namespace config
     uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x12221a;
     uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x26e21a;
     uint64_t const CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 0x2ba21a;
-    uint16_t const P2P_DEFAULT_PORT = 38080;
-    uint16_t const RPC_DEFAULT_PORT = 38081;
-    uint16_t const ZMQ_RPC_DEFAULT_PORT = 38082;
+    uint16_t const P2P_DEFAULT_PORT = 33833;
+    uint16_t const RPC_DEFAULT_PORT = 33834;
+    uint16_t const ZMQ_RPC_DEFAULT_PORT = 33835;
     boost::uuids::uuid const NETWORK_ID = { {
         0x12 ,0x30, 0xF1, 0x71 , 0x61, 0x04 , 0x41, 0x61, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x12
       } }; // Bender's daydream
-    std::string const GENESIS_TX = "013c01ff0001ffffffffffff0302df5d56da0c7d643ddd1ce61901c7bdc5fb1738bfe39fbe69c28a3a7032729c0f2101168d0c4ca86fb55a4cf6a36d31431be1c53a3bd7411bb24e8832410289fa6f3b";
+    std::string const GENESIS_TX =
+              "01"
+              "3c"
+              "01"
+              "ff"
+              "00"
+              "01"
+              "1e02"
+              "2c07794f6292faf579ce6bd49d1d37cf299fe62abfc477843b9ee4868d3e6933"
+              "21"
+              "01"
+              "7f33f2165a74f0aede8a9d2ca2ac98439674afdf2f9631cf9d10939cd786704c";
+    
     uint32_t const GENESIS_NONCE = 10002;
   }
 }
