@@ -15,7 +15,7 @@ of software solid and usable.
 Patches are preferably to be sent via a GitHub pull request. If that
 can't be done, patches in "git format-patch" format can be sent
 (eg, posted to fpaste.org with a long enough timeout and a link
-posted to #scala-dev on irc.libera.chat).
+posted to discord).
 
 Patches should be self contained. A good rule of thumb is to have
 one patch per separate issue, feature, or logical change. Also, no
@@ -56,7 +56,7 @@ the previous paragraph is here.
 ## License
 
 Copyright (c) 2009-2015 Pieter Hintjens.
-Copyright (c) 2017-2023, The scala Project
+Copyright (c) 2021-2023, Haku Labs MTÜ.
 
 This Specification is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 
@@ -68,10 +68,8 @@ You should have received a copy of the GNU General Public License along with thi
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
-The "scala Maintainer Team" is defined in this document as the following users:
-- fluffypony
-- scalamooo
-- hyc
+The "Scala Maintainer Team" is defined in this document as the following users:
+- Hayzam
 
 ## Goals
 

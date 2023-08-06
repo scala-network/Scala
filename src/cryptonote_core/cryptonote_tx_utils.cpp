@@ -224,9 +224,7 @@ namespace cryptonote
     };
 
     std::list <std::string> stagenet_addresses = {
-      "StS1Bvcb33MQ9EpqUVzBwEfsU3523GfZr8Rwm2tA1KjbCs9p4L8xK3h5eJ3HEx3b9HEqYTceqB3r1Tw2u6EqmYSZ46kd5arWS4:046d45a0f08a5b72d754100ab9e863a130fe5647e12c6be6f20a6d10de46ef30",
-      "StS1ef6jTsWDDZ7CDpAYVEFhEQNANgSX26bfscJUuUNSci4R9tchPwQeDTvXf1yY9ARddZiNXnXo2eck5XpxY3Hx7PkEfn8qnb:f15f3854f949098e48719fde5957d8f7ba398d2a1921778276b51fddd7d57bd1",
-      "StS1X45Z1QEQGvY2EYz3BHHWkFyWiEKTu2ExjtdGe9CqFeRmMPDk2uhYukGUmYbHJeKzqEhD5msQqcxidHakujUc3EvPuZhrvq:adf9a925e38b263be592dd805462b953c46adf3f58076aeeaee06846c6578ef8"
+
     };
 
     switch (nettype)

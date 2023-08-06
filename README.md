@@ -1,13 +1,12 @@
 # Scala
 
-Copyright (c) 2014-2023, The Monero Project
-
 Copyright (c) 2021-2023, Haku Labs MTÜ
+
+Copyright (c) 2014-2023, The Monero Project
 
 Portions Copyright (c) 2012-2013 The Cryptonote developers.
 
 [<img src="https://scalaproject.io/img/card.jpg">](https://scalaproject.io)
-
 
 Scala is a privacy-focused cryptocurrency project linking distributed technologies to build a globally scalable and mobile-friendly ecosystem. We provide an opaque blockchain, untraceable payments, unlinkable transactions, and blockchain-analysis resistance.
 
@@ -21,10 +20,8 @@ Obviously, our goal is also to bring useful utilities and to solve real-world pr
   - [Table of Contents](#table-of-contents)
   - [Development resources](#development-resources)
   - [Vulnerability response](#vulnerability-response)
-  - [Research](#research)
   - [Announcements](#announcements)
   - [Translations](#translations)
-  - [Coverage](#coverage)
   - [Introduction](#introduction)
   - [About this project](#about-this-project)
   - [Supporting the project](#supporting-the-project)
@@ -68,42 +65,23 @@ Obviously, our goal is also to bring useful utilities and to solve real-world pr
 ## Development resources
 
 - Web: [scalaproject.io](https://scalaproject.io)
-- Mail: [dev@getscala.org](mailto:hello@scalaproject.io)
-- GitHub: [https://github.com/scala-network/scala](https://github.com/scala-network/scala)
+- Mail: [hello@scalaproject.io](mailto:hello@scalaproject.io)
+- GitHub: [https://github.com/scala-network/](https://github.com/scala-network/)
 
 ## Vulnerability response
 
-- Our [Vulnerability Response Process](https://github.com/scala-project/meta/blob/master/VULNERABILITY_RESPONSE_PROCESS.md) encourages responsible disclosure
-- We are also available via [HackerOne](https://hackerone.com/scala)
-
-## Research
-
-The [scala Research Lab](https://src.getscala.org/resources/research-lab/) is an open forum where the community coordinates research into scala cryptography, protocols, fungibility, analysis, and more. We welcome collaboration and contributions from outside researchers! Because not all Lab work and publications are distributed as traditional preprints or articles, they may be easy to miss if you are conducting literature reviews for your own scala research. You are encouraged to get in touch with the scala research community if you have questions, wish to collaborate, or would like guidance to help avoid unnecessarily duplicating earlier or known work.
-
-The scala research community is available on IRC in [#scala-research-lab on Libera](https://web.libera.chat/#scala-research-lab), which is also accessible via Matrix.
+Please contact us privately at [hello@scalaproject.io](mailto:hello@scalaproject.io) to report security issues. 
 
 ## Announcements
 
-- You can subscribe to an [announcement listserv](https://lists.getscala.org) to get critical announcements from the scala core team. The announcement list can be very helpful for knowing when software updates are needed.
+All critical announcements regarding the Scala project will be made on the following outlets:
 
-## Translations
-The CLI wallet is available in different languages. If you want to help translate it, see our self-hosted localization platform, Weblate, on [translate.getscala.org]( https://translate.getscala.org/projects/scala/cli-wallet/). Every translation *must* be uploaded on the platform, pull requests directly editing the code in this repository will be closed. If you need help with Weblate, you can find a guide with screenshots [here](https://github.com/scala-ecosystem/scala-translations/blob/master/weblate.md).
-&nbsp;
-
-If you need help/support/info about translations, contact the localization workgroup. You can find the complete list of contacts on the repository of the workgroup: [scala-translations](https://github.com/scala-ecosystem/scala-translations#contacts).
-
-## Coverage
-
-| Type      | Status |
-|-----------|--------|
-| Coverity  | [![Coverity Status](https://scan.coverity.com/projects/9657/badge.svg)](https://scan.coverity.com/projects/9657/)
-| OSS Fuzz  | [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/scala.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:scala)
-| Coveralls | [![Coveralls Status](https://coveralls.io/repos/github/scala-project/scala/badge.svg?branch=master)](https://coveralls.io/github/scala-project/scala?branch=master)
-| License   | [![License](https://img.shields.io/badge/license-BSD3-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+- [Scala Discord](https://chat.scalaproject.io)
+- [Scala Telegram](https://t.me/scalaofficial)
 
 ## Introduction
 
-scala is a private, secure, untraceable, decentralised digital currency. You are your bank, you control your funds, and nobody can trace your transfers unless you allow them to do so.
+Scala is a private, secure, untraceable, decentralised digital currency. You are your bank, you control your funds, and nobody can trace your transfers unless you allow them to do so.
 
 **Privacy:** scala uses a cryptographically sound system to allow you to send and receive funds without your transactions being easily revealed on the blockchain (the ledger of transactions that everyone has). This ensures that your purchases, receipts, and all transfers remain private by default.
 
@@ -123,27 +101,11 @@ As with many development projects, the repository on GitHub is considered to be 
 
 ## Supporting the project
 
-scala is a 100% community-sponsored endeavor. If you want to join our efforts, the easiest thing you can do is support the project financially. Both scala and Bitcoin donations can be made to **donate.getscala.org** if using a client that supports the [OpenAlias](https://openalias.org) standard. Alternatively, you can send XMR to the scala donation address via the `donate` command (type `help` in the command-line wallet for details).
+For information on how scala funds its development, please read [this](https://wiki.scalaproject.io/general/funding) on our wiki.
 
-The scala donation address is:  
-`888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H`  
-Viewkey:  
-`f359631075708155cc3d92a32b75a7d02a5dcf27756707b47a2b31b21c389501`  
-Base address for restoring with address and viewkey:
-`44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A`  
+Core development funding and/or some supporting services are also graciously provided by sponsors:
 
-The Bitcoin donation address is:  
-`1KTexdemPdxSBcG55heUuTjDRYqbC5ZL8H`
-
-Core development funding and/or some supporting services are also graciously provided by [sponsors](https://www.getscala.org/community/sponsorships/):
-
-[<img width="150" src="https://www.getscala.org/img/sponsors/tarilabs.png"/>](https://tarilabs.com/)
-[<img width="150" src="https://www.getscala.org/img/sponsors/globee.png"/>](https://globee.com/)
-[<img width="150" src="https://www.getscala.org/img/sponsors/symas.png"/>](https://symas.com/)
-[<img width="150" src="https://www.getscala.org/img/sponsors/forked_logo.png"/>](http://www.forked.net/)
-[<img width="150" src="https://www.getscala.org/img/sponsors/macstadium.png"/>](https://www.macstadium.com/)
-
-There are also several mining pools that kindly donate a portion of their fees, [a list of them can be found on our Bitcointalk post](https://bitcointalk.org/index.php?topic=583449.0).
+[<img width="150" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png"/>](https://www.jetbrains.com/)
 
 ## License
 
@@ -157,27 +119,13 @@ If you want to help out, see [CONTRIBUTING](docs/CONTRIBUTING.md) for a set of g
 
 scala uses a scheduled software/network upgrade (hard fork) mechanism to implement new features into the scala software and network. This means that users of scala (end users and service providers) should run current versions and upgrade their software when new releases are available. Software upgrades occur when new features are developed and implemented in the codebase. Network upgrades occur in tandem with software upgrades that modify the consensus rules of the scala network. The required software for network upgrades will be available prior to the scheduled network upgrade date. Please check the repository prior to this date for the proper scala software version. Below is the historical schedule and the projected schedule for the next upgrade.
 
-Dates are provided in the format YYYY-MM-DD. The "Minimum" is the software version that follows the new consensus rules. The "Recommended" version may include bug fixes and other new features that do not affect the consensus rules.
+Dates are provided in the format DD-MM-YYYY. The "Minimum" is the software version that follows the new consensus rules. The "Recommended" version may include bug fixes and other new features that do not affect the consensus rules.
 
 
-| Software upgrade block height  | Date       | Fork version      | Minimum scala version | Recommended scala version | Details                                                                            |
-| ------------------------------ | -----------| ----------------- | ---------------------- | -------------------------- | ---------------------------------------------------------------------------------- |
-| 1009827                        | 2016-03-22 | v2                | v0.9.4                 | v0.9.4                     | Allow only >= ringsize 3, blocktime = 120 seconds, fee-free blocksize 60 kb       |
-| 1141317                        | 2016-09-21 | v3                | v0.9.4                 | v0.10.0                    | Splits coinbase into denominations  |
-| 1220516                        | 2017-01-05 | v4                | v0.10.1                | v0.10.2.1                  | Allow normal and RingCT transactions |
-| 1288616                        | 2017-04-15 | v5                | v0.10.3.0              | v0.10.3.1                  | Adjusted minimum blocksize and fee algorithm      |
-| 1400000                        | 2017-09-16 | v6                | v0.11.0.0              | v0.11.0.0                  | Allow only RingCT transactions, allow only >= ringsize 5      |
-| 1546000                        | 2018-04-06 | v7                | v0.12.0.0              | v0.12.3.0                  | Cryptonight variant 1, ringsize >= 7, sorted inputs
-| 1685555                        | 2018-10-18 | v8                | v0.13.0.0              | v0.13.0.4                  | max transaction size at half the penalty free block size, bulletproofs enabled, cryptonight variant 2, fixed ringsize [11](https://youtu.be/KOO5S4vxi0o)
-| 1686275                        | 2018-10-19 | v9                | v0.13.0.0              | v0.13.0.4                  | bulletproofs required
-| 1788000                        | 2019-03-09 | v10               | v0.14.0.0              | v0.14.1.2                  | New PoW based on Cryptonight-R, new block weight algorithm, slightly more efficient RingCT format
-| 1788720                        | 2019-03-10 | v11               | v0.14.0.0              | v0.14.1.2                  | forbid old RingCT transaction format
-| 1978433                        | 2019-11-30 | v12               | v0.15.0.0              | v0.16.0.0                  | New PoW based on RandomX, only allow >= 2 outputs, change to the block median used to calculate penalty, v1 coinbases are forbidden, rct sigs in coinbase forbidden, 10 block lock time for incoming outputs
-| 2210000                        | 2020-10-17 | v13               | v0.17.0.0              | v0.17.3.2                  | New CLSAG transaction format
-| 2210720                        | 2020-10-18 | v14               | v0.17.1.1              | v0.17.3.2                  | forbid old MLSAG transaction format
-| 2688888                        | 2022-08-13 | v15               | v0.18.0.0              | v0.18.1.2                  | ringsize = 16, bulletproofs+, view tags, adjusted dynamic block weight algorithm
-| 2689608                        | 2022-08-14 | v16               | v0.18.0.0              | v0.18.1.2                  | forbid old v14 transaction format
-| XXXXXXX                        | XXX-XX-XX | XXX                | vX.XX.X.X              | vX.XX.X.X                  | XXX |
+| Software upgrade block height | Date      | Fork version | Minimum scala version | Recommended scala version | Details                                                               |
+|-------------------------------|-----------|--------------|-----------------------|---------------------------|-----------------------------------------------------------------------|
+| 1                             | 1-08-2020 | v4.1.0       | v4.1.0                | v7.9.0                    | Genesis block                                                         |
+| X                             | X         | v8.0.0       | v8.0.0                | v8.0.0                    | Diardi V2, multiple proof of work, new bulletproofs, new reward curve |
 
 X's indicate that these details have not been determined as of commit date.
 
@@ -302,7 +250,6 @@ invokes cmake commands as needed.
 
     ```bash
     cd scala
-    git checkout release-v0.18
     make
     ```
 
@@ -796,8 +743,6 @@ To use a pruned blockchain, it is best to start the initial sync with `--prune-b
 to prune an existing blockchain using the `scala-blockchain-prune` tool or using the `--prune-blockchain` `scalad` option
 with an existing chain. If an existing chain exists, pruning will temporarily require disk space to store both the full
 and pruned blockchains.
-
-For more detailed information see the ['Pruning' entry in the scalapedia](https://www.getscala.org/resources/scalapedia/pruning.html)
 
 ## Debugging
 
