@@ -445,14 +445,22 @@ bool construct_miner_tx(size_t height, size_t median_weight,
                              << derivation << ", " << no << ", "
                              << miner_address.m_spend_public_key << ")");
 
-    txout_to_key tk;
-    tk.key = out_eph_public_key;
-
     tx_out out;
     uint64_t amount = out_amounts[no];
     summary_amounts += out.amount = out_amounts[no];
 
-    out.target = tk;
+    if(hard_fork_version < 15) {
+        txout_to_key tk;
+        tk.key = out_eph_public_key;
+        out.target = tk;
+    } else {
+        txout_to_tagged_key tk;
+        crypto::view_tag view_tag;
+        crypto::derive_view_tag(derivation, no, view_tag);
+        tk.key = out_eph_public_key;
+        cryptonote::set_tx_out(amount, out_eph_public_key, true, view_tag, out);
+        out.target = tk;
+    }
 
     tx.vout.push_back(out);
 
@@ -1122,12 +1130,15 @@ bool check_last_diardi_miner(const Blockchain *pbc, std::string wallet_address,
     return false;
   }
 
+  public_key pubKey;
+  if(!get_output_public_key(last_diardi_block.miner_tx.vout.back(), pubKey)) {
+    return false;
+  }
+
   if (validate_diardi_reward_key(
           last_diardi_height, wallet_address,
           last_diardi_block.miner_tx.vout.size() - 1,
-          boost::get<txout_to_key>(
-              last_diardi_block.miner_tx.vout.back().target)
-              .key,
+          pubKey,
           nettype)) {
     return true;
   }

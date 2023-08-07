@@ -1450,9 +1450,16 @@ bool Blockchain::validate_diardi_miner_v2(const block &b) {
   std::string vM;
   cryptonote::address_parse_info pVm;
 
+
   for(auto const& sM : diardi_miners_list) {
-      public_key pKey = boost::get<txout_to_key>(b.miner_tx.vout.back().target).key;
-      if(validate_diardi_reward_key(block_height, sM, 0, pKey, m_nettype)) {
+      public_key pubKey;
+
+      if(!get_output_public_key(b.miner_tx.vout.back(), pubKey)) {
+        LOG_PRINT_L1("Diardi: Failed to get miner public key");
+        return false;
+      }
+
+      if(validate_diardi_reward_key(block_height, sM, b.miner_tx.vout.size() - 1, pubKey, m_nettype)) {
         vM = sM;
         cryptonote::get_account_address_from_str(pVm, m_nettype, vM);
         break;
@@ -1576,6 +1583,7 @@ bool Blockchain::validate_miner_transaction(
       }
 
       if (m_nettype == cryptonote::MAINNET) {
+        //txout_to_key instead of txout_to_tagged_key because we don't have view tags before version 15
         if (!validate_diardi_reward_key(
                 block_height, diardi_maintainer_address,
                 b.miner_tx.vout.size() - 1,
@@ -1594,10 +1602,16 @@ bool Blockchain::validate_miner_transaction(
     std::list<std::string> diardi_miners_list = diardi_addresses_v2(m_nettype);
     cryptonote::address_parse_info diardi_miner_address;
 
+    public_key pubKey;
+    if(!get_output_public_key(b.miner_tx.vout.back(), pubKey)) {
+        LOG_PRINT_L1("Diardi: Failed to get miner public key");
+        return false;
+    }
+
     for (auto const &sM : diardi_miners_list) {
       if (validate_diardi_reward_key(
               m_db->height(), sM, b.miner_tx.vout.size() - 1,
-              boost::get<txout_to_key>(b.miner_tx.vout.back().target).key,
+              pubKey,
               m_nettype)) {
         vM = sM;
         break;
