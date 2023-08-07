@@ -449,8 +449,11 @@ bool construct_miner_tx(size_t height, size_t median_weight,
     tk.key = out_eph_public_key;
 
     tx_out out;
+    uint64_t amount = out_amounts[no];
     summary_amounts += out.amount = out_amounts[no];
+
     out.target = tk;
+
     tx.vout.push_back(out);
 
     if (hard_fork_version >= 2 && hard_fork_version <= 12 && (height >= 16)) {

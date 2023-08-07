@@ -1654,7 +1654,8 @@ private:
                                   size_t cumulative_block_weight, uint64_t fee,
                                   uint64_t &base_reward,
                                   uint64_t already_generated_coins,
-                                  bool &partial_block_reward, uint8_t version);
+                                  bool &partial_block_reward, uint8_t version,
+                                  bool &last_diardi_mined);
 
   /**
    * @brief reverts the blockchain to its previous state following a failed

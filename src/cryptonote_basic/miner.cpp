@@ -131,7 +131,7 @@ const command_line::arg_descriptor<std::string> arg_spendkey = {
 
 miner::miner(i_miner_handler *phandler, const get_block_hash_t &gbh)
     : m_stop(1), m_template{}, m_template_no(0), m_diffic(0), m_thread_index(0),
-      m_phandler(phandler), m_gbh(gbh), m_height(0), m_threads_active(0),
+      m_phandler(phandler), m_gbh(gbh), m_height(0), m_last_mined(0), m_threads_active(0),
       m_pausers_count(0), m_threads_total(0), m_starter_nonce(0),
       m_last_hr_merge_time(0), m_hashes(0), m_total_hashes(0),
       m_do_print_hashrate(false), m_do_mining(false), m_current_hash_rate(0),
@@ -545,6 +545,15 @@ void miner::resume() {
     MDEBUG("MINING RESUMED");
 }
 //-----------------------------------------------------------------------------------------------------
+void miner::stop_mining_for(uint64_t seconds) {
+  CRITICAL_REGION_LOCAL(m_miners_count_lock);
+  MGINFO("Mining paused for "
+         << seconds << " seconds, since we mined the last diardi block");
+  ++m_pausers_count;
+  misc_utils::sleep_no_w(seconds * 1000);
+  --m_pausers_count;
+}
+//-----------------------------------------------------------------------------------------------------
 bool miner::worker_thread() {
   const uint32_t th_local_index =
       m_thread_index++; // atomically increment, getting value before increment
@@ -610,6 +619,10 @@ bool miner::worker_thread() {
       continue;
     }
 
+    if(m_last_mined == height) {
+          continue;
+    }
+
     b.nonce = nonce;
     crypto::hash h;
 
@@ -621,8 +634,8 @@ bool miner::worker_thread() {
     m_gbh(b, height, NULL, tools::get_max_concurrency(), h);
 
     if (check_hash(h, local_diff)) {
-      // we lucky!
       ++m_config.current_extra_message_index;
+      m_last_mined = height;
       MGINFO_GREEN("Found block " << get_block_hash(b) << " at height "
                                   << height
                                   << " for difficulty: " << local_diff);

@@ -10166,7 +10166,7 @@ void wallet2::transfer_selected_rct(
               selected_transfers[ins_order[j]], ignore_sets[i],
               all_used_L, // collect all public L nonces used by this tx
                           // proposal (set of tx attempts) to avoid duplicates
-              sig.used_L // record the public L nonces used by this tx input to
+              sig.used_L  // record the public L nonces used by this tx input to
                          // this tx attempt, for coordination with other signers
           );
           alpha[m] = kLRki.k;
