@@ -187,17 +187,14 @@ bool checkpoints::init_default_checkpoints(network_type nettype) {
 
   if (nettype == STAGENET) {
     ADD_CHECKPOINT2(
-        10, "4d8fe186fab1be886342954824efef811585442191cb3338e8c70ee7b29cad96",
+        10, "f8768008361a83cafc2c2e1263d5f56483a20a5c9537bd5fa6b5736931d5d75d",
         "0x25");
     ADD_CHECKPOINT2(
-        100, "331cc0c4e1a4acbc734e636452758af9577aac898edc8f38cf3d1b479cfe27ad",
+        100, "a8f7e69850570745364ce80a537409b134a909206f0b5b72a1549c98a3a1500f",
         "0x4f224");
     ADD_CHECKPOINT2(
-        150, "c0ff612f107eda2dd6139bb7914a0956db5c02a76552728a6eb8ba1ef0a197ff",
+        150, "6eea373d8bb85ef2365b5adb64f05ac01a7591e55b2e3c904076a56f2eab14df",
         "0x9e566");
-    ADD_CHECKPOINT2(
-        200, "eff30fe3ea097a7ead70bd4a70c2fa0ed52a8a37c49c1679250feb7a0a5ad511",
-        "0x19e868");
     return true;
   }
 

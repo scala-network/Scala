@@ -449,18 +449,11 @@ bool construct_miner_tx(size_t height, size_t median_weight,
     uint64_t amount = out_amounts[no];
     summary_amounts += out.amount = out_amounts[no];
 
-    if (hard_fork_version < 15) {
-      txout_to_key tk;
-      tk.key = out_eph_public_key;
-      out.target = tk;
-    } else {
-      txout_to_tagged_key tk;
-      crypto::view_tag view_tag;
-      crypto::derive_view_tag(derivation, no, view_tag);
-      tk.key = out_eph_public_key;
-      cryptonote::set_tx_out(amount, out_eph_public_key, true, view_tag, out);
-      out.target = tk;
-    }
+    crypto::view_tag view_tag;
+    crypto::derive_view_tag(derivation, no, view_tag);
+
+    bool need_vt = hard_fork_version >= 15;
+    cryptonote::set_tx_out(amount, out_eph_public_key, need_vt, view_tag, out);
 
     tx.vout.push_back(out);
 
