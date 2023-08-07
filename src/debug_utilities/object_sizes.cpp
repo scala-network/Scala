@@ -2,29 +2,34 @@
 //
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without modification, are
-// permitted provided that the following conditions are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this list of
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of
 //    conditions and the following disclaimer.
 //
-// 2. Redistributions in binary form must reproduce the above copyright notice, this list
-//    of conditions and the following disclaimer in the documentation and/or other
-//    materials provided with the distribution.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list
+//    of conditions and the following disclaimer in the documentation and/or
+//    other materials provided with the distribution.
 //
-// 3. Neither the name of the copyright holder nor the names of its contributors may be
-//    used to endorse or promote products derived from this software without specific
-//    prior written permission.
+// 3. Neither the name of the copyright holder nor the names of its contributors
+// may be
+//    used to endorse or promote products derived from this software without
+//    specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
-// THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include <map>
 #include "cryptonote_basic/cryptonote_basic.h"
@@ -47,22 +52,22 @@
 #undef scala_DEFAULT_LOG_CATEGORY
 #define scala_DEFAULT_LOG_CATEGORY "debugtools.objectsizes"
 
-class size_logger
-{
+class size_logger {
 public:
-  ~size_logger()
-  {
-    for (const auto &i: types)
+  ~size_logger() {
+    for (const auto &i : types)
       std::cout << std::to_string(i.first) << "\t" << i.second << std::endl;
   }
-  void add(const char *type, size_t size) { types.insert(std::make_pair(size, type)); }
+  void add(const char *type, size_t size) {
+    types.insert(std::make_pair(size, type));
+  }
+
 private:
   std::multimap<size_t, const std::string> types;
 };
 #define SL(type) sl.add(#type, sizeof(type))
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
   size_logger sl;
 
   tools::on_startup();
@@ -92,8 +97,11 @@ int main(int argc, char* argv[])
 
   SL(nodetool::peerlist_entry);
   SL(nodetool::anchor_peerlist_entry);
-  SL(nodetool::node_server<cryptonote::t_cryptonote_protocol_handler<cryptonote::core>>);
-  SL(nodetool::p2p_connection_context_t<cryptonote::t_cryptonote_protocol_handler<cryptonote::core>::connection_context>);
+  SL(nodetool::node_server<
+      cryptonote::t_cryptonote_protocol_handler<cryptonote::core>>);
+  SL(nodetool::p2p_connection_context_t<
+      cryptonote::t_cryptonote_protocol_handler<
+          cryptonote::core>::connection_context>);
   SL(nodetool::network_address_old);
   SL(nodetool::peerlist_entry_base<nodetool::network_address_old>);
 

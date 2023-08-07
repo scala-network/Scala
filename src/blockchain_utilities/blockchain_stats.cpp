@@ -3,29 +3,34 @@
 //
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without modification, are
-// permitted provided that the following conditions are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this list of
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of
 //    conditions and the following disclaimer.
 //
-// 2. Redistributions in binary form must reproduce the above copyright notice, this list
-//    of conditions and the following disclaimer in the documentation and/or other
-//    materials provided with the distribution.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list
+//    of conditions and the following disclaimer in the documentation and/or
+//    other materials provided with the distribution.
 //
-// 3. Neither the name of the copyright holder nor the names of its contributors may be
-//    used to endorse or promote products derived from this software without specific
-//    prior written permission.
+// 3. Neither the name of the copyright holder nor the names of its contributors
+// may be
+//    used to endorse or promote products derived from this software without
+//    specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
-// THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -47,7 +52,8 @@ using namespace cryptonote;
 
 static bool stop_requested = false;
 
-static bool do_inputs, do_outputs, do_ringsize, do_hours, do_emission, do_fees, do_diff;
+static bool do_inputs, do_outputs, do_ringsize, do_hours, do_emission, do_fees,
+    do_diff;
 
 static struct tm prevtm, currtm;
 static uint64_t prevsz, currsz;
@@ -59,8 +65,8 @@ static boost::multiprecision::uint128_t prevemission, prevfees;
 static boost::multiprecision::uint128_t emission, fees;
 static boost::multiprecision::uint128_t totdiff, mindiff, maxdiff;
 
-#define MAX_INOUT	0xffffffff
-#define MAX_RINGS	0xffffffff
+#define MAX_INOUT 0xffffffff
+#define MAX_RINGS 0xffffffff
 
 static uint32_t minins = MAX_INOUT, maxins;
 static uint32_t minouts = MAX_INOUT, maxouts;
@@ -68,13 +74,14 @@ static uint32_t minrings = MAX_RINGS, maxrings;
 static uint32_t io, tottxs;
 static uint32_t txhr[24];
 
-static void doprint()
-{
+static void doprint() {
   char timebuf[64];
 
   strftime(timebuf, sizeof(timebuf), "%Y-%m-%d", &prevtm);
   prevtm = currtm;
-  std::cout << timebuf << "\t" << currblks << "\t" << h << "\t" << currtxs << "\t" << prevtxs + currtxs << "\t" << currsz << "\t" << prevsz + currsz;
+  std::cout << timebuf << "\t" << currblks << "\t" << h << "\t" << currtxs
+            << "\t" << prevtxs + currtxs << "\t" << currsz << "\t"
+            << prevsz + currsz;
   prevsz += currsz;
   currsz = 0;
   prevtxs += currtxs;
@@ -82,33 +89,47 @@ static void doprint()
   if (!tottxs)
     tottxs = 1;
   if (do_emission) {
-    std::cout << "\t" << print_money(emission) << "\t" << print_money(prevemission + emission);
+    std::cout << "\t" << print_money(emission) << "\t"
+              << print_money(prevemission + emission);
     prevemission += emission;
     emission = 0;
   }
   if (do_fees) {
-    std::cout << "\t" << print_money(fees) << "\t" << print_money(prevfees + fees);
+    std::cout << "\t" << print_money(fees) << "\t"
+              << print_money(prevfees + fees);
     prevfees += fees;
     fees = 0;
   }
   if (do_diff) {
-    std::cout << "\t" << (maxdiff ? mindiff : 0) << "\t" << maxdiff << "\t" << totdiff / currblks;
-    mindiff = 0; maxdiff = 0; totdiff = 0;
+    std::cout << "\t" << (maxdiff ? mindiff : 0) << "\t" << maxdiff << "\t"
+              << totdiff / currblks;
+    mindiff = 0;
+    maxdiff = 0;
+    totdiff = 0;
   }
   if (do_inputs) {
-    std::cout << "\t" << (maxins ? minins : 0) << "\t" << maxins << "\t" << totins * 1.0 / tottxs;
-    minins = MAX_INOUT; maxins = 0; totins = 0;
+    std::cout << "\t" << (maxins ? minins : 0) << "\t" << maxins << "\t"
+              << totins * 1.0 / tottxs;
+    minins = MAX_INOUT;
+    maxins = 0;
+    totins = 0;
   }
   if (do_outputs) {
-    std::cout << "\t" << (maxouts ? minouts : 0) << "\t" << maxouts << "\t" << totouts * 1.0 / tottxs;
-    minouts = MAX_INOUT; maxouts = 0; totouts = 0;
+    std::cout << "\t" << (maxouts ? minouts : 0) << "\t" << maxouts << "\t"
+              << totouts * 1.0 / tottxs;
+    minouts = MAX_INOUT;
+    maxouts = 0;
+    totouts = 0;
   }
   if (do_ringsize) {
-    std::cout << "\t" << (maxrings ? minrings : 0) << "\t" << maxrings << "\t" << totrings * 1.0 / tottxs;
-    minrings = MAX_RINGS; maxrings = 0; totrings = 0;
+    std::cout << "\t" << (maxrings ? minrings : 0) << "\t" << maxrings << "\t"
+              << totrings * 1.0 / tottxs;
+    minrings = MAX_RINGS;
+    maxrings = 0;
+    totrings = 0;
   }
   if (do_hours) {
-    for (int i=0; i<24; i++) {
+    for (int i = 0; i < 24; i++) {
       std::cout << "\t" << txhr[i];
       txhr[i] = 0;
     }
@@ -118,8 +139,7 @@ static void doprint()
   std::cout << ENDL;
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
   TRY_ENTRY();
 
   epee::string_tools::set_module_name_and_folder(argv[0]);
@@ -133,17 +153,28 @@ int main(int argc, char* argv[])
   boost::filesystem::path output_file_path;
 
   po::options_description desc_cmd_only("Command line options");
-  po::options_description desc_cmd_sett("Command line options and settings options");
-  const command_line::arg_descriptor<std::string> arg_log_level  = {"log-level",  "0-4 or categories", ""};
-  const command_line::arg_descriptor<uint64_t> arg_block_start  = {"block-start", "start at block number", block_start};
-  const command_line::arg_descriptor<uint64_t> arg_block_stop = {"block-stop", "Stop at block number", block_stop};
-  const command_line::arg_descriptor<bool> arg_inputs  = {"with-inputs", "with input stats", false};
-  const command_line::arg_descriptor<bool> arg_outputs  = {"with-outputs", "with output stats", false};
-  const command_line::arg_descriptor<bool> arg_ringsize  = {"with-ringsize", "with ringsize stats", false};
-  const command_line::arg_descriptor<bool> arg_hours  = {"with-hours", "with txns per hour", false};
-  const command_line::arg_descriptor<bool> arg_emission  = {"with-emission", "with coin emission", false};
-  const command_line::arg_descriptor<bool> arg_fees  = {"with-fees", "with txn fees", false};
-  const command_line::arg_descriptor<bool> arg_diff  = {"with-diff", "with difficulty", false};
+  po::options_description desc_cmd_sett(
+      "Command line options and settings options");
+  const command_line::arg_descriptor<std::string> arg_log_level = {
+      "log-level", "0-4 or categories", ""};
+  const command_line::arg_descriptor<uint64_t> arg_block_start = {
+      "block-start", "start at block number", block_start};
+  const command_line::arg_descriptor<uint64_t> arg_block_stop = {
+      "block-stop", "Stop at block number", block_stop};
+  const command_line::arg_descriptor<bool> arg_inputs = {
+      "with-inputs", "with input stats", false};
+  const command_line::arg_descriptor<bool> arg_outputs = {
+      "with-outputs", "with output stats", false};
+  const command_line::arg_descriptor<bool> arg_ringsize = {
+      "with-ringsize", "with ringsize stats", false};
+  const command_line::arg_descriptor<bool> arg_hours = {
+      "with-hours", "with txns per hour", false};
+  const command_line::arg_descriptor<bool> arg_emission = {
+      "with-emission", "with coin emission", false};
+  const command_line::arg_descriptor<bool> arg_fees = {"with-fees",
+                                                       "with txn fees", false};
+  const command_line::arg_descriptor<bool> arg_diff = {
+      "with-diff", "with difficulty", false};
 
   command_line::add_arg(desc_cmd_sett, cryptonote::arg_data_dir);
   command_line::add_arg(desc_cmd_sett, cryptonote::arg_testnet_on);
@@ -164,19 +195,18 @@ int main(int argc, char* argv[])
   desc_options.add(desc_cmd_only).add(desc_cmd_sett);
 
   po::variables_map vm;
-  bool r = command_line::handle_error_helper(desc_options, [&]()
-  {
+  bool r = command_line::handle_error_helper(desc_options, [&]() {
     auto parser = po::command_line_parser(argc, argv).options(desc_options);
     po::store(parser.run(), vm);
     po::notify(vm);
     return true;
   });
-  if (! r)
+  if (!r)
     return 1;
 
-  if (command_line::get_arg(vm, command_line::arg_help))
-  {
-    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL << ")" << ENDL << ENDL;
+  if (command_line::get_arg(vm, command_line::arg_help)) {
+    std::cout << "scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL
+              << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -185,14 +215,18 @@ int main(int argc, char* argv[])
   if (!command_line::is_arg_defaulted(vm, arg_log_level))
     mlog_set_log(command_line::get_arg(vm, arg_log_level).c_str());
   else
-    mlog_set_log(std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
+    mlog_set_log(
+        std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
 
   LOG_PRINT_L0("Starting...");
 
-  std::string opt_data_dir = command_line::get_arg(vm, cryptonote::arg_data_dir);
+  std::string opt_data_dir =
+      command_line::get_arg(vm, cryptonote::arg_data_dir);
   bool opt_testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
   bool opt_stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
-  network_type net_type = opt_testnet ? TESTNET : opt_stagenet ? STAGENET : MAINNET;
+  network_type net_type = opt_testnet    ? TESTNET
+                          : opt_stagenet ? STAGENET
+                                         : MAINNET;
   block_start = command_line::get_arg(vm, arg_block_start);
   block_stop = command_line::get_arg(vm, arg_block_stop);
   do_inputs = command_line::get_arg(vm, arg_inputs);
@@ -208,21 +242,18 @@ int main(int argc, char* argv[])
   tx_memory_pool m_mempool(*core_storage);
   core_storage.reset(new Blockchain(m_mempool));
   BlockchainDB *db = new_db();
-  if (db == NULL)
-  {
+  if (db == NULL) {
     LOG_ERROR("Failed to initialize a database");
     throw std::runtime_error("Failed to initialize a database");
   }
 
-  const std::string filename = (boost::filesystem::path(opt_data_dir) / db->get_db_name()).string();
+  const std::string filename =
+      (boost::filesystem::path(opt_data_dir) / db->get_db_name()).string();
   LOG_PRINT_L0("Loading blockchain from folder " << filename << " ...");
 
-  try
-  {
+  try {
     db->open(filename, DBF_RDONLY);
-  }
-  catch (const std::exception& e)
-  {
+  } catch (const std::exception &e) {
     LOG_PRINT_L0("Error opening database: " << e.what());
     return 1;
   }
@@ -231,30 +262,30 @@ int main(int argc, char* argv[])
   CHECK_AND_ASSERT_MES(r, 1, "Failed to initialize source blockchain storage");
   LOG_PRINT_L0("Source blockchain storage initialized OK");
 
-  tools::signal_handler::install([](int type) {
-    stop_requested = true;
-  });
+  tools::signal_handler::install([](int type) { stop_requested = true; });
 
   const uint64_t db_height = db->height();
   if (!block_stop)
-      block_stop = db_height;
-  MINFO("Starting from height " << block_start << ", stopping at height " << block_stop);
+    block_stop = db_height;
+  MINFO("Starting from height " << block_start << ", stopping at height "
+                                << block_stop);
 
-/*
- * The default output can be plotted with GnuPlot using these commands:
-set key autotitle columnhead
-set title "scala Blockchain Growth"
-set timefmt "%Y-%m-%d"
-set xdata time
-set xrange ["2014-04-17":*]
-set format x "%Y-%m-%d"
-set yrange [0:*]
-set y2range [0:*]
-set ylabel "Txs/Day"
-set y2label "Bytes"
-set y2tics nomirror
-plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines, '' using (timecolumn(1,"%Y-%m-%d")):7 axes x1y2 with lines
- */
+  /*
+   * The default output can be plotted with GnuPlot using these commands:
+  set key autotitle columnhead
+  set title "scala Blockchain Growth"
+  set timefmt "%Y-%m-%d"
+  set xdata time
+  set xrange ["2014-04-17":*]
+  set format x "%Y-%m-%d"
+  set yrange [0:*]
+  set y2range [0:*]
+  set ylabel "Txs/Day"
+  set y2label "Bytes"
+  set y2tics nomirror
+  plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines,
+  '' using (timecolumn(1,"%Y-%m-%d")):7 axes x1y2 with lines
+   */
 
   // spit out a comment that GnuPlot can use as an index
   std::cout << ENDL << "# DATA" << ENDL;
@@ -276,19 +307,17 @@ plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines, '' 
   if (do_hours) {
     char buf[8];
     unsigned int i;
-    for (i=0; i<24; i++) {
+    for (i = 0; i < 24; i++) {
       sprintf(buf, "\t%02u:00", i);
       std::cout << buf;
     }
   }
   std::cout << ENDL;
 
-  for (h = block_start; h < block_stop; ++h)
-  {
+  for (h = block_start; h < block_stop; ++h) {
     cryptonote::blobdata bd = db->get_block_blob_from_height(h);
     cryptonote::block blk;
-    if (!cryptonote::parse_and_validate_block_from_blob(bd, blk))
-    {
+    if (!cryptonote::parse_and_validate_block_from_blob(bd, blk)) {
       LOG_PRINT_L0("Bad block from db");
       return 1;
     }
@@ -297,8 +326,8 @@ plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines, '' 
     if (!prevtm.tm_year)
       prevtm = currtm;
     // catch change of day
-    if (currtm.tm_mday > prevtm.tm_mday || (currtm.tm_mday == 1 && prevtm.tm_mday > 27))
-    {
+    if (currtm.tm_mday > prevtm.tm_mday ||
+        (currtm.tm_mday == 1 && prevtm.tm_mday > 27)) {
       // check for timestamp fudging around month ends
       if (!(prevtm.tm_mday == 1 && currtm.tm_mday > 27))
         doprint();
@@ -306,19 +335,15 @@ plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines, '' 
     currsz += bd.size();
     uint64_t coinbase_amount;
     uint64_t tx_fee_amount = 0;
-    for (const auto& tx_id : blk.tx_hashes)
-    {
-      if (tx_id == crypto::null_hash)
-      {
+    for (const auto &tx_id : blk.tx_hashes) {
+      if (tx_id == crypto::null_hash) {
         throw std::runtime_error("Aborting: tx == null_hash");
       }
-      if (!db->get_pruned_tx_blob(tx_id, bd))
-      {
+      if (!db->get_pruned_tx_blob(tx_id, bd)) {
         throw std::runtime_error("Aborting: tx not found");
       }
       transaction tx;
-      if (!parse_and_validate_tx_base_from_blob(bd, tx))
-      {
+      if (!parse_and_validate_tx_base_from_blob(bd, tx)) {
         LOG_PRINT_L0("Bad txn from db");
         return 1;
       }
@@ -340,8 +365,8 @@ plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines, '' 
         totins += io;
       }
       if (do_ringsize) {
-        const cryptonote::txin_to_key& tx_in_to_key
-                       = boost::get<cryptonote::txin_to_key>(tx.vin[0]);
+        const cryptonote::txin_to_key &tx_in_to_key =
+            boost::get<cryptonote::txin_to_key>(tx.vin[0]);
         io = tx_in_to_key.key_offsets.size();
         if (io < minrings)
           minrings = io;
