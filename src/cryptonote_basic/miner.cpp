@@ -131,11 +131,11 @@ const command_line::arg_descriptor<std::string> arg_spendkey = {
 
 miner::miner(i_miner_handler *phandler, const get_block_hash_t &gbh)
     : m_stop(1), m_template{}, m_template_no(0), m_diffic(0), m_thread_index(0),
-      m_phandler(phandler), m_gbh(gbh), m_height(0), m_last_mined(0), m_threads_active(0),
-      m_pausers_count(0), m_threads_total(0), m_starter_nonce(0),
-      m_last_hr_merge_time(0), m_hashes(0), m_total_hashes(0),
-      m_do_print_hashrate(false), m_do_mining(false), m_current_hash_rate(0),
-      m_is_background_mining_enabled(false),
+      m_phandler(phandler), m_gbh(gbh), m_height(0), m_last_mined(0),
+      m_threads_active(0), m_pausers_count(0), m_threads_total(0),
+      m_starter_nonce(0), m_last_hr_merge_time(0), m_hashes(0),
+      m_total_hashes(0), m_do_print_hashrate(false), m_do_mining(false),
+      m_current_hash_rate(0), m_is_background_mining_enabled(false),
       m_min_idle_seconds(
           BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS),
       m_idle_threshold(BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE),
@@ -619,8 +619,8 @@ bool miner::worker_thread() {
       continue;
     }
 
-    if(m_last_mined == height) {
-          continue;
+    if (m_last_mined == height) {
+      continue;
     }
 
     b.nonce = nonce;

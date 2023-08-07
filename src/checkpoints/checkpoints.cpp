@@ -184,7 +184,20 @@ bool checkpoints::init_default_checkpoints(network_type nettype) {
   if (nettype == TESTNET) {
     return true;
   }
+
   if (nettype == STAGENET) {
+    ADD_CHECKPOINT2(
+        10, "4d8fe186fab1be886342954824efef811585442191cb3338e8c70ee7b29cad96",
+        "0x25");
+    ADD_CHECKPOINT2(
+        100, "331cc0c4e1a4acbc734e636452758af9577aac898edc8f38cf3d1b479cfe27ad",
+        "0x4f224");
+    ADD_CHECKPOINT2(
+        150, "c0ff612f107eda2dd6139bb7914a0956db5c02a76552728a6eb8ba1ef0a197ff",
+        "0x9e566");
+    ADD_CHECKPOINT2(
+        200, "eff30fe3ea097a7ead70bd4a70c2fa0ed52a8a37c49c1679250feb7a0a5ad511",
+        "0x19e868");
     return true;
   }
 

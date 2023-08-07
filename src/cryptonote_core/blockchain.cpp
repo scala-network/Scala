@@ -1450,47 +1450,48 @@ bool Blockchain::validate_diardi_miner_v2(const block &b) {
   std::string vM;
   cryptonote::address_parse_info pVm;
 
+  for (auto const &sM : diardi_miners_list) {
+    public_key pubKey;
 
-  for(auto const& sM : diardi_miners_list) {
-      public_key pubKey;
+    if (!get_output_public_key(b.miner_tx.vout.back(), pubKey)) {
+      LOG_PRINT_L1("Diardi: Failed to get miner public key");
+      return false;
+    }
 
-      if(!get_output_public_key(b.miner_tx.vout.back(), pubKey)) {
-        LOG_PRINT_L1("Diardi: Failed to get miner public key");
-        return false;
-      }
-
-      if(validate_diardi_reward_key(block_height, sM, b.miner_tx.vout.size() - 1, pubKey, m_nettype)) {
-        vM = sM;
-        cryptonote::get_account_address_from_str(pVm, m_nettype, vM);
-        break;
-      }
+    if (validate_diardi_reward_key(block_height, sM, b.miner_tx.vout.size() - 1,
+                                   pubKey, m_nettype)) {
+      vM = sM;
+      cryptonote::get_account_address_from_str(pVm, m_nettype, vM);
+      break;
+    }
   }
 
   if (vM.empty()) {
-      return true;
+    return true;
   }
 
   crypto::hash sig_data = get_sig_data(block_height);
   crypto::signature signature = b.signature;
 
-  if (!crypto::check_signature(sig_data, pVm.address.m_spend_public_key, signature)) {
-        LOG_PRINT_L1("Diardi: Miner signature incorrect");
-        return false;
+  if (!crypto::check_signature(sig_data, pVm.address.m_spend_public_key,
+                               signature)) {
+    LOG_PRINT_L1("Diardi: Miner signature incorrect");
+    return false;
   }
 
   cryptonote::block oDb;
   bool oOb = false;
   bool getOldBlock = get_block_by_hash(
-            m_db->get_block_hash_from_height((block_height - 4)), oDb, &oOb);
+      m_db->get_block_hash_from_height((block_height - 4)), oDb, &oOb);
 
   if (!getOldBlock) {
-        LOG_PRINT_L1("Diardi: Could not get old block");
-        return false;
+    LOG_PRINT_L1("Diardi: Could not get old block");
+    return false;
   }
 
   if (check_last_diardi_miner(this, vM, m_nettype)) {
-        LOG_PRINT_L1("Diardi: Miner already mined a block < 4 blocks ago");
-        return false;
+    LOG_PRINT_L1("Diardi: Miner already mined a block < 4 blocks ago");
+    return false;
   }
 
   return true;
@@ -1583,7 +1584,8 @@ bool Blockchain::validate_miner_transaction(
       }
 
       if (m_nettype == cryptonote::MAINNET) {
-        //txout_to_key instead of txout_to_tagged_key because we don't have view tags before version 15
+        // txout_to_key instead of txout_to_tagged_key because we don't have
+        // view tags before version 15
         if (!validate_diardi_reward_key(
                 block_height, diardi_maintainer_address,
                 b.miner_tx.vout.size() - 1,
@@ -1603,16 +1605,15 @@ bool Blockchain::validate_miner_transaction(
     cryptonote::address_parse_info diardi_miner_address;
 
     public_key pubKey;
-    if(!get_output_public_key(b.miner_tx.vout.back(), pubKey)) {
-        LOG_PRINT_L1("Diardi: Failed to get miner public key");
-        return false;
+    if (!get_output_public_key(b.miner_tx.vout.back(), pubKey)) {
+      LOG_PRINT_L1("Diardi: Failed to get miner public key");
+      return false;
     }
 
     for (auto const &sM : diardi_miners_list) {
-      if (validate_diardi_reward_key(
-              m_db->height(), sM, b.miner_tx.vout.size() - 1,
-              pubKey,
-              m_nettype)) {
+      if (validate_diardi_reward_key(m_db->height(), sM,
+                                     b.miner_tx.vout.size() - 1, pubKey,
+                                     m_nettype)) {
         vM = sM;
         break;
       }
