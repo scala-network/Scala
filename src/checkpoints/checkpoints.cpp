@@ -182,6 +182,16 @@ bool checkpoints::check_for_conflicts(const checkpoints &other) const {
 
 bool checkpoints::init_default_checkpoints(network_type nettype) {
   if (nettype == TESTNET) {
+    ADD_CHECKPOINT2(
+        10, "a76e3b124834af91af028718e9dc03277bcd08845deecf1e52061b6411b3356c",
+        "0x25");
+    ADD_CHECKPOINT2(
+        15, "325dafccc380a19243c1f5edb3ac16696e65500d8de3d38f77504e7b76bb9a26",
+        "0x54");
+    ADD_CHECKPOINT2(
+        20, "992cf60da2c6a5643bb5bc0674af748473fa2b40ceb4739cde1e9d4a7d35dbbc",
+        "0x1d4c84")
+
     return true;
   }
 
