@@ -1,6 +1,6 @@
-# Scala Blockchain Utilities
+# scala Blockchain Utilities
 
-Copyright (c) 2014-2019, The Monero Project
+Copyright (c) 2014-2023, The scala Project
 
 ## Introduction
 
@@ -14,13 +14,13 @@ See also each utility's "--help" option.
 
 `$ scala-blockchain-export`
 
-This loads the existing blockchain and exports it to `$SCALA_DATA_DIR/export/blockchain.raw`
+This loads the existing blockchain and exports it to `$scala_DATA_DIR/export/blockchain.raw`
 
 ### Import the exported file
 
 `$ scala-blockchain-import`
 
-This imports blocks from `$SCALA_DATA_DIR/export/blockchain.raw` (exported using the
+This imports blocks from `$scala_DATA_DIR/export/blockchain.raw` (exported using the
 `scala-blockchain-export` tool as described above) into the current database.
 
 Defaults: `--batch on`, `--batch size 20000`, `--verify on`

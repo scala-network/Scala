@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The Scala Project
 // 
 // All rights reserved.
 // 
@@ -27,9 +27,8 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/optional/optional.hpp>
-#include <string.h>
-#include <stdexcept>
 #include <limits>
+#include <string.h>
 #include "memwipe.h"
 #include "misc_log_ex.h"
 #include "wipeable_string.h"

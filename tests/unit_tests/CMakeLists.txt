@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -37,6 +37,7 @@ set(unit_tests_sources
   block_reward.cpp
   bootstrap_node_selector.cpp
   bulletproofs.cpp
+  bulletproofs_plus.cpp
   canonical_amounts.cpp
   chacha.cpp
   checkpoints.cpp
@@ -48,6 +49,7 @@ set(unit_tests_sources
   dns_resolver.cpp
   epee_boosted_tcp_server.cpp
   epee_levin_protocol_handler_async.cpp
+  epee_serialization.cpp
   epee_utils.cpp
   expect.cpp
   fee.cpp
@@ -76,6 +78,7 @@ set(unit_tests_sources
   pruning.cpp
   random.cpp
   rolling_median.cpp
+  scaling_2021.cpp
   serialization.cpp
   sha256.cpp
   slow_memmem.cpp
@@ -84,10 +87,12 @@ set(unit_tests_sources
   test_peerlist.cpp
   test_protocol_pack.cpp
   threadpool.cpp
+  tx_proof.cpp
   hardfork.cpp
   unbound.cpp
   uri.cpp
   varint.cpp
+  ver_rct_non_semantics_simple_cached.cpp
   ringct.cpp
   output_selection.cpp
   vercmp.cpp
@@ -101,7 +106,7 @@ set(unit_tests_sources
 set(unit_tests_headers
   unit_tests_utils.h)
 
-add_executable(unit_tests
+scala_add_minimal_executable(unit_tests
   ${unit_tests_sources}
   ${unit_tests_headers})
 target_link_libraries(unit_tests
@@ -110,6 +115,7 @@ target_link_libraries(unit_tests
     cryptonote_protocol
     cryptonote_core
     daemon_messages
+    daemon_rpc_server
     blockchain_db
     lmdb_lib
     rpc
@@ -143,6 +149,6 @@ add_test(
   NAME    unit_tests
   COMMAND unit_tests --data-dir "${TEST_DATA_DIR}")
 
-add_executable(test_notifier test_notifier.cpp)
+scala_add_minimal_executable(test_notifier test_notifier.cpp)
 target_link_libraries(test_notifier ${EXTRA_LIBRARIES})
 set_property(TARGET test_notifier PROPERTY FOLDER "tests")

@@ -1,32 +1,38 @@
-// Copyright (c) 2016-2019, The Monero Project
+// Copyright (c) 2016-2023, The scala Project
 //
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without modification, are
-// permitted provided that the following conditions are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this list of
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of
 //    conditions and the following disclaimer.
 //
-// 2. Redistributions in binary form must reproduce the above copyright notice, this list
-//    of conditions and the following disclaimer in the documentation and/or other
-//    materials provided with the distribution.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list
+//    of conditions and the following disclaimer in the documentation and/or
+//    other materials provided with the distribution.
 //
-// 3. Neither the name of the copyright holder nor the names of its contributors may be
-//    used to endorse or promote products derived from this software without specific
-//    prior written permission.
+// 3. Neither the name of the copyright holder nor the names of its contributors
+// may be
+//    used to endorse or promote products derived from this software without
+//    specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
-// THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
-#if !defined __GNUC__ || defined __MINGW32__ || defined __MINGW64__ || defined __ANDROID__
+#if !defined __GNUC__ || defined __MINGW32__ || defined __MINGW64__ ||         \
+    defined __ANDROID__
 #define USE_UNWIND
 #else
 #define ELPP_FEATURE_CRASH_LOG 1
@@ -46,21 +52,23 @@
 #include "common/stack_trace.h"
 #include "misc_log_ex.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "stacktrace"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "stacktrace"
 
-#define ST_LOG(x) \
-  do { \
-    auto elpp = ELPP; \
-    if (elpp) { \
-      CINFO(el::base::Writer,el::base::DispatchAction::FileOnlyLog,SCALA_DEFAULT_LOG_CATEGORY) << x; \
-    } \
-    else { \
-      std::cout << x << std::endl; \
-    } \
-  } while(0)
+#define ST_LOG(x)                                                              \
+  do {                                                                         \
+    auto elpp = ELPP;                                                          \
+    if (elpp) {                                                                \
+      CINFO(el::base::Writer, el::base::DispatchAction::FileOnlyLog,           \
+            scala_DEFAULT_LOG_CATEGORY)                                        \
+          << x;                                                                \
+    } else {                                                                   \
+      std::cout << x << std::endl;                                             \
+    }                                                                          \
+  } while (0)
 
-// from https://stackoverflow.com/questions/11665829/how-can-i-print-stack-trace-for-caught-exceptions-in-c-code-injection-in-c
+// from
+// https://stackoverflow.com/questions/11665829/how-can-i-print-stack-trace-for-caught-exceptions-in-c-code-injection-in-c
 
 // The decl of __cxa_throw in /usr/include/.../cxxabi.h uses
 // 'std::type_info *', but GCC's built-in protype uses 'void *'.
@@ -72,53 +80,47 @@
 
 #ifdef STATICLIB
 #define CXA_THROW __wrap___cxa_throw
-extern "C"
-__attribute__((noreturn))
-void __real___cxa_throw(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void*));
+extern "C" __attribute__((noreturn)) void
+__real___cxa_throw(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void *));
 #else // !STATICLIB
 #define CXA_THROW __cxa_throw
-extern "C"
-typedef
+extern "C" typedef
 #ifdef __clang__ // only clang, not GCC, lets apply the attr in typedef
-__attribute__((noreturn))
-#endif // __clang__
-void (cxa_throw_t)(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void*));
-#endif // !STATICLIB
+    __attribute__((noreturn))
+#endif           // __clang__
+    void(cxa_throw_t)(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void *));
+#endif           // !STATICLIB
 
-extern "C"
-__attribute__((noreturn))
-void CXA_THROW(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void*))
-{
+extern "C" __attribute__((noreturn)) void
+CXA_THROW(void *ex, CXA_THROW_INFO_T *info, void (*dest)(void *)) {
 
   int status;
-  char *dsym = abi::__cxa_demangle(((const std::type_info*)info)->name(), NULL, NULL, &status);
-  tools::log_stack_trace((std::string("Exception: ")+((!status && dsym) ? dsym : (const char*)info)).c_str());
+  char *dsym = abi::__cxa_demangle(((const std::type_info *)info)->name(), NULL,
+                                   NULL, &status);
+  tools::log_stack_trace((std::string("Exception: ") +
+                          ((!status && dsym) ? dsym : (const char *)info))
+                             .c_str());
   free(dsym);
 
 #ifndef STATICLIB
 #ifndef __clang__ // for GCC the attr can't be applied in typedef like for clang
   __attribute__((noreturn))
 #endif // !__clang__
-   cxa_throw_t *__real___cxa_throw = (cxa_throw_t*)dlsym(RTLD_NEXT, "__cxa_throw");
+  cxa_throw_t *__real___cxa_throw =
+      (cxa_throw_t *)dlsym(RTLD_NEXT, "__cxa_throw");
 #endif // !STATICLIB
   __real___cxa_throw(ex, info, dest);
 }
 
-namespace
-{
-  std::string stack_trace_log;
+namespace {
+std::string stack_trace_log;
 }
 
-namespace tools
-{
+namespace tools {
 
-void set_stack_trace_log(const std::string &log)
-{
-  stack_trace_log = log;
-}
+void set_stack_trace_log(const std::string &log) { stack_trace_log = log; }
 
-void log_stack_trace(const char *msg)
-{
+void log_stack_trace(const char *msg) {
 #ifdef USE_UNWIND
   unw_context_t ctx;
   unw_cursor_t cur;
@@ -155,11 +157,14 @@ void log_stack_trace(const char *msg)
       continue;
     }
     if (unw_get_proc_name(&cur, sym, sizeof(sym), &off) < 0) {
-      ST_LOG("  " << std::setw(4) << level << std::setbase(16) << std::setw(20) << "0x" << ip);
+      ST_LOG("  " << std::setw(4) << level << std::setbase(16) << std::setw(20)
+                  << "0x" << ip);
       continue;
     }
     dsym = abi::__cxa_demangle(sym, NULL, NULL, &status);
-    ST_LOG("  " << std::setw(4) << level << std::setbase(16) << std::setw(20) << "0x" << ip << " " << (!status && dsym ? dsym : sym) << " + " << "0x" << off);
+    ST_LOG("  " << std::setw(4) << level << std::setbase(16) << std::setw(20)
+                << "0x" << ip << " " << (!status && dsym ? dsym : sym) << " + "
+                << "0x" << off);
     free(dsym);
   }
 #else
@@ -168,9 +173,9 @@ void log_stack_trace(const char *msg)
   std::vector<std::string> lines;
   std::string s = ss.str();
   boost::split(lines, s, boost::is_any_of("\n"));
-  for (const auto &line: lines)
+  for (const auto &line : lines)
     ST_LOG(line);
 #endif
 }
 
-}  // namespace tools
+} // namespace tools

@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -73,14 +73,11 @@ bool test_transaction_generation_and_ring_signature()
   construct_miner_tx(0, 0, 0, 0, 0, miner_acc6.get_keys().m_account_address, tx_mine_6);
 
   //fill inputs entry
-  typedef tx_source_entry::output_entry tx_output_entry;
   std::vector<tx_source_entry> sources;
   sources.resize(sources.size()+1);
   tx_source_entry& src = sources.back();
   src.amount = 70368744177663;
   {
-    tx_output_entry oe;
-
     src.push_output(0, boost::get<txout_to_key>(tx_mine_1.vout[0].target).key, src.amount);
 
     src.push_output(1, boost::get<txout_to_key>(tx_mine_2.vout[0].target).key, src.amount);

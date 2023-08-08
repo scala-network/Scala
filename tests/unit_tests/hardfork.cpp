@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -433,7 +433,6 @@ TEST(voting, info)
 
   //                                             0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9
   static const uint8_t block_versions[]      = { 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4 };
-  static const uint8_t expected_versions[]   = { 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4 };
   static const uint8_t expected_thresholds[] = { 0, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 2, 2, 2, 2 };
 
   for (uint64_t h = 0; h < sizeof(block_versions) / sizeof(block_versions[0]); ++h) {

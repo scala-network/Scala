@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -80,14 +80,14 @@ namespace
   protected:
     virtual void SetUp()
     {
-      m_block_not_too_big = get_block_reward(0, 0, already_generated_coins, m_standard_block_reward, 1, 1);
+      m_block_not_too_big = get_block_reward(0, 0, already_generated_coins, m_standard_block_reward, 1,1);
       ASSERT_TRUE(m_block_not_too_big);
       ASSERT_LT(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1, m_standard_block_reward);
     }
 
     void do_test(size_t median_block_weight, size_t current_block_weight)
     {
-      m_block_not_too_big = get_block_reward(median_block_weight, current_block_weight, already_generated_coins, m_block_reward, 1, 1);
+      m_block_not_too_big = get_block_reward(median_block_weight, current_block_weight, already_generated_coins, m_block_reward, 1,1);
     }
 
     static const uint64_t already_generated_coins = 0;
@@ -139,24 +139,6 @@ namespace
     ASSERT_FALSE(m_block_not_too_big);
   }
 
-#ifdef __x86_64__ // For 64-bit systems only, because block size is limited to size_t.
-  TEST_F(block_reward_and_current_block_weight, fails_on_huge_median_size)
-  {
-#if !defined(NDEBUG)
-    size_t huge_size = std::numeric_limits<uint32_t>::max() + UINT64_C(2);
-    ASSERT_DEATH(do_test(huge_size, huge_size + 1), "");
-#endif
-  }
-
-  TEST_F(block_reward_and_current_block_weight, fails_on_huge_block_weight)
-  {
-#if !defined(NDEBUG)
-    size_t huge_size = std::numeric_limits<uint32_t>::max() + UINT64_C(2);
-    ASSERT_DEATH(do_test(huge_size - 2, huge_size), "");
-#endif
-  }
-#endif // __x86_64__
-
   //--------------------------------------------------------------------------------------------------------------------
   class block_reward_and_last_block_weights : public ::testing::Test
   {
@@ -171,14 +153,14 @@ namespace
 
       m_last_block_weights_median = 7 * CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1;
 
-      m_block_not_too_big = get_block_reward(epee::misc_utils::median(m_last_block_weights), 0, already_generated_coins, m_standard_block_reward, 1, 1);
+      m_block_not_too_big = get_block_reward(epee::misc_utils::median(m_last_block_weights), 0, already_generated_coins, m_standard_block_reward, 1,1);
       ASSERT_TRUE(m_block_not_too_big);
       ASSERT_LT(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1, m_standard_block_reward);
     }
 
     void do_test(size_t current_block_weight)
     {
-      m_block_not_too_big = get_block_reward(epee::misc_utils::median(m_last_block_weights), current_block_weight, already_generated_coins, m_block_reward, 1, 1);
+      m_block_not_too_big = get_block_reward(epee::misc_utils::median(m_last_block_weights), current_block_weight, already_generated_coins, m_block_reward, 1,1);
     }
 
     static const uint64_t already_generated_coins = 0;

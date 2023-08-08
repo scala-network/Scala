@@ -5,11 +5,9 @@
 #include <vector>
 #include <map>
 
-class TimingsDatabase
-{
+class TimingsDatabase {
 public:
-  struct instance
-  {
+  struct instance {
     time_t t;
     size_t npoints;
     double min, max, mean, median, stddev, npskew;

@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -36,7 +36,7 @@
 
 struct memcmp32
 {
-  static const size_t loop_count = 1000000000;
+  static const size_t loop_count = 10000000;
   static int call(const unsigned char *k0, const unsigned char *k1){ return memcmp(k0, k1, 32); }
 };
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -38,12 +38,13 @@
 #include <boost/asio/ip/udp.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/format.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include "common/apply_permutation.h"
 #include "transport.hpp"
 #include "messages/messages-common.pb.h"
 
-#undef SCALA_DEFAULT_LOG_CATEGORY
-#define SCALA_DEFAULT_LOG_CATEGORY "device.trezor.transport"
+#undef scala_DEFAULT_LOG_CATEGORY
+#define scala_DEFAULT_LOG_CATEGORY "device.trezor.transport"
 
 using namespace std;
 using json = rapidjson::Document;
@@ -156,7 +157,11 @@ namespace trezor{
 #define PROTO_HEADER_SIZE 6
 
   static size_t message_size(const google::protobuf::Message &req){
-    return static_cast<size_t>(req.ByteSize());
+#if GOOGLE_PROTOBUF_VERSION < 3006001
+    return size_t(req.ByteSize());
+#else
+    return req.ByteSizeLong();
+#endif
   }
 
   static size_t serialize_message_buffer_size(size_t msg_size) {
@@ -572,8 +577,13 @@ namespace trezor{
       std::string req = "PINGPING";
       char res[8];
 
-      m_socket->send_to(boost::asio::buffer(req.c_str(), req.size()), m_endpoint);
-      receive(res, 8, nullptr, false, timeout);
+      const auto written = m_socket->send_to(boost::asio::buffer(req.c_str(), req.size()), m_endpoint);
+      if (written != req.size())
+        return false;
+      memset(res, 0, sizeof(res));
+      const auto received = receive(res, 8, nullptr, false, timeout);
+      if (received != 8)
+        return false;
 
       return memcmp(res, "PONGPONG", 8) == 0;
 
@@ -817,11 +827,11 @@ namespace trezor{
 #  define TREZOR_LIBUSB_SET_DEBUG(ctx, level) libusb_set_debug(ctx, level)
 #endif
 
-    if (ELPP->vRegistry()->allowed(el::Level::Debug, SCALA_DEFAULT_LOG_CATEGORY))
+    if (ELPP->vRegistry()->allowed(el::Level::Debug, scala_DEFAULT_LOG_CATEGORY))
       TREZOR_LIBUSB_SET_DEBUG(ctx, 3);
-    else if (ELPP->vRegistry()->allowed(el::Level::Warning, SCALA_DEFAULT_LOG_CATEGORY))
+    else if (ELPP->vRegistry()->allowed(el::Level::Warning, scala_DEFAULT_LOG_CATEGORY))
       TREZOR_LIBUSB_SET_DEBUG(ctx, 2);
-    else if (ELPP->vRegistry()->allowed(el::Level::Error, SCALA_DEFAULT_LOG_CATEGORY))
+    else if (ELPP->vRegistry()->allowed(el::Level::Error, scala_DEFAULT_LOG_CATEGORY))
       TREZOR_LIBUSB_SET_DEBUG(ctx, 1);
 
 #undef TREZOR_LIBUSB_SET_DEBUG

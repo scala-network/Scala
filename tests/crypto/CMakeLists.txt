@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -38,7 +38,7 @@ set(crypto_sources
 set(crypto_headers
   crypto-tests.h)
 
-add_executable(cncrypto-tests
+scala_add_minimal_executable(cncrypto-tests
   ${crypto_sources}
   ${crypto_headers})
 target_link_libraries(cncrypto-tests
@@ -54,7 +54,7 @@ add_test(
   NAME    cncrypto
   COMMAND cncrypto-tests "${CMAKE_CURRENT_SOURCE_DIR}/tests.txt")
 
-add_executable(cnv4-jit-tests cnv4-jit.c)
+scala_add_minimal_executable(cnv4-jit-tests cnv4-jit.c)
 target_link_libraries(cnv4-jit-tests
   PRIVATE
     common

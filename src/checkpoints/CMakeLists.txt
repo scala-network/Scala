@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -42,8 +42,7 @@ set(checkpoints_sources
 
 set(checkpoints_headers)
 
-set(checkpoints_private_headers
-  checkpoints.h)
+scala_find_all_headers(checkpoints_private_headers "${CMAKE_CURRENT_SOURCE_DIR}")
 
 scala_private_headers(checkpoints
   ${checkpoints_private_headers})

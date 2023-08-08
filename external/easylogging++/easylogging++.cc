@@ -17,6 +17,7 @@
 #define EASYLOGGING_CC
 #include "easylogging++.h"
 
+#include <atomic>
 #include <unistd.h>
 
 #if defined(AUTO_INITIALIZE_EASYLOGGINGPP)
@@ -148,6 +149,11 @@ static el::Color colorFromLevel(el::Level level)
 
 static void setConsoleColor(el::Color color, bool bright)
 {
+  static const char *no_color_var = getenv("NO_COLOR");
+  static const bool no_color = no_color_var && *no_color_var; // apparently, NO_COLOR=0 means no color too (as per no-color.org)
+  if (no_color)
+    return;
+
 #if ELPP_OS_WINDOWS
   HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
   switch (color)
@@ -713,9 +719,8 @@ Logger::Logger(const std::string& id, const Configurations& configurations,
 }
 
 Logger::Logger(const Logger& logger) {
-  base::utils::safeDelete(m_typedConfigurations);
   m_id = logger.m_id;
-  m_typedConfigurations = logger.m_typedConfigurations;
+  m_typedConfigurations = logger.m_typedConfigurations ? new base::TypedConfigurations(*logger.m_typedConfigurations) : nullptr;
   m_parentApplicationName = logger.m_parentApplicationName;
   m_isConfigured = logger.m_isConfigured;
   m_configurations = logger.m_configurations;
@@ -727,7 +732,7 @@ Logger& Logger::operator=(const Logger& logger) {
   if (&logger != this) {
     base::utils::safeDelete(m_typedConfigurations);
     m_id = logger.m_id;
-    m_typedConfigurations = logger.m_typedConfigurations;
+    m_typedConfigurations = logger.m_typedConfigurations ? new base::TypedConfigurations(*logger.m_typedConfigurations) : nullptr;
     m_parentApplicationName = logger.m_parentApplicationName;
     m_isConfigured = logger.m_isConfigured;
     m_configurations = logger.m_configurations;
@@ -2035,7 +2040,7 @@ void RegisteredLoggers::unsafeFlushAll(void) {
 
 // VRegistry
 
-VRegistry::VRegistry(base::type::VerboseLevel level, base::type::EnumType* pFlags) : m_level(level), m_pFlags(pFlags), m_lowest_priority(INT_MAX) {
+VRegistry::VRegistry(base::type::VerboseLevel level, base::type::EnumType* pFlags) : m_level(level), m_pFlags(pFlags) {
 }
 
 /// @brief Sets verbose level. Accepted range is 0-9
@@ -2131,18 +2136,30 @@ static int priority(Level level) {
   return 7;
 }
 
+namespace
+{
+  std::atomic<int> s_lowest_priority{INT_MAX};
+}
+
+void VRegistry::clearCategories(void) {
+  const base::threading::ScopedLock scopedLock(lock());
+  m_categories.clear();
+  m_cached_allowed_categories.clear();
+  s_lowest_priority = INT_MAX;
+}
+
 void VRegistry::setCategories(const char* categories, bool clear) {
   base::threading::ScopedLock scopedLock(lock());
   auto insert = [&](std::stringstream& ss, Level level) {
     m_categories.push_back(std::make_pair(ss.str(), level));
     m_cached_allowed_categories.clear();
     int pri = priority(level);
-    if (pri > m_lowest_priority)
-      m_lowest_priority = pri;
+    if (pri > s_lowest_priority)
+      s_lowest_priority = pri;
   };
 
   if (clear) {
-    m_lowest_priority = 0;
+    s_lowest_priority = 0;
     m_categories.clear();
     m_cached_allowed_categories.clear();
     m_categoriesString.clear();
@@ -2200,9 +2217,9 @@ std::string VRegistry::getCategories() {
 }
 
 bool VRegistry::allowed(Level level, const std::string &category) {
-  const int pri = priority(level);
-  if (pri > m_lowest_priority)
-    return false;
+  return priority_allowed(priority(level), category);
+}
+bool VRegistry::priority_allowed(const int pri, const std::string &category) {
   base::threading::ScopedLock scopedLock(lock());
   const std::map<std::string, int>::const_iterator it = m_cached_allowed_categories.find(category);
   if (it != m_cached_allowed_categories.end())
@@ -2475,6 +2492,104 @@ void DefaultLogDispatchCallback::handle(const LogDispatchData* data) {
   }
 }
 
+
+template<typename Transform>
+static inline void utf8canonical(std::string &s, Transform t = [](wint_t c)->wint_t { return c; })
+{
+    size_t avail = s.size();
+    const char *ptr = s.data();
+    wint_t cp = 0;
+    int rbytes = 1, bytes = -1;
+    char wbuf[8], *wptr;
+    size_t w_offset = 0;
+    while (avail--)
+    {
+      if ((*ptr & 0x80) == 0)
+      {
+        cp = *ptr++;
+        rbytes = 1;
+      }
+      else if ((*ptr & 0xe0) == 0xc0)
+      {
+        if (avail < 1)
+          throw std::runtime_error("Invalid UTF-8");
+        cp = (*ptr++ & 0x1f) << 6;
+        cp |= *ptr++ & 0x3f;
+        --avail;
+        rbytes = 2;
+      }
+      else if ((*ptr & 0xf0) == 0xe0)
+      {
+        if (avail < 2)
+          throw std::runtime_error("Invalid UTF-8");
+        cp = (*ptr++ & 0xf) << 12;
+        cp |= (*ptr++ & 0x3f) << 6;
+        cp |= *ptr++ & 0x3f;
+        avail -= 2;
+        rbytes = 3;
+      }
+      else if ((*ptr & 0xf8) == 0xf0)
+      {
+        if (avail < 3)
+          throw std::runtime_error("Invalid UTF-8");
+        cp = (*ptr++ & 0x7) << 18;
+        cp |= (*ptr++ & 0x3f) << 12;
+        cp |= (*ptr++ & 0x3f) << 6;
+        cp |= *ptr++ & 0x3f;
+        avail -= 3;
+        rbytes = 4;
+      }
+      else
+        throw std::runtime_error("Invalid UTF-8");
+
+      cp = t(cp);
+      if (cp <= 0x7f)
+        bytes = 1;
+      else if (cp <= 0x7ff)
+        bytes = 2;
+      else if (cp <= 0xffff)
+        bytes = 3;
+      else if (cp <= 0x10ffff)
+        bytes = 4;
+      else
+        throw std::runtime_error("Invalid code point UTF-8 transformation");
+
+      if (bytes > rbytes)
+        throw std::runtime_error("In place sanitization requires replacements to not take more space than the original code points");
+
+      wptr = wbuf;
+      switch (bytes)
+      {
+        case 1: *wptr++ = cp; break;
+        case 2: *wptr++ = 0xc0 | (cp >> 6); *wptr++ = 0x80 | (cp & 0x3f); break;
+        case 3: *wptr++ = 0xe0 | (cp >> 12); *wptr++ = 0x80 | ((cp >> 6) & 0x3f); *wptr++ = 0x80 | (cp & 0x3f); break;
+        case 4: *wptr++ = 0xf0 | (cp >> 18); *wptr++ = 0x80 | ((cp >> 12) & 0x3f); *wptr++ = 0x80 | ((cp >> 6) & 0x3f); *wptr++ = 0x80 | (cp & 0x3f); break;
+        default: throw std::runtime_error("Invalid UTF-8");
+      }
+      *wptr = 0;
+      memcpy(&s[w_offset], wbuf, bytes);
+      w_offset += bytes;
+      cp = 0;
+      bytes = 1;
+    }
+    s.resize(w_offset);
+}
+
+void sanitize(std::string &s)
+{
+  utf8canonical(s, [](wint_t c)->wint_t {
+    if (c == 9 || c == 10 || c == 13)
+      return c;
+    if (c < 0x20)
+      return '?';
+    if (c == 0x7f)
+      return '?';
+    if (c >= 0x80 && c <= 0x9f)
+      return '?';
+    return c;
+  });
+}
+
 void DefaultLogDispatchCallback::dispatch(base::type::string_t&& rawLinePrefix, base::type::string_t&& rawLinePayload, base::type::string_t&& logLine) {
   if (m_data->dispatchAction() == base::DispatchAction::NormalLog || m_data->dispatchAction() == base::DispatchAction::FileOnlyLog) {
     if (m_data->logMessage()->logger()->m_typedConfigurations->toFile(m_data->logMessage()->level())) {
@@ -2506,6 +2621,8 @@ void DefaultLogDispatchCallback::dispatch(base::type::string_t&& rawLinePrefix, 
         m_data->logMessage()->logger()->logBuilder()->setColor(el::base::utils::colorFromLevel(level), false);
         ELPP_COUT << rawLinePrefix;
         m_data->logMessage()->logger()->logBuilder()->setColor(color == el::Color::Default ? el::base::utils::colorFromLevel(level): color, color != el::Color::Default);
+        try { sanitize(rawLinePayload); }
+        catch (const std::exception &e) { rawLinePayload = "<Invalid UTF-8 in log>"; }
         ELPP_COUT << rawLinePayload;
         m_data->logMessage()->logger()->logBuilder()->setColor(el::Color::Default, false);
         ELPP_COUT << std::flush;
@@ -2872,6 +2989,17 @@ void Writer::initializeLogger(Logger *logger, bool needLock) {
 }
 
 void Writer::processDispatch() {
+  static __thread bool in_dispatch = false;
+  if (in_dispatch)
+  {
+    if (m_proceed && m_logger != NULL)
+    {
+      m_logger->stream().str(ELPP_LITERAL(""));
+      m_logger->releaseLock();
+    }
+    return;
+  }
+  in_dispatch = true;
 #if ELPP_LOGGING_ENABLED
   if (ELPP->hasFlag(LoggingFlag::MultiLoggerSupport)) {
     bool firstDispatched = false;
@@ -2910,6 +3038,7 @@ void Writer::processDispatch() {
     m_logger->releaseLock();
   }
 #endif // ELPP_LOGGING_ENABLED
+  in_dispatch = false;
 }
 
 void Writer::triggerDispatch(void) {
@@ -3227,6 +3356,14 @@ void Helpers::logCrashReason(int sig, bool stackTraceIfAvailable, Level level, c
 #endif // defined(ELPP_FEATURE_ALL) || defined(ELPP_FEATURE_CRASH_LOG)
 
 // Loggers
+
+bool Loggers::allowed(Level level, const char* cat)
+{
+  const int pri = base::priority(level);
+  if (pri > base::s_lowest_priority)
+    return false;
+  return ELPP->vRegistry()->priority_allowed(pri, std::string{cat});
+}
 
 Logger* Loggers::getLogger(const std::string& identity, bool registerIfNotAvailable) {
   return ELPP->registeredLoggers()->get(identity, registerIfNotAvailable);

@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -40,7 +41,7 @@ set(trezor_tests_headers
         ../core_tests/chaingen.h
         ../core_tests/wallet_tools.h)
 
-add_executable(trezor_tests
+scala_add_minimal_executable(trezor_tests
   ${trezor_tests_sources}
   ${trezor_tests_headers})
 

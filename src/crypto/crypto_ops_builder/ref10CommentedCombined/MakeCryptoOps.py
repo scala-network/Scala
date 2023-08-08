@@ -15,8 +15,8 @@ print("maybe someone smart can replace the sed with perl..")
 a = ""
 
 license = textwrap.dedent("""\
-    //Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+    // Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
     // 
     // All rights reserved.
     // 
@@ -121,10 +121,10 @@ ge_comments = textwrap.dedent("""\
     */
     """)
 
-xla_comments = textwrap.dedent("""\
+xmr_comments = textwrap.dedent("""\
     /*
      *
-     * xla specific code
+     * xmr specific code
      *
      *
     This code is from the original CryptoNote.
@@ -172,7 +172,7 @@ if a == "m":
         os.system("cp "+g+" "+g.replace("fe", "fe.scala."))
     qhasmToC("fe_pow22523.c", "pow22523.h", "fe.scala._pow22523.c")
     qhasmToC("fe_invert.c", "pow225521.h", "fe.scala._invert.c")
-    os.system("rm fe.scala._isnonzero.c") #since it's modified, it's in xlaSpecificOld
+    os.system("rm fe.scala._isnonzero.c") #since it's modified, it's in xmrSpecificOld
     os.system("cat fe.scala.*.c | grep -v '^#include' > fe.scala.c")
 
     #sc things
@@ -181,7 +181,7 @@ if a == "m":
     #so you don't get multiple "loads"
     os.system("tail -n +24 sc_reduce.c > sc.scala._reduce.c") #also good on linux
     os.system("tail -n +24 sc_muladd.c > sc.scala._muladd.c")
-    os.system("tail -n +31 sc_sub.xla.c > sc.scala._sub.xla.c") #careful with the tails if you change these files!
+    os.system("tail -n +31 sc_sub.xmr.c > sc.scala._sub.xmr.c") #careful with the tails if you change these files!
     os.system("cat sc.scala.*.c | grep -v '^#include' > sc.scala.c")
 
     #ge stuff
@@ -224,9 +224,9 @@ if a == "m":
             text_file.write(ge_comments)
     with open("sc.scala.comments", "w") as text_file:
             text_file.write(sc_comments)
-    with open("xla.scala.comments", "w") as text_file:
-            text_file.write(xla_comments)
-    with open("xla.scala.predeclarations", "w") as text_file:
+    with open("xmr.scala.comments", "w") as text_file:
+            text_file.write(xmr_comments)
+    with open("xmr.scala.predeclarations", "w") as text_file:
             text_file.write(predeclarations)
 
 
@@ -239,7 +239,7 @@ if a == "m":
         text_file.write(crypto_ops_includes)
 
     #note you may have duplicates of load_3, load_4 and possibly some other functions ... 
-    os.system("cat scala.license crypto-ops.scala.includes xla.scala.predeclarations fe.scala.comments fe.scala.c sc.scala.comments sc.scala.c ge.scala.comments ge.scala.c xla.scala.comments xlaSpecificOld.c > crypto-ops.c")
+    os.system("cat scala.license crypto-ops.scala.includes xmr.scala.predeclarations fe.scala.comments fe.scala.c sc.scala.comments sc.scala.c ge.scala.comments ge.scala.c xmr.scala.comments xmrSpecificOld.c > crypto-ops.c")
 
     #scala specific header files
     #print("making crypto-ops-tmp.h")

@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -196,7 +196,7 @@ void run_test(const std::string &filter, Params &params, const char* test_name)
      scale = 1000;
      time_per_call = runner.time_per_call(1000);
 #ifdef _WIN32
-     unit = "\xb5s";
+     unit = "us";
 #else
      unit = "µs";
 #endif
@@ -216,7 +216,6 @@ void run_test(const std::string &filter, Params &params, const char* test_name)
     if (params.stats)
     {
       uint64_t mins = min / scale;
-      uint64_t maxs = max / scale;
       uint64_t meds = med / scale;
       uint64_t p95s = quantiles[9] / scale;
       uint64_t stddevs = stddev / scale;

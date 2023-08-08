@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -182,7 +182,7 @@ namespace daemonizer
     }
     else // interactive
     {
-      //LOG_PRINT_L0("Scala '" << SCALA_RELEASE_NAME << "' (v" << SCALA_VERSION_FULL);
+      //LOG_PRINT_L0("scala '" << scala_RELEASE_NAME << "' (v" << scala_VERSION_FULL);
       if (command_line::has_arg(vm, arg_non_interactive))
         return executor.run_non_interactive(vm);
       else

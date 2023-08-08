@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2018-2023, The Scala Project
+
 // 
 // All rights reserved.
 // 
@@ -29,8 +30,6 @@
 #pragma once
 
 #include <vector>
-#include <stdexcept>
-#include <limits>
 #include "misc_log_ex.h"
 #include "span.h"
 

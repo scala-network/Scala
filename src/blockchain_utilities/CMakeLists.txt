@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -182,7 +182,6 @@ set_property(TARGET blockchain_export
 	OUTPUT_NAME "scala-blockchain-export")
 install(TARGETS blockchain_export DESTINATION bin)
 
-#[[
 scala_add_executable(blockchain_blackball
   ${blockchain_blackball_sources}
   ${blockchain_blackball_private_headers})
@@ -199,7 +198,6 @@ target_link_libraries(blockchain_blackball
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
-
 
 set_property(TARGET blockchain_blackball
 	PROPERTY
@@ -334,4 +332,3 @@ target_link_libraries(blockchain_prune
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
-]]

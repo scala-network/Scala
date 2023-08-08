@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -52,7 +52,7 @@ namespace
   const command_line::arg_descriptor<std::string> arg_daemon_addr_b   = {"daemon-addr-b",  "", "127.0.0.1:8082"};
 
   const command_line::arg_descriptor<uint64_t> arg_transfer_amount = {"transfer_amount",   "", 60000000000000};
-  const command_line::arg_descriptor<size_t> arg_mix_in_factor     = {"mix-in-factor",     "", 10};
+  const command_line::arg_descriptor<size_t> arg_mix_in_factor     = {"mix-in-factor",     "", 15};
   const command_line::arg_descriptor<size_t> arg_tx_count          = {"tx-count",          "", 100};
   const command_line::arg_descriptor<size_t> arg_tx_per_second     = {"tx-per-second",     "", 20};
   const command_line::arg_descriptor<size_t> arg_test_repeat_count = {"test_repeat_count", "", 1};

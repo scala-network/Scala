@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -31,7 +32,7 @@ set(block_weight_sources
 
 set(block_weight_headers)
 
-add_executable(block_weight
+scala_add_minimal_executable(block_weight
   ${block_weight_sources}
   ${block_weight_headers})
 target_link_libraries(block_weight

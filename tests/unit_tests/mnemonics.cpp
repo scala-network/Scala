@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -50,9 +50,7 @@
 #include "mnemonics/esperanto.h"
 #include "mnemonics/lojban.h"
 #include "mnemonics/english_old.h"
-#include "mnemonics/language_base.h"
 #include "mnemonics/singleton.h"
-#include <boost/algorithm/string.hpp>
 
 namespace
 {

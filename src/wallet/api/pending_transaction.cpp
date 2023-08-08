@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 //
 // All rights reserved.
 //
@@ -41,10 +41,11 @@
 #include <vector>
 #include <sstream>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 
-namespace Scala {
+namespace scala {
 
 PendingTransaction::~PendingTransaction() {}
 
@@ -264,6 +265,3 @@ std::vector<std::string> PendingTransactionImpl::signersKeys() const {
 }
 
 }
-
-namespace Bitscala = Scala;
-

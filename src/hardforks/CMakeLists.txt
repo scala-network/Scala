@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -30,8 +30,7 @@
 set(hardforks_sources
   hardforks.cpp)
 
-set(hardforks_headers
-  hardforks.h)
+scala_find_all_headers(hardforks_headers "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(hardforks_private_headers)
 

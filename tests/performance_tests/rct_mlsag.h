@@ -1,5 +1,5 @@
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Monero Project
+// Copyright (c) 2021-2023, Haku Labs MTÜ
 // 
 // All rights reserved.
 // 
@@ -66,7 +66,7 @@ public:
     {
         sk[j] = xm[ind][j];
     }
-    IIccss = MLSAG_Gen(rct::identity(), P, sk, NULL, NULL, ind, rows-1, hw::get_device("default"));
+    IIccss = MLSAG_Gen(rct::identity(), P, sk, ind, rows-1, hw::get_device("default"));
 
     return true;
   }
@@ -76,7 +76,7 @@ public:
     if (ver)
       MLSAG_Ver(rct::identity(), P, IIccss, rows-1);
     else
-      MLSAG_Gen(rct::identity(), P, sk, NULL, NULL, ind, rows-1, hw::get_device("default"));
+      MLSAG_Gen(rct::identity(), P, sk, ind, rows-1, hw::get_device("default"));
     return true;
   }
 

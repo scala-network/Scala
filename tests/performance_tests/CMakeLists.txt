@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
-# Copyright (c) 2018-2020, The Scala Network
+# Copyright (c) 2014-2023, The Monero Project
+# Copyright (c) 2021-2023, Haku Labs MTÜ
 #
 # All rights reserved.
 #
@@ -44,9 +44,11 @@ set(performance_tests_headers
   generate_keypair.h
   signature.h
   is_out_to_acc.h
+  out_can_be_to_acc.h
   subaddress_expand.h
   range_proof.h
   bulletproof.h
+  bulletproof_plus.h
   crypto_ops.h
   sc_reduce32.h
   sc_check.h
@@ -56,7 +58,7 @@ set(performance_tests_headers
   performance_utils.h
   single_tx_test_base.h)
 
-add_executable(performance_tests
+scala_add_minimal_executable(performance_tests
   ${performance_tests_sources}
   ${performance_tests_headers})
 target_link_libraries(performance_tests

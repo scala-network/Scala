@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2023, The scala Project
 //
 // All rights reserved.
 //
@@ -27,8 +27,8 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef SCALA_PROTOCOL_H
-#define SCALA_PROTOCOL_H
+#ifndef scala_PROTOCOL_H
+#define scala_PROTOCOL_H
 
 #include "trezor_defs.hpp"
 #include "device/device_cold.hpp"
@@ -66,9 +66,7 @@ namespace protocol{
 
   template<typename T>
   bool cn_deserialize(const void * buff, size_t len, T & dst){
-    std::stringstream ss;
-    ss.write(static_cast<const char *>(buff), len);  //ss << tx_blob;
-    binary_archive<false> ba(ss);
+    binary_archive<false> ba{{reinterpret_cast<const std::uint8_t*>(buff), len}};
     bool r = ::serialization::serialize(ba, dst);
     return r;
   }
@@ -108,67 +106,65 @@ namespace chacha {
 // Cold Key image sync
 namespace ki {
 
-  using ScalaTransferDetails = messages::scala::ScalaKeyImageSyncStepRequest_ScalaTransferDetails;
-  using ScalaSubAddressIndicesList = messages::scala::ScalaKeyImageExportInitRequest_ScalaSubAddressIndicesList;
-  using ScalaExportedKeyImage = messages::scala::ScalaKeyImageSyncStepAck_ScalaExportedKeyImage;
+  using scalaTransferDetails = messages::scala::scalaKeyImageSyncStepRequest_scalaTransferDetails;
+  using scalaSubAddressIndicesList = messages::scala::scalaKeyImageExportInitRequest_scalaSubAddressIndicesList;
+  using scalaExportedKeyImage = messages::scala::scalaKeyImageSyncStepAck_scalaExportedKeyImage;
   using exported_key_image = hw::device_cold::exported_key_image;
 
   /**
-   * Converts transfer details to the ScalaTransferDetails required for KI sync
+   * Converts transfer details to the scalaTransferDetails required for KI sync
    */
   bool key_image_data(wallet_shim * wallet,
                       const std::vector<tools::wallet2::transfer_details> & transfers,
-                      std::vector<ScalaTransferDetails> & res,
-                      bool need_all_additionals=false);
+                      std::vector<scalaTransferDetails> & res);
 
   /**
-   * Computes a hash over ScalaTransferDetails. Commitment used in the KI sync.
+   * Computes a hash over scalaTransferDetails. Commitment used in the KI sync.
    */
-  std::string compute_hash(const ScalaTransferDetails & rr);
+  std::string compute_hash(const scalaTransferDetails & rr);
 
   /**
    * Generates KI sync request with commitments computed.
    */
-  void generate_commitment(std::vector<ScalaTransferDetails> & mtds,
+  void generate_commitment(std::vector<scalaTransferDetails> & mtds,
                            const std::vector<tools::wallet2::transfer_details> & transfers,
-                           std::shared_ptr<messages::scala::ScalaKeyImageExportInitRequest> & req,
-                           bool need_subaddr_indices=false);
+                           std::shared_ptr<messages::scala::scalaKeyImageExportInitRequest> & req);
 
   /**
    * Processes Live refresh step response, parses KI, checks the signature
    */
   void live_refresh_ack(const ::crypto::secret_key & view_key_priv,
                         const ::crypto::public_key& out_key,
-                        const std::shared_ptr<messages::scala::ScalaLiveRefreshStepAck> & ack,
+                        const std::shared_ptr<messages::scala::scalaLiveRefreshStepAck> & ack,
                         ::cryptonote::keypair& in_ephemeral,
                         ::crypto::key_image& ki);
 }
 
 // Cold transaction signing
 namespace tx {
-  using TsxData = messages::scala::ScalaTransactionInitRequest_ScalaTransactionData;
-  using ScalaTransactionDestinationEntry = messages::scala::ScalaTransactionDestinationEntry;
-  using ScalaAccountPublicAddress = messages::scala::ScalaTransactionDestinationEntry_ScalaAccountPublicAddress;
-  using ScalaTransactionSourceEntry = messages::scala::ScalaTransactionSourceEntry;
-  using ScalaMultisigKLRki = messages::scala::ScalaTransactionSourceEntry_ScalaMultisigKLRki;
-  using ScalaOutputEntry = messages::scala::ScalaTransactionSourceEntry_ScalaOutputEntry;
-  using ScalaRctKey = messages::scala::ScalaTransactionSourceEntry_ScalaOutputEntry_ScalaRctKeyPublic;
-  using ScalaRsigData = messages::scala::ScalaTransactionRsigData;
+  using TsxData = messages::scala::scalaTransactionInitRequest_scalaTransactionData;
+  using scalaTransactionDestinationEntry = messages::scala::scalaTransactionDestinationEntry;
+  using scalaAccountPublicAddress = messages::scala::scalaTransactionDestinationEntry_scalaAccountPublicAddress;
+  using scalaTransactionSourceEntry = messages::scala::scalaTransactionSourceEntry;
+  using scalaMultisigKLRki = messages::scala::scalaTransactionSourceEntry_scalaMultisigKLRki;
+  using scalaOutputEntry = messages::scala::scalaTransactionSourceEntry_scalaOutputEntry;
+  using scalaRctKey = messages::scala::scalaTransactionSourceEntry_scalaOutputEntry_scalaRctKeyPublic;
+  using scalaRsigData = messages::scala::scalaTransactionRsigData;
 
   using tx_construction_data = tools::wallet2::tx_construction_data;
   using unsigned_tx_set = tools::wallet2::unsigned_tx_set;
 
-  void translate_address(ScalaAccountPublicAddress * dst, const cryptonote::account_public_address * src);
-  void translate_dst_entry(ScalaTransactionDestinationEntry * dst, const cryptonote::tx_destination_entry * src);
-  void translate_klrki(ScalaMultisigKLRki * dst, const rct::multisig_kLRki * src);
-  void translate_rct_key(ScalaRctKey * dst, const rct::ctkey * src);
-  std::string hash_addr(const ScalaAccountPublicAddress * addr, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
+  void translate_address(scalaAccountPublicAddress * dst, const cryptonote::account_public_address * src);
+  void translate_dst_entry(scalaTransactionDestinationEntry * dst, const cryptonote::tx_destination_entry * src);
+  void translate_klrki(scalaMultisigKLRki * dst, const rct::multisig_kLRki * src);
+  void translate_rct_key(scalaRctKey * dst, const rct::ctkey * src);
+  std::string hash_addr(const scalaAccountPublicAddress * addr, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
   std::string hash_addr(const std::string & spend_key, const std::string & view_key, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
   std::string hash_addr(const ::crypto::public_key * spend_key, const ::crypto::public_key * view_key, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
   ::crypto::secret_key compute_enc_key(const ::crypto::secret_key & private_view_key, const std::string & aux, const std::string & salt);
   std::string compute_sealing_key(const std::string & master_key, size_t idx, bool is_iv=false);
 
-  typedef boost::variant<rct::rangeSig, rct::Bulletproof> rsig_v;
+  typedef boost::variant<rct::Bulletproof, rct::BulletproofPlus> rsig_v;
 
   /**
    * Transaction signer state holder.
@@ -181,7 +177,7 @@ namespace tx {
     unsigned rsig_type;
     int bp_version;
     std::vector<uint64_t> grouping_vct;
-    std::shared_ptr<ScalaRsigData> rsig_param;
+    std::shared_ptr<scalaRsigData> rsig_param;
     size_t cur_input_idx;
     size_t cur_output_idx;
     size_t cur_batch_idx;
@@ -234,8 +230,8 @@ namespace tx {
     }
 
     const tools::wallet2::transfer_details & get_transfer(size_t idx) const {
-      CHECK_AND_ASSERT_THROW_MES(idx < m_unsigned_tx->transfers.second.size() + m_unsigned_tx->transfers.first && idx >= m_unsigned_tx->transfers.first, "Invalid transfer index");
-      return m_unsigned_tx->transfers.second[idx - m_unsigned_tx->transfers.first];
+      CHECK_AND_ASSERT_THROW_MES(idx < std::get<2>(m_unsigned_tx->transfers).size() + std::get<0>(m_unsigned_tx->transfers) && idx >= std::get<0>(m_unsigned_tx->transfers), "Invalid transfer index");
+      return std::get<2>(m_unsigned_tx->transfers)[idx - std::get<0>(m_unsigned_tx->transfers)];
     }
 
     const tools::wallet2::transfer_details & get_source_transfer(size_t idx) const {
@@ -248,43 +244,41 @@ namespace tx {
     void extract_payment_id();
     void compute_integrated_indices(TsxData * tsx_data);
     bool should_compute_bp_now() const;
-    void compute_bproof(messages::scala::ScalaTransactionRsigData & rsig_data);
-    void process_bproof(rct::Bulletproof & bproof);
-    void set_tx_input(ScalaTransactionSourceEntry * dst, size_t idx, bool need_ring_keys=false, bool need_ring_indices=false);
+    void compute_bproof(messages::scala::scalaTransactionRsigData & rsig_data);
+    void process_bproof(rsig_v & bproof);
+    void set_tx_input(scalaTransactionSourceEntry * dst, size_t idx, bool need_ring_keys=false, bool need_ring_indices=false);
 
   public:
     Signer(wallet_shim * wallet2, const unsigned_tx_set * unsigned_tx, size_t tx_idx = 0, hw::tx_aux_data * aux_data = nullptr);
 
-    std::shared_ptr<messages::scala::ScalaTransactionInitRequest> step_init();
-    void step_init_ack(std::shared_ptr<const messages::scala::ScalaTransactionInitAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionInitRequest> step_init();
+    void step_init_ack(std::shared_ptr<const messages::scala::scalaTransactionInitAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionSetInputRequest> step_set_input(size_t idx);
-    void step_set_input_ack(std::shared_ptr<const messages::scala::ScalaTransactionSetInputAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionSetInputRequest> step_set_input(size_t idx);
+    void step_set_input_ack(std::shared_ptr<const messages::scala::scalaTransactionSetInputAck> ack);
 
     void sort_ki();
-    std::shared_ptr<messages::scala::ScalaTransactionInputsPermutationRequest> step_permutation();
-    void step_permutation_ack(std::shared_ptr<const messages::scala::ScalaTransactionInputsPermutationAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionInputViniRequest> step_set_vini_input(size_t idx);
-    void step_set_vini_input_ack(std::shared_ptr<const messages::scala::ScalaTransactionInputViniAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionInputViniRequest> step_set_vini_input(size_t idx);
+    void step_set_vini_input_ack(std::shared_ptr<const messages::scala::scalaTransactionInputViniAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionAllInputsSetRequest> step_all_inputs_set();
-    void step_all_inputs_set_ack(std::shared_ptr<const messages::scala::ScalaTransactionAllInputsSetAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionAllInputsSetRequest> step_all_inputs_set();
+    void step_all_inputs_set_ack(std::shared_ptr<const messages::scala::scalaTransactionAllInputsSetAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionSetOutputRequest> step_set_output(size_t idx);
-    void step_set_output_ack(std::shared_ptr<const messages::scala::ScalaTransactionSetOutputAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionSetOutputRequest> step_set_output(size_t idx);
+    void step_set_output_ack(std::shared_ptr<const messages::scala::scalaTransactionSetOutputAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionSetOutputRequest> step_rsig(size_t idx);
-    void step_set_rsig_ack(std::shared_ptr<const messages::scala::ScalaTransactionSetOutputAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionSetOutputRequest> step_rsig(size_t idx);
+    void step_set_rsig_ack(std::shared_ptr<const messages::scala::scalaTransactionSetOutputAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionAllOutSetRequest> step_all_outs_set();
-    void step_all_outs_set_ack(std::shared_ptr<const messages::scala::ScalaTransactionAllOutSetAck> ack, hw::device &hwdev);
+    std::shared_ptr<messages::scala::scalaTransactionAllOutSetRequest> step_all_outs_set();
+    void step_all_outs_set_ack(std::shared_ptr<const messages::scala::scalaTransactionAllOutSetAck> ack, hw::device &hwdev);
 
-    std::shared_ptr<messages::scala::ScalaTransactionSignInputRequest> step_sign_input(size_t idx);
-    void step_sign_input_ack(std::shared_ptr<const messages::scala::ScalaTransactionSignInputAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionSignInputRequest> step_sign_input(size_t idx);
+    void step_sign_input_ack(std::shared_ptr<const messages::scala::scalaTransactionSignInputAck> ack);
 
-    std::shared_ptr<messages::scala::ScalaTransactionFinalRequest> step_final();
-    void step_final_ack(std::shared_ptr<const messages::scala::ScalaTransactionFinalAck> ack);
+    std::shared_ptr<messages::scala::scalaTransactionFinalRequest> step_final();
+    void step_final_ack(std::shared_ptr<const messages::scala::scalaTransactionFinalAck> ack);
 
     std::string store_tx_aux_info();
 
@@ -292,11 +286,15 @@ namespace tx {
       return m_client_version;
     }
 
-    bool is_simple() const {
+    uint8_t get_rv_type() const {
       if (!m_ct.rv){
         throw std::invalid_argument("RV not initialized");
       }
-      auto tp = m_ct.rv->type;
+      return m_ct.rv->type;
+    }
+
+    bool is_simple() const {
+      auto tp = get_rv_type();
       return tp == rct::RCTTypeSimple;
     }
 
@@ -304,12 +302,27 @@ namespace tx {
       return m_ct.tx_data.rct_config.range_proof_type != rct::RangeProofBorromean;
     }
 
+    bool is_req_clsag() const {
+      return is_req_bulletproof() && m_ct.tx_data.rct_config.bp_version >= 3;
+    }
+
+    bool is_req_bulletproof_plus() const {
+      return is_req_bulletproof() && m_ct.tx_data.rct_config.bp_version == 4;  // rct::genRctSimple
+    }
+
     bool is_bulletproof() const {
-      if (!m_ct.rv){
-        throw std::invalid_argument("RV not initialized");
-      }
-      auto tp = m_ct.rv->type;
-      return tp == rct::RCTTypeBulletproof || tp == rct::RCTTypeBulletproof2;
+      auto tp = get_rv_type();
+      return rct::is_rct_bulletproof(tp) || rct::is_rct_bulletproof_plus(tp);
+    }
+
+    bool is_bulletproof_plus() const {
+      auto tp = get_rv_type();
+      return rct::is_rct_bulletproof_plus(tp);
+    }
+
+    bool is_clsag() const {
+      auto tp = get_rv_type();
+      return rct::is_rct_clsag(tp);
     }
 
     bool is_offloading() const {
@@ -332,14 +345,14 @@ namespace tx {
   // TX Key decryption
   void load_tx_key_data(hw::device_cold::tx_key_data_t & res, const std::string & data);
 
-  std::shared_ptr<messages::scala::ScalaGetTxKeyRequest> get_tx_key(
+  std::shared_ptr<messages::scala::scalaGetTxKeyRequest> get_tx_key(
       const hw::device_cold::tx_key_data_t & tx_data);
 
   void get_tx_key_ack(
       std::vector<::crypto::secret_key> & tx_keys,
       const std::string & tx_prefix_hash,
       const ::crypto::secret_key & view_key_priv,
-      std::shared_ptr<const messages::scala::ScalaGetTxKeyAck> ack
+      std::shared_ptr<const messages::scala::scalaGetTxKeyAck> ack
   );
 }
 
@@ -348,4 +361,4 @@ namespace tx {
 }
 
 
-#endif //SCALA_PROTOCOL_H
+#endif //scala_PROTOCOL_H

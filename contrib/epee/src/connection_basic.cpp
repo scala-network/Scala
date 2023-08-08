@@ -2,8 +2,7 @@
 /// @author rfree (current maintainer in scala.cc project)
 /// @brief base for connection, contains e.g. the ratelimit hooks
 
-//Copyright (c) 2014-2019, The Monero Project
-//Copyright (c) 2018-2020, The Scala Network
+// Copyright (c) 2014-2023, The Scala Project
 // 
 // All rights reserved.
 // 
@@ -40,7 +39,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
 #include "misc_language.h"
-#include "pragma_comp_defs.h"
 #include <iomanip>
 
 #include <boost/asio/basic_socket.hpp>

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2019-2023, The Scala Project
 // 
 // All rights reserved.
 // 
