@@ -190,7 +190,7 @@ bool checkpoints::init_default_checkpoints(network_type nettype) {
         "0x54");
     ADD_CHECKPOINT2(
         20, "992cf60da2c6a5643bb5bc0674af748473fa2b40ceb4739cde1e9d4a7d35dbbc",
-        "0x1d4c84")
+        "0x1d4c84");
 
     return true;
   }
