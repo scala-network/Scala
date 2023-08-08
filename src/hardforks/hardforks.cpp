@@ -40,6 +40,9 @@
 const hardfork_t mainnet_hard_forks[] = {
     {1, 1, 0, 1341378000},
     {12, 2, 0, 1582125473},
+
+    //Approximately on 14th of September 2023 (V8)
+    {16, 820102, 0, 1692005445},
 };
 
 const size_t num_mainnet_hard_forks =
@@ -49,7 +52,9 @@ const uint64_t mainnet_hard_fork_version_1_till = 1;
 const hardfork_t testnet_hard_forks[] = {
     {1, 1, 0, 1341378000},
     {12, 2, 0, 1582125473},
-    {16, 150, 0, 1691411928},
+
+    // Approximately on 14th of August 2023 (V8)
+    {16, 4700, 0, 1692005445},
 };
 const size_t num_testnet_hard_forks =
     sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]);
