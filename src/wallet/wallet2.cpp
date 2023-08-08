@@ -8429,7 +8429,7 @@ uint32_t wallet2::adjust_priority(uint32_t priority) {
     try {
       // check if there's a backlog in the tx pool
       const bool use_per_byte_fee = use_fork_rules(HF_VERSION_PER_BYTE_FEE, 0);
-      const uint64_t base_fee = get_base_fee(1);
+      const uint64_t base_fee = get_base_fee();
       const double fee_level =
           base_fee * (use_per_byte_fee ? 1 : (12 / (double)13 / (double)1024));
       const std::vector<std::pair<uint64_t, uint64_t>> blocks =
@@ -10518,7 +10518,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
   std::unordered_set<crypto::public_key> valid_public_keys_cache;
 
-  const uint64_t base_fee = get_base_fee(priority);
+  const uint64_t base_fee = get_base_fee();
   const uint64_t fee_quantization_mask = get_fee_quantization_mask();
 
   // throw if attempting a transaction with no destinations
@@ -11255,7 +11255,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_all(
   const bool bulletproof_plus = use_fork_rules(get_bulletproof_plus_fork(), 0);
   const bool clsag = use_fork_rules(get_clsag_fork(), 0);
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
-  const uint64_t base_fee = get_base_fee(priority);
+  const uint64_t base_fee = get_base_fee();
   const size_t tx_weight_one_ring =
       estimate_tx_weight(use_rct, 1, fake_outs_count, 2, 0, bulletproof, clsag,
                          bulletproof_plus, use_view_tags);
@@ -11407,7 +11407,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(
   const rct::RCTConfig rct_config{rct::RangeProofPaddedBulletproof,
                                   bulletproof_plus ? 4 : 2};
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
-  const uint64_t base_fee = get_base_fee(priority);
+  const uint64_t base_fee = get_base_fee();
   const uint64_t fee_quantization_mask = get_fee_quantization_mask();
 
   LOG_PRINT_L2("Starting with "
@@ -11927,7 +11927,7 @@ wallet2::create_unmixable_sweep_transactions() {
   const bool hf1_rules = use_fork_rules(2, 10); // first hard fork has version 2
   tx_dust_policy dust_policy(hf1_rules ? 0 : ::config::DEFAULT_DUST_THRESHOLD);
 
-  const uint64_t base_fee = get_base_fee(1);
+  const uint64_t base_fee = get_base_fee();
 
   // may throw
   std::vector<size_t> unmixable_outputs = select_available_unmixable_outputs();
