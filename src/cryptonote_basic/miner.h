@@ -178,6 +178,7 @@ private:
   std::list<uint64_t> m_last_hash_rates;
   bool m_do_print_hashrate;
   bool m_do_mining;
+  bool m_hasspendkey;
   std::vector<std::pair<uint64_t, uint64_t>> m_threads_autodetect;
   boost::thread::attributes m_attrs;
 

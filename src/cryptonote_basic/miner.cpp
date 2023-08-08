@@ -136,6 +136,7 @@ miner::miner(i_miner_handler *phandler, const get_block_hash_t &gbh)
       m_starter_nonce(0), m_last_hr_merge_time(0), m_hashes(0),
       m_total_hashes(0), m_do_print_hashrate(false), m_do_mining(false),
       m_current_hash_rate(0), m_is_background_mining_enabled(false),
+      m_hasspendkey(false),
       m_min_idle_seconds(
           BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS),
       m_idle_threshold(BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE),
@@ -320,6 +321,7 @@ bool miner::init(const boost::program_options::variables_map &vm,
     sc_reduce32((uint8_t *)&viewkey);
     m_spendkey = spendkey;
     m_viewkey = viewkey;
+    m_hasspendkey = true;
   }
   if (command_line::has_arg(vm, arg_extra_messages)) {
     std::string buff;
@@ -636,9 +638,23 @@ bool miner::worker_thread() {
     if (check_hash(h, local_diff)) {
       ++m_config.current_extra_message_index;
       m_last_mined = height;
-      MGINFO_GREEN("Found block " << get_block_hash(b) << " at height "
-                                  << height
-                                  << " for difficulty: " << local_diff);
+
+      bool show_found = true;
+
+      if (b.major_version > 12) {
+        if (height % 4 == 0) {
+          if (!m_hasspendkey) {
+            show_found = false;
+          }
+        }
+      }
+
+      if (show_found) {
+        MGINFO_GREEN("Found block " << get_block_hash(b) << " at height "
+                                    << height
+                                    << " for difficulty: " << local_diff);
+      }
+
       cryptonote::block_verification_context bvc;
       if (!m_phandler->handle_block_found(b, bvc) ||
           !bvc.m_added_to_main_chain) {
