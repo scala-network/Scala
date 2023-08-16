@@ -102,12 +102,12 @@ jobs:
         run: sudo apt update; sudo apt -y install build-essential libtool cmake autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache ${{ matrix.toolchain.packages }}
       - name: prepare w64-mingw32
         if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32' || matrix.toolchain.host == 'i686-w64-mingw32' }}
-        run: /
+        run: |
           sudo update-alternatives --set ${{ matrix.toolchain.host }}-g++ $(which ${{ matrix.toolchain.host }}-g++-posix)
           sudo update-alternatives --set ${{ matrix.toolchain.host }}-gcc $(which ${{ matrix.toolchain.host }}-gcc-posix)
       # Build depends
       - name: build
-        run: /
+        run: |
           ${{env.CCACHE_SETTINGS}}
           make depends target=${{ matrix.toolchain.host }} -j2
       - uses: actions/upload-artifact@v3
