@@ -118,14 +118,14 @@ jobs:
       - name: Get latest release version number
         id: get_version
         uses: battila7/get-version-action@v2
-      - name: Package for ${{ matrix.host }}
+      - name: Package for ${{ matrix.toolchain.host }}
         run: |
-          if [[ "${{ matrix.host }}" == "x86_64-w64-mingw32" ]]; then
+          if [[ "${{ matrix.toolchain.host }}" == "x86_64-w64-mingw32" ]]; then
             FILENAME="win-x64"
           else
-            FILENAME="${{ matrix.host }}"
+            FILENAME="${{ matrix.toolchain.host }}"
           fi
-          zip -rj scala-${{ steps.get_version.outputs.version }}-$FILENAME.zip /home/runner/work/Scala/Scala/build/${{ matrix.host }}/release/bin/scala*
+          zip -rj scala-${{ steps.get_version.outputs.version }}-$FILENAME.zip /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
       - name: Determine asset name
         id: get_asset_name
         run: |
