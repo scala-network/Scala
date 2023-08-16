@@ -216,7 +216,72 @@ bool validate_diardi_reward_key(uint64_t height,
 //---------------------------------------------------------------
 
 std::list<std::string> diardi_addresses_v2(network_type nettype) {
-  std::list<std::string> mainnet_addresses = {};
+  std::list<std::string> mainnet_addresses = {
+      "SvjVucMW4PA968WJP7rXRr1fkRVch5q6rLnh86LkZCWFPJiDEB2vizX6VjMezJaKiCN2K1kV"
+      "vAHDbUmiB1tPjZJP2hety4dnf", // MM
+      "SvjcdcAk98mL34ymgXrRoQQbN7MHiBo69gCaMPzMcAWYh3BkghnpgUSNpfzew5vHz7fcmm5u"
+      "xeCoREQwkupHxQW738y2nQjw1", // MM
+      "SvkdzwcuUzy1p25pvipH5QB4usEGJ9aBB7ucPrg2fvoKQh8jW6wQnYYTdFsQ6Gg2uVPPLgWt"
+      "1pzaKVa6zeTmfv3j2XLefxByh", // Hayzam
+      "Svjd8reCESMDLbQJwu5qSrfmczc2GvATAPo8JnFsmKYuiPAedGMFER8d2hrw8LaJZxi4G5T5"
+      "TQEiXUjN7kJmw6h91Qd9GGC9K", // Hayzam
+      "Svk7VUPASsbZhFErf8rEfuEEX94GWsSWKVS8GNAUDfH363EsSLZ58wd3rph8okcaFALthwMk"
+      "Q4fWJBzYYjqA3Lk61McroQbno", // Amity
+      "SvkkWLSek6iGkbHeAp2WfhHs1nu9WgiopF8RkmUhkjqkTEwrqYjoPA64EhoRqsTHeyHERbaN"
+      "7qXvB9HbHq2gXueq1FALXaGq6", //.57u
+      "Svju3jNZVutG4i8xebPDEAKM4YqwKQrY8R83AVtyYtPqjLpXVN1ZtiGbCooTxZ9Q5jQmVDBj"
+      "fmgbh6iZyVbrMkJC1XEEqA8t1", // alebaffa
+      "SvmBPQt8JhZPEtgvNtxXTvhAnE2zsEcxPGdnTqRMLQo4FQ6DKP4UMFjS18mimAAtbPUsJnke"
+      "vZuTmhQKytDkh8Ti1naDSs7Ad" // blackie#2577
+      "SvmCQeq1VL2GxLpQznvwF7eHCYd77j9V32fmVVzcfDUSJ4VU3sb5riBdCVYZmk3oVF4b6wqR"
+      "hPbAbf5oWTC9EFUY16XcZ75cL" // blademaster888
+      "SvmFdwY9a2KJpARtWHzYBeboSJcztCnr1KCsBFEx2mpmB7oFQdiVUDmgvGRQLfCg9d9LEr3s"
+      "ZN2hVGKv8FbdV6LX2Hm8GKbVR", // davidboiss
+      "SvjzzvckdDb5itAQFgzCiBeZNxJRSNqAbh7KyFFA2iqH13GKe1GFQYpjQCLehuFpFQ84kPMk"
+      "qpVvi4xzMkySnPMK35NhMiyJa", // leyaube
+      "SvjmAmBDgwtY6jXmn7VrDtYbsQvC2bLRFBwrWC3yh3hVX4NECpbENetXdtmVo41bK14D1hGW"
+      "9gBnyHkWkjKWK74821a5iT8X9", // DigiFarmer#6568
+      "SvkLvvEdA729jZ9npmQaM82WbS6WNGccbNvwWZCUCu8PatUa2YUrKgcPtNuNX19znCRrexZa"
+      "xgMb65JC3AzFNvos1RjhrD526", // ediz9019
+      "Svjzcvbu1hcjcVpXKnhkrXEReDC2QydPBYWGmkBv8d2YSpqfzXp9pZ7KSJDbSrD9hCWvEmZx"
+      "8mrnz8jtoRHZ1ZNT2FXUrrskv", // ediz9019
+      "SvmSWZBBAmr9XZtmZ9BqkCcreJmUW2FjJ1RBrJckiHFL7tgWKZAwkU9SQinr8ZA1gkTZmJbw"
+      "GbMzACaWTYtg52NL34SGQ8AdH", // elder112687
+      "SvkRciLUfAhWVSYTmqEuA1EtFdV8bVvcbXjmH47anJsc9LLBPW32e5wjAzVSZc2XtTPFfGeN"
+      "MtjfVdPnV4Feav472RoVmAuGy", // fraxis_ykt
+      "SvkHEzVCepjLzYPEF1tPkfbrfPUS2vR4oHvLw1dYiK2uStdNQ8gqyh59FMbRwZfS7kPE5zJH"
+      "W9G2d2sjg5JGtyRG3C42wNQHu", // frogmaker
+      "SvmTiZDk4B7AavCLuKqkVjQ1zbbCDGi9veUagAtFLqpveuRDHZPAeZKEkN5S2GARuxdwbyas"
+      "zk5mBNcJSYfPBUHF2yTYaMzsX", // jwangosho#8826
+      "SvkEGQZ8YCpaWeKd31ycfXQk7UKrz9hFyFewnty6RkH13bDJg6Zmpet27oatu2Kks2hVnzWs"
+      "LDAwc3T3A6h9ZZPL21GbxCfME", // Ls1jay#0892
+      "Svkzf4CACxyU4SrykVntwhVvZfKmA6V3pPNJE1F2uzQsZp7QKWxoJwNDeywa7cEE1cKesztr"
+      "dVcEAQ7Jgnp4eYh32tapM6znq", // 0xmayur.eth
+      "Svk4qMbv32gHUdP6UJjAaJgBAWUvJhCho5r5ZiGukaNMdaMopHdYc8d6j29kpecZxmAqv3DE"
+      "tg5S2hiFXQHopzvk2gEELkpyw", // otismiller_
+      "Svkx8kpJrTBd2bSfkm64rmed77qNBKU8d1q1JMr6mkQiBnCPzFT6qcrWqV1mKHXwboRaNkHF"
+      "eVU3CgMV78guyrfh2E1GEDGka", // paddy121
+      "SvjpgzFRUxfB8hQYSmqxGMWzfXtn1m44kH9kMKyY8UbHETdvmPSf1H3hW8b9vLCBp88UsHC8"
+      "EpNdgErdc1BtkEBk28TCN8Equ", // pankaj4100
+      "Svjunar8RcreHC5cRDXEAEPoqnJwrxrSEaxZum4YTE4mGC7Hv1yiaWWiintji8XaGHaPyNUq"
+      "Sq2QjQiTAixNHQ2W19z2CnWBg", // pnidess
+      "Svm39SSN1GkMeb2au1QNE7Uz1KCp55xUQEHrSW7vrRDZMT4kiibMGGoSG9Q4noRzT5iwSzEW"
+      "N1AW3Pt6bVN3Bwcb1f8pERSW4", // xxxpete
+      "SvjgGnuboqCMVh6z3TBat7iHPWN5XsH4i8rZBddjBZ6HfDJXUUcmwx3hGvRwtCyLgd35xwfX"
+      "5fVkFhN9JNdrccsn15Pt3N6kL", // prodigy8443
+      "SvkzSHDfp3Df3VBMf5UebibP4GysG3nj9MvnFx8dLw2oX74dRDa26iYXCw9TSBHnDnF9t54Z"
+      "7ygru2cVqzjLk7xP2QRt6D6bQ", // sheikhfaizanuddin
+      "SvkhRdmZWdca4h4J6fEzHAGkoE6wwJdXcSFiKgibXrGYDdvasgNgxpo6CAinERH6G5gSX8v3"
+      "ytCKKHVSf12nJUFZ2krysNmNz", //_sykor
+      "SvmMUKApwfFAMrmr9oc9nRWgQUnFhHLwN3KAkqryeDWL1fcN6q3yG68QxyPE1CdaZKCsZwMk"
+      "UzTCx6w43Ln6GouL1umqgpDCL", // teredic
+      "SvmS8KCur6P9ktdFNGux4TQPgG9rrLgYsAQwSWws97greP2xoxkaPJrd782HcAeXwn3s6CmA"
+      "chupZCsTJAZS1VhP1ZvKbJxJz", // tmin3r
+      "SvkGoKLfyxNJ9q4fCwsCWH2aZfAoJavMmHZKW8QBgA6BTFYrZK8qrXgbTV3Avuwo8xipRT9S"
+      "eYFcpDS5Facqsk1V1Jm92cf6K", // uday5264
+      "SvkwpPaU3A3joXKLQvP8iw7NLT3eqSTGjCT1ZniFBwJZFCJuLAVnAEFKEHVjq8YVSpW1SuRm"
+      "ggF212fgo2soqQCF1Na6112pW", // XLACedric#2031
+  };
   std::list<std::string> testnet_addresses = {
       "Tsz5EQDMkS18cLEFfQurHxQQCX2Ej1mZGXtvrX5AMDJSD82GmoqFvtjjgXZ2pSoEBWKFe8RP"
       "oUG3nEAwS7gd7ozF2w7pwMzjd2",

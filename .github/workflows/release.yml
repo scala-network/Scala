@@ -1,0 +1,145 @@
+name: ci/gh-actions/release
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  APT_SET_CONF: |
+    echo "Acquire::Retries \"3\";"         | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    echo "Acquire::ftp::Timeout \"120\";"  | sudo tee -a /etc/apt/apt.conf.d/80-custom
+  CCACHE_SETTINGS: |
+    ccache --max-size=150M
+    ccache --set-config=compression=true
+
+jobs:
+  create-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.step_upload_url.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Scala ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body_path: CHANGELOG.md
+      - id: step_upload_url
+        run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
+
+  build-all:
+    needs: create-release
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - name: "RISCV 64bit"
+            host: "riscv64-linux-gnu"
+            packages: "python3 gperf g++-riscv64-linux-gnu"
+          - name: "ARM v7"
+            host: "arm-linux-gnueabihf"
+            packages: "python3 gperf g++-arm-linux-gnueabihf"
+          - name: "ARM v8"
+            host: "aarch64-linux-gnu"
+            packages: "python3 gperf g++-aarch64-linux-gnu"
+          - name: "Win64"
+            host: "x86_64-w64-mingw32"
+            packages: "cmake python3 g++-mingw-w64-x86-64"
+          - name: "x86_64 Linux"
+            host: "x86_64-unknown-linux-gnu"
+            packages: "gperf cmake python3-zmq libdbus-1-dev libharfbuzz-dev"
+          - name: "Cross-Mac x86_64"
+            host: "x86_64-apple-darwin11"
+            packages: "cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python3-setuptools-git"
+          - name: "Cross-Mac aarch64"
+            host: "aarch64-apple-darwin11"
+            packages: "cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python3-setuptools-git"
+          - name: "x86_64 Freebsd"
+            host: "x86_64-unknown-freebsd"
+            packages: "clang-8 gperf cmake python3-zmq libdbus-1-dev libharfbuzz-dev"
+    name: ${{ matrix.toolchain.name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      # Most volatile cache
+      - name: ccache
+        uses: actions/cache@v3
+        with:
+          path: ~/.ccache
+          key: ccache-${{ matrix.toolchain.host }}-${{ github.sha }}
+          restore-keys: ccache-${{ matrix.toolchain.host }}-
+      # Less volatile cache
+      - name: depends cache
+        uses: actions/cache@v3
+        with:
+          path: contrib/depends/built
+          key: depends-${{ matrix.toolchain.host }}-${{ hashFiles('contrib/depends/packages/*') }}
+          restore-keys: |
+            depends-${{ matrix.toolchain.host }}-${{ hashFiles('contrib/depends/packages/*') }}
+            depends-${{ matrix.toolchain.host }}-
+      - name: OSX SDK cache
+        uses: actions/cache@v3
+        with:
+          path: contrib/depends/sdk-sources
+          key: sdk-${{ matrix.toolchain.host }}-${{ matrix.toolchain.osx_sdk }}
+          restore-keys: sdk-${{ matrix.toolchain.host }}-${{ matrix.toolchain.osx_sdk }}
+      - name: set apt conf
+        run: ${{env.APT_SET_CONF}}
+      - name: install dependencies
+        run: sudo apt update; sudo apt -y install build-essential libtool cmake autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache ${{ matrix.toolchain.packages }}
+      - name: prepare w64-mingw32
+        if: ${{ matrix.toolchain.host == 'x86_64-w64-mingw32' || matrix.toolchain.host == 'i686-w64-mingw32' }}
+        run: /
+          sudo update-alternatives --set ${{ matrix.toolchain.host }}-g++ $(which ${{ matrix.toolchain.host }}-g++-posix)
+          sudo update-alternatives --set ${{ matrix.toolchain.host }}-gcc $(which ${{ matrix.toolchain.host }}-gcc-posix)
+      # Build depends
+      - name: build
+        run: /
+          ${{env.CCACHE_SETTINGS}}
+          make depends target=${{ matrix.toolchain.host }} -j2
+      - uses: actions/upload-artifact@v3
+        if: ${{ matrix.toolchain.host == 'riscv64-linux-gnu' || matrix.toolchain.host == 'arm-linux-gnueabihf' || matrix.toolchain.host == 'aarch64-linux-gnu' || matrix.toolchain.host == 'x86_64-w64-mingw32' || matrix.toolchain.host == 'x86_64-apple-darwin11' || matrix.toolchain.host == 'aarch64-apple-darwin11' || matrix.toolchain.host == 'x86_64-unknown-freebsd' }}
+        with:
+          name: ${{ matrix.toolchain.name }}
+          path: /home/runner/work/Scala/Scala/build/${{ matrix.toolchain.host }}/release/bin/scala*
+      - name: Get latest release version number
+        id: get_version
+        uses: battila7/get-version-action@v2
+      - name: Package for ${{ matrix.host }}
+        run: |
+          if [[ "${{ matrix.host }}" == "x86_64-w64-mingw32" ]]; then
+            FILENAME="win-x64"
+          else
+            FILENAME="${{ matrix.host }}"
+          fi
+          zip -rj scala-${{ steps.get_version.outputs.version }}-$FILENAME.zip /home/runner/work/Scala/Scala/build/${{ matrix.host }}/release/bin/scala*
+      - name: Determine asset name
+        id: get_asset_name
+        run: |
+          if [[ "${{ matrix.toolchain.host }}" == "x86_64-w64-mingw32" ]]; then
+            echo "::set-output name=filename::win-x64"
+          else
+            echo "::set-output name=filename::${{ matrix.toolchain.host }}"
+          fi
+      - name: Release for ${{ matrix.toolchain.host }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./scala-${{ steps.get_version.outputs.version }}-${{ steps.get_asset_name.outputs.filename }}.zip
+          asset_name: scala-${{ steps.get_version.outputs.version }}-${{ steps.get_asset_name.outputs.filename }}.zip
+          asset_content_type: application/zip
