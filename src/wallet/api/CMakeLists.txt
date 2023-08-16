@@ -41,7 +41,9 @@ set(wallet_api_sources
   address_book.cpp
   subaddress.cpp
   subaddress_account.cpp
-  unsigned_transaction.cpp)
+  unsigned_transaction.cpp
+  coins.cpp
+  coins_info.cpp)
 
 set(wallet_api_headers
     wallet2_api.h)
@@ -56,7 +58,9 @@ set(wallet_api_private_headers
   address_book.h
   subaddress.h
   subaddress_account.h
-  unsigned_transaction.h)
+  unsigned_transaction.h
+  coins.h
+  coins_info.h)
 
 scala_private_headers(wallet_api
   ${wallet_api_private_headers})

@@ -200,6 +200,9 @@ void TransactionHistoryImpl::refresh()
             ti->m_transfers.push_back({d.amount, d.address(m_wallet->m_wallet->nettype(), pd.m_payment_id)});
         }
 
+        for (const auto &r: pd.m_rings) {
+            ti->m_rings.push_back({string_tools::pod_to_hex(r.first), cryptonote::relative_output_offsets_to_absolute(r.second)});
+        }
         m_history.push_back(ti);
     }
 
@@ -233,7 +236,11 @@ void TransactionHistoryImpl::refresh()
         for (const auto &d : pd.m_dests)
         {
             ti->m_transfers.push_back({d.amount, d.address(m_wallet->m_wallet->nettype(), pd.m_payment_id)});
-        }        
+        }
+
+        for (const auto &r: pd.m_rings) {
+            ti->m_rings.push_back({string_tools::pod_to_hex(r.first), cryptonote::relative_output_offsets_to_absolute(r.second)});
+        }
         m_history.push_back(ti);
     }
     

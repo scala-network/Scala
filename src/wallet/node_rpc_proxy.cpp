@@ -175,7 +175,7 @@ boost::optional<std::string> NodeRPCProxy::get_height(uint64_t &height) {
   auto res = get_info();
   if (res)
     return res;
-  height = m_height;
+  height = m_target_height > m_height ? m_target_height : m_height;
   return boost::optional<std::string>();
 }
 

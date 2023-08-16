@@ -140,6 +140,12 @@ const std::vector<TransactionInfo::Transfer> &TransactionInfoImpl::transfers() c
     return m_transfers;
 }
 
+
+const std::vector<std::pair<std::string, std::vector<uint64_t>>> &TransactionInfoImpl::rings() const
+{
+    return m_rings;
+}
+
 uint64_t TransactionInfoImpl::confirmations() const
 {
     return m_confirmations;

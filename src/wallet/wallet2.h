@@ -1131,6 +1131,7 @@ public:
   }
   std::string
   get_integrated_address_as_str(const crypto::hash8 &payment_id) const;
+  bool get_subaddress_used(const cryptonote::subaddress_index& index);
   void add_subaddress_account(const std::string &label);
   size_t get_num_subaddress_accounts() const {
     return m_subaddress_labels.size();
@@ -2126,6 +2127,8 @@ public:
     CRITICAL_REGION_LOCAL(default_daemon_address_lock);
     return default_daemon_address;
   }
+
+  boost::shared_mutex m_transfers_mutex;
 
 private:
   /*!
