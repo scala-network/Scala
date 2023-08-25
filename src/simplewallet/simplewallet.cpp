@@ -2838,7 +2838,7 @@ bool simple_wallet::help(
     message_writer() << tr("\"address all\" - Show all addresses.");
     message_writer() << tr("\"address new\" - Create new subaddress.");
     message_writer() << tr(
-        "\"transfer <address> <amount>\" - Send XMR to an address.");
+        "\"transfer <address> <amount>\" - Send XLA to an address.");
     message_writer() << tr(
         "\"show_transfers [in|out|pending|failed|pool]\" - Show transactions.");
     message_writer() << tr(
@@ -2852,7 +2852,7 @@ bool simple_wallet::help(
     message_writer() << tr("\"exit\" - Exit wallet.");
     message_writer() << "";
     message_writer() << tr(
-        "\"donate <amount>\" - Donate XMR to the development team.");
+        "\"donate <amount>\" - Donate XLA to the development team.");
     message_writer() << "";
   } else if ((args.size() == 1) && (args.front() == "all")) {
     success_msg_writer() << get_commands_str();
