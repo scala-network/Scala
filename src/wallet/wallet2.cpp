@@ -1007,13 +1007,15 @@ size_t estimate_rct_tx_size(int n_inputs, int mixin, int n_outputs,
     size += (2 * 64 * 32 + 32 + 64 * 32) * n_outputs;
 
   // MGs/CLSAGs
-  if (clsag)
+  if (clsag) {
     size += n_inputs * (32 * (mixin + 1) + 64);
-  else
+  } else {
     size += n_inputs * (64 * (mixin + 1) + 32);
+  }
 
-  if (use_view_tags)
+  if (use_view_tags) {
     size += n_outputs * sizeof(crypto::view_tag);
+  }
 
   // mixRing - not serialized, can be reconstructed
   /* size += 2 * 32 * (mixin+1) * n_inputs; */
@@ -1027,7 +1029,7 @@ size_t estimate_rct_tx_size(int n_inputs, int mixin, int n_outputs,
   // txnFee
   size += 4;
 
-  LOG_PRINT_L2("estimated "
+  LOG_PRINT_L0("estimated "
                << (bulletproof_plus ? "bulletproof plus"
                    : bulletproof    ? "bulletproof"
                                     : "borromean")
@@ -8424,85 +8426,7 @@ uint64_t wallet2::adjust_mixin(uint64_t mixin) {
   return mixin;
 }
 //----------------------------------------------------------------------------------------------------
-uint32_t wallet2::adjust_priority(uint32_t priority) {
-  if (priority == 0 && m_default_priority == 0 && auto_low_priority()) {
-    try {
-      // check if there's a backlog in the tx pool
-      const bool use_per_byte_fee = use_fork_rules(HF_VERSION_PER_BYTE_FEE, 0);
-      const uint64_t base_fee = get_base_fee();
-      const double fee_level =
-          base_fee * (use_per_byte_fee ? 1 : (12 / (double)13 / (double)1024));
-      const std::vector<std::pair<uint64_t, uint64_t>> blocks =
-          estimate_backlog({std::make_pair(fee_level, fee_level)});
-      if (blocks.size() != 1) {
-        MERROR("Bad estimated backlog array size");
-        return priority;
-      } else if (blocks[0].first > 0) {
-        MINFO("We don't use the low priority because there's a backlog in the "
-              "tx pool.");
-        return priority;
-      }
-
-      // get the current full reward zone
-      uint64_t block_weight_limit = 0;
-      const auto result =
-          m_node_rpc_proxy.get_block_weight_limit(block_weight_limit);
-      if (result)
-        return priority;
-      const uint64_t full_reward_zone = block_weight_limit / 2;
-
-      // get the last N block headers and sum the block sizes
-      const size_t N = 10;
-      if (m_blockchain.size() < N) {
-        MERROR("The blockchain is too short");
-        return priority;
-      }
-      cryptonote::COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::request getbh_req =
-          AUTO_VAL_INIT(getbh_req);
-      cryptonote::COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::response getbh_res =
-          AUTO_VAL_INIT(getbh_res);
-      getbh_req.start_height = m_blockchain.size() - N;
-      getbh_req.end_height = m_blockchain.size() - 1;
-
-      {
-        const boost::lock_guard<boost::recursive_mutex> lock{
-            m_daemon_rpc_mutex};
-        bool r = net_utils::invoke_http_json_rpc(
-            "/json_rpc", "getblockheadersrange", getbh_req, getbh_res,
-            *m_http_client, rpc_timeout);
-        THROW_ON_RPC_RESPONSE_ERROR(r, {}, getbh_res, "getblockheadersrange",
-                                    error::get_blocks_error,
-                                    get_rpc_status(getbh_res.status));
-      }
-
-      if (getbh_res.headers.size() != N) {
-        MERROR("Bad blockheaders size");
-        return priority;
-      }
-      size_t block_weight_sum = 0;
-      for (const cryptonote::block_header_response &i : getbh_res.headers) {
-        block_weight_sum += i.block_weight;
-      }
-
-      // estimate how 'full' the last N blocks are
-      const size_t P = 100 * block_weight_sum / (N * full_reward_zone);
-      MINFO((boost::format("The last %d blocks fill roughly %d%% of the full "
-                           "reward zone.") %
-             N % P)
-                .str());
-      if (P > 80) {
-        MINFO("We don't use the low priority because recent blocks are quite "
-              "full.");
-        return priority;
-      }
-      MINFO("We'll use the low priority because probably it's safe to do so.");
-      return 1;
-    } catch (const std::exception &e) {
-      MERROR(e.what());
-    }
-  }
-  return priority;
-}
+uint32_t wallet2::adjust_priority(uint32_t priority) { return priority; }
 //----------------------------------------------------------------------------------------------------
 bool wallet2::set_ring_database(const std::string &filename) {
   m_ring_database = filename;
@@ -10518,7 +10442,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
   std::unordered_set<crypto::public_key> valid_public_keys_cache;
 
-  const uint64_t base_fee = get_base_fee();
+  const uint64_t base_fee = get_base_fee(priority);
   const uint64_t fee_quantization_mask = get_fee_quantization_mask();
 
   // throw if attempting a transaction with no destinations
@@ -11255,7 +11179,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_all(
   const bool bulletproof_plus = use_fork_rules(get_bulletproof_plus_fork(), 0);
   const bool clsag = use_fork_rules(get_clsag_fork(), 0);
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
-  const uint64_t base_fee = get_base_fee();
+  const uint64_t base_fee = get_base_fee(priority);
   const size_t tx_weight_one_ring =
       estimate_tx_weight(use_rct, 1, fake_outs_count, 2, 0, bulletproof, clsag,
                          bulletproof_plus, use_view_tags);
@@ -11407,7 +11331,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(
   const rct::RCTConfig rct_config{rct::RangeProofPaddedBulletproof,
                                   bulletproof_plus ? 4 : 2};
   const bool use_view_tags = use_fork_rules(get_view_tag_fork(), 0);
-  const uint64_t base_fee = get_base_fee();
+  const uint64_t base_fee = get_base_fee(priority);
   const uint64_t fee_quantization_mask = get_fee_quantization_mask();
 
   LOG_PRINT_L2("Starting with "
@@ -11927,7 +11851,7 @@ wallet2::create_unmixable_sweep_transactions() {
   const bool hf1_rules = use_fork_rules(2, 10); // first hard fork has version 2
   tx_dust_policy dust_policy(hf1_rules ? 0 : ::config::DEFAULT_DUST_THRESHOLD);
 
-  const uint64_t base_fee = get_base_fee();
+  const uint64_t base_fee = get_base_fee(1);
 
   // may throw
   std::vector<size_t> unmixable_outputs = select_available_unmixable_outputs();

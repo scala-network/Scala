@@ -182,18 +182,20 @@ bool checkpoints::check_for_conflicts(const checkpoints &other) const {
 
 bool checkpoints::init_default_checkpoints(network_type nettype) {
   if (nettype == TESTNET) {
-      ADD_CHECKPOINT2(
-              10, "a76e3b124834af91af028718e9dc03277bcd08845deecf1e52061b6411b3356c",
-              "0x25");
-      ADD_CHECKPOINT2(
-              100, "0f15b75b65d7c4c3709ceae9e46a6432ea36458b765633e1e0c057cb047c0817",
-              "0x9450c84");
-      ADD_CHECKPOINT2(
-              1000, "66160d3d15f2f585a1d015c37ecaa531afd30a4cbe3708ec9f80fb86326646d6",
-              "0x2dd67170");
-      ADD_CHECKPOINT2(
-              9000, "dfda0b4ab55db760aac40164f4043e89b3733c31ebae00381b343c085056c57d",
-              "0x3ceb638a1");
+    ADD_CHECKPOINT2(
+        10, "a76e3b124834af91af028718e9dc03277bcd08845deecf1e52061b6411b3356c",
+        "0x25");
+    ADD_CHECKPOINT2(
+        100, "0f15b75b65d7c4c3709ceae9e46a6432ea36458b765633e1e0c057cb047c0817",
+        "0x9450c84");
+    ADD_CHECKPOINT2(
+        1000,
+        "66160d3d15f2f585a1d015c37ecaa531afd30a4cbe3708ec9f80fb86326646d6",
+        "0x2dd67170");
+    ADD_CHECKPOINT2(
+        9000,
+        "dfda0b4ab55db760aac40164f4043e89b3733c31ebae00381b343c085056c57d",
+        "0x3ceb638a1");
 
     return true;
   }
