@@ -3079,8 +3079,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler(
       "donate",
       boost::bind(&simple_wallet::on_command, this, &simple_wallet::donate, _1),
-      tr(USAGE_DONATE),
-      tr("Donate <amount> to the development team (donate.getscala.org)."));
+      tr(USAGE_DONATE), tr("Donate <amount> to the Scala team."));
   m_cmd_binder.set_handler(
       "sign_transfer",
       boost::bind(&simple_wallet::on_command, this,
@@ -7750,7 +7749,7 @@ bool simple_wallet::donate(const std::vector<std::string> &args_) {
     local_args.push_back(payment_id_str);
   if (m_wallet->nettype() == cryptonote::MAINNET)
     message_writer() << (boost::format(tr("Donating %s %s to The scala Project "
-                                          "(donate.getscala.org or %s).")) %
+                                          "(donate.scalaproject.io or %s).")) %
                          amount_str %
                          cryptonote::get_unit(
                              cryptonote::get_default_decimal_point()) %

@@ -1634,7 +1634,7 @@ Amount, Spent(&quot;T&quot;|&quot;F&quot;), &quot;frozen&quot;|&quot;locked&quot
     </message>
     <message>
         <location filename="../src/simplewallet/simplewallet.cpp" line="3134"/>
-        <source>Donate &lt;amount&gt; to the development team (donate.getscala.org).</source>
+        <source>Donate &lt;amount&gt; to the development team (donate.scalaproject.io).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4506,7 +4506,7 @@ This transaction (including %s change) will unlock on block %llu, in approximate
     </message>
     <message>
         <location filename="../src/simplewallet/simplewallet.cpp" line="7388"/>
-        <source>Donating %s %s to The scala Project (donate.getscala.org or %s).</source>
+        <source>Donating %s %s to The scala Project (donate.scalaproject.io or %s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

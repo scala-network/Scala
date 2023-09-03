@@ -133,7 +133,7 @@ public:
    * @brief Gets a DNS address from OpenAlias format
    *
    * If the address looks good, but contains one @ symbol, replace that with a .
-   * e.g. donate@getscala.org becomes donate.getscala.org
+   * e.g. donate@scalaproject.io becomes donate.scalaproject.io
    *
    * @param oa_addr  OpenAlias address
    *

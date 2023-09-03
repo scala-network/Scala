@@ -59,10 +59,11 @@
 
 #undef scala_DEFAULT_LOG_CATEGORY
 #define scala_DEFAULT_LOG_CATEGORY "wallet.simplewallet"
-// Hardcode scala's donation address (see #1447)
+// Hardcode scala's donation address
 constexpr const char scala_DONATION_ADDR[] =
-    "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwM"
-    "VgN5S9cQUiyoogDavup3H";
+    "SvkzckfVpUSWuSG4VS4WCL9KMTh39krgk6SLwVGLkZufh83ET8JjZ3yidaoURyHgLFDhFZEPPY"
+    "12cHqYyS"
+    "VoV2x62XvMtJii5";
 
 /*!
  * \namespace cryptonote

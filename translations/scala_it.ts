@@ -1030,8 +1030,8 @@
     </message>
     <message>
         <location filename="../src/simplewallet/simplewallet.cpp" line="7388"/>
-        <source>Donating %s %s to The scala Project (donate.getscala.org or %s).</source>
-        <translation>Donare %s %s a The scala Project (donate.getscala.org o %s).</translation>
+        <source>Donating %s %s to The scala Project (donate.scalaproject.io or %s).</source>
+        <translation>Donare %s %s a The scala Project (donate.scalaproject.io o %s).</translation>
     </message>
     <message>
         <location filename="../src/simplewallet/simplewallet.cpp" line="7390"/>
@@ -1618,8 +1618,8 @@ Amount, Spent(&quot;T&quot;|&quot;F&quot;), &quot;frozen&quot;|&quot;locked&quot
     </message>
     <message>
         <location filename="../src/simplewallet/simplewallet.cpp" line="3134"/>
-        <source>Donate &lt;amount&gt; to the development team (donate.getscala.org).</source>
-        <translation>Dona &lt;amount&gt; al team di sviluppo (donate.getscala.org).</translation>
+        <source>Donate &lt;amount&gt; to the development team (donate.scalaproject.io).</source>
+        <translation>Dona &lt;amount&gt; al team di sviluppo (donate.scalaproject.io).</translation>
     </message>
     <message>
         <location filename="../src/simplewallet/simplewallet.cpp" line="3141"/>
