@@ -196,7 +196,6 @@ bool checkpoints::init_default_checkpoints(network_type nettype) {
         9000,
         "dfda0b4ab55db760aac40164f4043e89b3733c31ebae00381b343c085056c57d",
         "0x3ceb638a1");
-
     return true;
   }
 

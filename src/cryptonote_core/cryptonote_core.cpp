@@ -325,8 +325,9 @@ bool core::handle_command_line(
 
   auto data_dir = boost::filesystem::path(m_config_folder);
 
+  cryptonote::checkpoints checkpoints;
+
   if (m_nettype == MAINNET) {
-    cryptonote::checkpoints checkpoints;
     if (!checkpoints.init_default_checkpoints(m_nettype)) {
       throw std::runtime_error("Failed to initialize checkpoints");
     }
@@ -336,6 +337,14 @@ bool core::handle_command_line(
     boost::filesystem::path checkpoint_json_hashfile_fullpath = data_dir / json;
 
     set_checkpoints_file_path(checkpoint_json_hashfile_fullpath.string());
+  }
+
+  if (m_nettype == TESTNET) {
+    if (!checkpoints.init_default_checkpoints(m_nettype)) {
+      throw std::runtime_error("Failed to initialize checkpoints");
+    }
+
+    set_checkpoints(std::move(checkpoints));
   }
 
   set_enforce_dns_checkpoints(command_line::get_arg(vm, arg_dns_checkpoints));

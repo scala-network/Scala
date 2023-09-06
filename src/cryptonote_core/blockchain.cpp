@@ -1000,10 +1000,12 @@ std::pair<bool, uint64_t> Blockchain::check_difficulty_checkpoints() const {
   uint64_t res = 0;
   for (const std::pair<const uint64_t, difficulty_type> &i :
        m_checkpoints.get_difficulty_points()) {
-    if (i.first >= m_db->height())
+    if (i.first >= m_db->height()) {
       break;
-    if (m_db->get_block_cumulative_difficulty(i.first) != i.second)
+    }
+    if (m_db->get_block_cumulative_difficulty(i.first) != i.second) {
       return {false, res};
+    }
     res = i.first;
   }
   return {true, res};

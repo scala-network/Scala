@@ -703,11 +703,11 @@ int main(int argc, char *argv[]) {
                   << ".\n"
                      "*********************************************************"
                      "********************************\n"
-                     "You have 90 seconds to press ^C or terminate this "
+                     "You have 10 seconds to press ^C or terminate this "
                      "program before unverified import starts\n"
                      "*********************************************************"
                      "********************************");
-    sleep(90);
+    sleep(10);
   }
 
   cryptonote::cryptonote_protocol_stub
