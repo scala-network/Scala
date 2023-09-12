@@ -41,8 +41,8 @@ const hardfork_t mainnet_hard_forks[] = {
     {1, 1, 0, 1341378000},
     {12, 2, 0, 1582125473},
 
-    // Approximately on 14th of September 2023 (V8)
-    {16, 820102, 0, 1692005445},
+    // Approximately on 30th of September 2023 (V8) (Postponed from 14th)
+    {16, 831815, 0, 1692005445},
 };
 
 const size_t num_mainnet_hard_forks =
