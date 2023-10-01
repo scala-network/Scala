@@ -8332,36 +8332,9 @@ uint64_t wallet2::get_dynamic_base_fee_estimate() { return FEE_PER_KB; }
 uint64_t wallet2::get_base_fee() { return FEE_PER_KB; }
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_base_fee(uint32_t priority) {
-  const bool use_2021_scaling =
-      use_fork_rules(HF_VERSION_2021_SCALING, -30 * 1);
-  if (use_2021_scaling) {
-    // clamp and map to 0..3 indices, mapping 0 (default, but should not end up
-    // here) to 0, and 1..4 to 0..3
-    if (priority == 0)
-      priority = 1;
-    else if (priority > 4)
-      priority = 4;
-    --priority;
-
-    std::vector<uint64_t> fees;
-    boost::optional<std::string> result =
-        m_node_rpc_proxy.get_dynamic_base_fee_estimate_2021_scaling(
-            FEE_ESTIMATE_GRACE_BLOCKS, fees);
-    if (result) {
-      MERROR("Failed to determine base fee, using default");
-      return FEE_PER_BYTE;
-    }
-    if (priority >= fees.size()) {
-      MERROR("Failed to determine base fee for priority " << priority
-                                                          << ", using default");
-      return FEE_PER_BYTE;
-    }
-    return fees[priority];
-  } else {
     const uint64_t base_fee = get_base_fee();
     const uint64_t fee_multiplier = get_fee_multiplier(priority);
     return base_fee * fee_multiplier;
-  }
 }
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_fee_quantization_mask() {
