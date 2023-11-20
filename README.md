@@ -225,7 +225,7 @@ pkg install git gmake cmake pkgconf boost-libs libzmq4 libsodium unbound
 Clone recursively to pull-in needed submodule(s):
 
 ```
-git clone --recursive https://github.com/scala-project/scala
+git clone --recursive https://github.com/scala-network/scala
 ```
 
 If you already have a repo cloned, initialize and update:
@@ -326,7 +326,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 * Clone scala and checkout the most recent release version:
 
     ```bash
-    git clone https://github.com/scala-project/scala.git
+    git clone https://github.com/scala-network/scala.git
     cd scala
     git checkout v0.18.1.2
     ```
@@ -436,7 +436,7 @@ application.
 * To git clone, run:
 
     ```bash
-    git clone --recursive https://github.com/scala-project/scala.git
+    git clone --recursive https://github.com/scala-network/scala.git
     ```
 
 **Building**
@@ -447,7 +447,7 @@ application.
     cd scala
     ```
 
-* If you would like a specific [version/tag](https://github.com/scala-project/scala/tags), do a git checkout for that version. eg. 'v0.18.1.2'. If you don't care about the version and just want binaries from master, skip this step:
+* If you would like a specific [version/tag](https://github.com/scala-network/scala/tags), do a git checkout for that version. eg. 'v0.18.1.2'. If you don't care about the version and just want binaries from master, skip this step:
 
     ```bash
     git checkout v0.18.1.2
