@@ -60,28 +60,35 @@ RUN set -ex && \
 
 COPY --from=builder /src/build/bin/ /usr/local/bin/
 
-RUN ls /usr/local/bin/
-
 # Create scala user
+COPY entrypoint.sh /entrypoint.sh
+
 RUN adduser --system --group --disabled-password scala && \
-	mkdir -p /wallet /home/scala/.scala && \
-	chown -R scala:scala /home/scala/.scala && \
-	chown -R scala:scala /wallet
+	chmod 755 /entrypoint.sh && \
+    chown scala:scala /entrypoint.sh
 
 # Contains the blockchain
 VOLUME /home/scala/.scala
 
-# Generate your wallet via accessing the container and run:
-# cd /wallet
-# scala-wallet-cli
-VOLUME /wallet
+# Put in wallet file in wallet directory and set wallet file name into environment
+ENV SCALA_WALLET_DISABLED=false
+
+ENV SCALA_WALLET_DIRECTORY=/home/scala/wallet
+
+ENV SCALA_WALLET_JSON=''
+
+ENV SCALA_WALLET_RPC_LOGIN=''
+
+ENV SCALA_DAEMON_ADDRESS= ""
+
+VOLUME "$SCALA_WALLET_RPC_LOGIN"
 
 EXPOSE 11811
 EXPOSE 11812
+EXPOSE 11813
 
 # switch to user scala
 USER scala
 
-ENTRYPOINT ["scalad"]
-CMD ["--p2p-bind-ip=0.0.0.0", "--p2p-bind-port=11811", "--rpc-bind-ip=0.0.0.0", "--rpc-bind-port=11812", "--non-interactive", "--confirm-external-bind"]
+ENTRYPOINT ["/entrypoint.sh"]
 
