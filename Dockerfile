@@ -1,71 +1,24 @@
-# Multistage docker build, requires docker 17.05
-
-# builder stage
-FROM ubuntu:20.04 AS builder
-
-RUN set -ex && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends --yes install \
-        automake \
-        autotools-dev \
-        bsdmainutils \
-        build-essential \
-        ca-certificates \
-        ccache \
-        cmake \
-        curl \
-        git \
-        libtool \
-        pkg-config \
-        gperf \
-        libboost-all-dev \
-        miniupnpc \
-        libunbound-dev \
-        graphviz \
-        doxygen \
-        libunwind8-dev \
-        libssl-dev \
-        libzmq3-dev \
-        libsodium-dev \
-        libhidapi-dev \
-        libnorm-dev \
-        libusb-1.0-0-dev \
-        libpgm-dev \
-        libprotobuf-dev \
-        protobuf-compiler
-
-WORKDIR /src
-COPY . .
-
-
-ARG NPROC
-RUN set -ex && \
-    git submodule init && git submodule update && \
-    rm -rf build
-
-RUN if [ -z "$NPROC" ] ; \
-    then cmake -S . -B build -D ARCH="default" -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=Release && cmake --build build -j$(nproc); \
-    else cmake -S . -B build -D ARCH="default" -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=Release && cmake --build build -j$NPROC; \
-    fi
-
-
-# runtime stage
 FROM ubuntu:20.04
 
 RUN set -ex && \
     apt-get update && \
-    apt-get --no-install-recommends --yes install ca-certificates && \
+    DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends --yes install ca-certificates wget unzip && \
     apt-get clean && \
     rm -rf /var/lib/apt
 
-COPY --from=builder /src/build/bin/ /usr/local/bin/
+WORKDIR /usr/local/bin
 
-# Create scala user
+RUN wget https://github.com/scala-network/Scala/releases/download/v8.0.3/scala-v8.0.3-x86_64-unknown-linux-gnu.zip -O scala.zip && \
+    unzip scala.zip
+
 COPY entrypoint.sh /entrypoint.sh
 
 RUN adduser --system --group --disabled-password scala && \
 	chmod 755 /entrypoint.sh && \
-    chown scala:scala /entrypoint.sh
+    chown scala:scala /entrypoint.sh && \
+    mkdir -p /home/scala/.scala && \
+    mkdir -p /home/scala/wallet && \
+    chown -Rfv scala:scala /home/scala 
 
 # Contains the blockchain
 VOLUME /home/scala/.scala
@@ -79,9 +32,9 @@ ENV SCALA_WALLET_JSON=''
 
 ENV SCALA_WALLET_RPC_LOGIN=''
 
-ENV SCALA_DAEMON_ADDRESS= ""
+ENV SCALA_DAEMON_ADDRESS=''
 
-VOLUME "$SCALA_WALLET_RPC_LOGIN"
+VOLUME "$SCALA_WALLET_DIRECTORY"
 
 EXPOSE 11811
 EXPOSE 11812
@@ -91,4 +44,3 @@ EXPOSE 11813
 USER scala
 
 ENTRYPOINT ["/entrypoint.sh"]
-
