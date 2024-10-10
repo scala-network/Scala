@@ -15,7 +15,7 @@ docker network create --subnet 192.0.2.0/24 network_name
 Build the Scala Docker image, specifying the number of processors to use (NPROC). 
 
 ```bash
-docker build -t scala:latest --build-arg NPROC=8 .
+docker build -t scalad:latest --build-arg NPROC=8 .
 ```
 
 ## Step 3: Run the Scala Daemon
@@ -23,7 +23,7 @@ docker build -t scala:latest --build-arg NPROC=8 .
 Start the Scala daemon in detached mode. This command specifies the network, sets a static IP, and defines an environment variable to disable the wallet.
 
 ```bash
-docker run -d --network network_name --restart always --ip=192.0.2.69 -e SCALA_WALLET_DISABLED=true --name scala_daemon scala:latest
+docker run -d --network network_name --restart always --ip=192.0.2.69 -e SCALA_WALLET_DISABLED=true --name scala_daemon scalad:latest
 ```
 
 ## Step 4: Run the Scala Wallet
@@ -31,7 +31,7 @@ docker run -d --network network_name --restart always --ip=192.0.2.69 -e SCALA_W
 Launch the Scala wallet, binding it to a port and setting it to connect to the daemon. Modify the environment variables as needed.
 
 ```bash
-docker run -d -p 11813:11813 --network network_name --restart always -e SCALA_WALLET_DISABLED=false -e SCALA_DAEMON_ADDRESS=192.0.2.69:11812 --name scala_wallet scala:latest
+docker run -d -p 11813:11813 --network network_name --restart always -e SCALA_WALLET_DISABLED=false -e SCALA_DAEMON_ADDRESS=192.0.2.69:11812 --name scala_wallet scalad:latest
 ```
 
 ## Environment Variables
