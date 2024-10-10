@@ -37,6 +37,6 @@ else
 		chown -R scala:scala "$SCALA_HOME"
 	fi
 	
-	/usr/local/bin/scalad --p2p-bind-ip=0.0.0.0 --p2p-bind-port=11812 --rpc-bind-ip=0.0.0.0 --rpc-bind-port=11812 --non-interactive --confirm-external-bind
+	/usr/local/bin/scalad --p2p-bind-ip=0.0.0.0 --p2p-bind-port=11811 --rpc-bind-ip=0.0.0.0 --rpc-bind-port=11812 --non-interactive --confirm-external-bind --no-zmq
 fi
 
