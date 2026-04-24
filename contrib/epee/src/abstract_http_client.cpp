@@ -39,7 +39,7 @@ namespace net_utils
     while (num_char >= radix)
     {
       temp = num_char % radix;
-      num_char = num_char / radix;
+      num_char = (int)floor((float)num_char / (float)radix);
       csTmp = get_hex_vals()[temp];
     }
 
