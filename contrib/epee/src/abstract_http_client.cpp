@@ -1,8 +1,8 @@
+#include <math.h>
 #include "net/abstract_http_client.h"
 #include "net/http_base.h"
 #include "net/net_parse_helpers.h"
 #include "misc_log_ex.h"
-#include <cmath>
 
 #undef SCALA_DEFAULT_LOG_CATEGORY
 #define SCALA_DEFAULT_LOG_CATEGORY "net.http"
