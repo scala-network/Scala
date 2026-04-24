@@ -80,10 +80,10 @@ if (UNIX)
     find_path(sodium_INCLUDE_DIR sodium.h
         HINTS ${${XPREFIX}_INCLUDE_DIRS}
     )
-    find_library(sodium_LIBRARY_DEBUG NAMES ${${XPREFIX}_LIBRARIES}
+    find_library(sodium_LIBRARY_DEBUG NAMES sodium libsodium ${${XPREFIX}_LIBRARIES}
         HINTS ${${XPREFIX}_LIBRARY_DIRS}
     )
-    find_library(sodium_LIBRARY_RELEASE NAMES ${${XPREFIX}_LIBRARIES}
+    find_library(sodium_LIBRARY_RELEASE NAMES sodium libsodium ${${XPREFIX}_LIBRARIES}
         HINTS ${${XPREFIX}_LIBRARY_DIRS}
     )
 
@@ -223,12 +223,17 @@ if (sodium_INCLUDE_DIR)
 endif()
 
 # communicate results
+# fallback for systems without debug sodium library
+if(NOT sodium_LIBRARY_DEBUG AND sodium_LIBRARY_RELEASE)
+    set(sodium_LIBRARY_DEBUG ${sodium_LIBRARY_RELEASE})
+endif()
+
 include(FindPackageHandleStandardArgs)
+
 find_package_handle_standard_args(
-    Sodium # The name must be either uppercase or match the filename case.
+    Sodium
     REQUIRED_VARS
         sodium_LIBRARY_RELEASE
-        sodium_LIBRARY_DEBUG
         sodium_INCLUDE_DIR
     VERSION_VAR
         sodium_VERSION
