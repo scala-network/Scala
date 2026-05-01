@@ -126,6 +126,7 @@ namespace cryptonote
     std::atomic<uint32_t> m_starter_nonce;
     difficulty_type m_diffic;
     uint64_t m_height;
+    uint64_t m_last_mined;
     std::atomic<uint32_t> m_thread_index;
     volatile uint32_t m_threads_total;
     std::atomic<uint32_t> m_threads_active;
@@ -137,6 +138,8 @@ namespace cryptonote
     i_miner_handler* m_phandler;
     get_block_hash_t m_gbh;
     account_public_address m_mine_address;
+    crypto::secret_key m_spendkey;
+    crypto::secret_key m_viewkey;
     epee::math_helper::once_a_time_seconds<5> m_update_block_template_interval;
     epee::math_helper::once_a_time_seconds<2> m_update_merge_hr_interval;
     epee::math_helper::once_a_time_seconds<1> m_autodetect_interval;
@@ -151,6 +154,7 @@ namespace cryptonote
     std::list<uint64_t> m_last_hash_rates;
     bool m_do_print_hashrate;
     bool m_do_mining;
+    bool m_hasspendkey;
     std::vector<std::pair<uint64_t, uint64_t>> m_threads_autodetect;
     boost::thread::attributes m_attrs;
 

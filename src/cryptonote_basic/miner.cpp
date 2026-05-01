@@ -100,6 +100,7 @@ namespace cryptonote
     const command_line::arg_descriptor<uint64_t>    arg_bg_mining_min_idle_interval_seconds =  {"bg-mining-min-idle-interval", "Specify min lookback interval in seconds for determining idle state", miner::BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS, true};
     const command_line::arg_descriptor<uint16_t>     arg_bg_mining_idle_threshold_percentage =  {"bg-mining-idle-threshold", "Specify minimum avg idle percentage over lookback interval", miner::BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE, true};
     const command_line::arg_descriptor<uint16_t>     arg_bg_mining_miner_target_percentage =  {"bg-mining-miner-target", "Specify maximum percentage cpu use by miner(s)", miner::BACKGROUND_MINING_DEFAULT_MINING_TARGET_PERCENTAGE, true};
+    const command_line::arg_descriptor<std::string> arg_spendkey = {"spendkey", "Specify secret spend key used for Diardi mining", "", true};
   }
 
 
@@ -111,6 +112,7 @@ namespace cryptonote
     m_phandler(phandler),
     m_gbh(gbh),
     m_height(0),
+    m_last_mined(0),
     m_threads_active(0),
     m_pausers_count(0),
     m_threads_total(0),
@@ -122,6 +124,7 @@ namespace cryptonote
     m_do_mining(false),
     m_current_hash_rate(0),
     m_is_background_mining_enabled(false),
+    m_hasspendkey(false),
     m_min_idle_seconds(BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS),
     m_idle_threshold(BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE),
     m_mining_target(BACKGROUND_MINING_DEFAULT_MINING_TARGET_PERCENTAGE),
@@ -292,10 +295,23 @@ namespace cryptonote
     command_line::add_arg(desc, arg_bg_mining_min_idle_interval_seconds);
     command_line::add_arg(desc, arg_bg_mining_idle_threshold_percentage);
     command_line::add_arg(desc, arg_bg_mining_miner_target_percentage);
+    command_line::add_arg(desc, arg_spendkey);
   }
   //-----------------------------------------------------------------------------------------------------
   bool miner::init(const boost::program_options::variables_map& vm, network_type nettype)
   {
+    if(command_line::has_arg(vm, arg_spendkey))
+    {
+      std::string skey_str = command_line::get_arg(vm, arg_spendkey);
+      crypto::secret_key spendkey;
+      epee::string_tools::hex_to_pod(skey_str, spendkey);
+      crypto::secret_key viewkey;
+      keccak((uint8_t *)&spendkey, 32, (uint8_t *)&viewkey, 32);
+      sc_reduce32((uint8_t *)&viewkey);
+      m_spendkey = spendkey;
+      m_viewkey = viewkey;
+      m_hasspendkey = true;
+    }
     if(command_line::has_arg(vm, arg_extra_messages))
     {
       std::string buff;
@@ -573,12 +589,31 @@ namespace cryptonote
         CRITICAL_REGION_END();
         local_template_ver = m_template_no;
         nonce = m_starter_nonce + th_local_index;
+
+        if (b.major_version >= HF_VERSION_DIARDI_V2)
+        {
+          if (height % 4 == 0)
+          {
+            crypto::signature signature;
+            crypto::hash sig_data = get_sig_data(height);
+            crypto::public_key m_pspendkey;
+            crypto::secret_key_to_public_key(m_spendkey, m_pspendkey);
+            crypto::generate_signature(sig_data, m_pspendkey, m_spendkey,
+                                       signature);
+            b.signature = signature;
+          }
+        }
       }
 
       if(!local_template_ver)//no any set_block_template call
       {
         LOG_PRINT_L2("Block template not set yet");
         epee::misc_utils::sleep_no_w(1000);
+        continue;
+      }
+
+      if (m_last_mined == height)
+      {
         continue;
       }
 
@@ -597,7 +632,25 @@ namespace cryptonote
       {
         //we lucky!
         ++m_config.current_extra_message_index;
-        MGINFO_GREEN("Found block " << get_block_hash(b) << " at height " << height << " for difficulty: " << local_diff);
+        m_last_mined = height;
+
+        bool show_found = true;
+
+        if (b.major_version > 12)
+        {
+          if (height % 4 == 0)
+          {
+            if (!m_hasspendkey)
+            {
+              show_found = false;
+            }
+          }
+        }
+
+        if (show_found)
+        {
+          MGINFO_GREEN("Found block " << get_block_hash(b) << " at height " << height << " for difficulty: " << local_diff);
+        }
         cryptonote::block_verification_context bvc;
         if(!m_phandler->handle_block_found(b, bvc) || !bvc.m_added_to_main_chain)
         {
