@@ -1087,9 +1087,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 if(MINGW)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wa,-mbig-obj")
   set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi;crypt32;bcrypt)
-  if(DEPENDS)
-    set(ICU_LIBRARIES icuio icui18n icuuc icudata icutu iconv)
-  else()
+  if(NOT DEPENDS)
     # This is an extremely ugly hack to get around Boost not being built with static ICU.
     # We reported the issue, we are waiting for upstream to fix this issue: https://github.com/boostorg/boost/issues/1079#issue-3384962885
     # This hack links shared ICU libs to avoid linker errors we get in MSYS2 compilation (undefined symbols to ICU).
