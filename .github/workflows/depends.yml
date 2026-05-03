@@ -64,6 +64,10 @@ jobs:
         echo "/usr/local/go/bin" >> $GITHUB_PATH
         export PATH=$PATH:/usr/local/go/bin
         go version
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
 
     - name: configure git
       run: git config --global --add safe.directory '*'
