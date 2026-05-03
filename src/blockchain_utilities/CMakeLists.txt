@@ -153,6 +153,9 @@ target_link_libraries(blockchain_import
 
 if(NOT ANDROID)
     target_link_libraries(blockchain_import PRIVATE libipfs)
+    if(APPLE AND DEPENDS)
+        target_link_libraries(blockchain_import PRIVATE "-framework Security" "-lresolv")
+    endif()
 endif()
   
 if(ARCH_WIDTH)

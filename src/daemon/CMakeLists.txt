@@ -72,6 +72,9 @@ target_link_libraries(daemon
 
 if(NOT ANDROID)
     target_link_libraries(daemon PRIVATE libipfs)
+    if(APPLE AND DEPENDS)
+        target_link_libraries(daemon PRIVATE "-framework Security" "-lresolv")
+    endif()
 endif()
 
 set_property(TARGET daemon
