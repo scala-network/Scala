@@ -63,9 +63,7 @@
 #include "oaes_config.h"
 #include "oaes_lib.h"
 
-#ifdef OAES_HAVE_ISAAC
-#include "rand.h"
-#endif // OAES_HAVE_ISAAC
+#include "random.h"
 
 #define OAES_RKEY_LEN 4
 #define OAES_COL_LEN 4
@@ -471,73 +469,6 @@ OAES_RET oaes_sprintf(
 	return OAES_RET_SUCCESS;
 }
 
-#ifdef OAES_HAVE_ISAAC
-static void oaes_get_seed( char buf[RANDSIZ + 1] )
-{
-        #if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
-	struct timeb timer;
-	struct tm *gmTimer;
-	char * _test = NULL;
-	
-	ftime (&timer);
-	gmTimer = gmtime( &timer.time );
-	_test = (char *) calloc( sizeof( char ), timer.millitm );
-	sprintf( buf, "%04d%02d%02d%02d%02d%02d%03d%p%d",
-		gmTimer->tm_year + 1900, gmTimer->tm_mon + 1, gmTimer->tm_mday,
-		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, timer.millitm,
-		_test + timer.millitm, GETPID() );
-	#else
-	struct timeval timer;
-	struct tm *gmTimer;
-	char * _test = NULL;
-	
-	gettimeofday(&timer, NULL);
-	gmTimer = gmtime( &timer.tv_sec );
-	_test = (char *) calloc( sizeof( char ), timer.tv_usec/1000 );
-	sprintf( buf, "%04d%02d%02d%02d%02d%02d%03d%p%d",
-		gmTimer->tm_year + 1900, gmTimer->tm_mon + 1, gmTimer->tm_mday,
-		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, timer.tv_usec/1000,
-		_test + timer.tv_usec/1000, GETPID() );
-	#endif
-		
-	if( _test )
-		free( _test );
-}
-#else
-static uint32_t oaes_get_seed(void)
-{
-        #if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__) && !defined(__NetBSD__)
-	struct timeb timer;
-	struct tm *gmTimer;
-	char * _test = NULL;
-	uint32_t _ret = 0;
-	
-	ftime (&timer);
-	gmTimer = gmtime( &timer.time );
-	_test = (char *) calloc( sizeof( char ), timer.millitm );
-	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
-			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.millitm +
-			(uintptr_t) ( _test + timer.millitm ) + GETPID();
-	#else
-	struct timeval timer;
-	struct tm *gmTimer;
-	char * _test = NULL;
-	uint32_t _ret = 0;
-	
-	gettimeofday(&timer, NULL);
-	gmTimer = gmtime( &timer.tv_sec );
-	_test = (char *) calloc( sizeof( char ), timer.tv_usec/1000 );
-	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
-			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.tv_usec/1000 +
-			(uintptr_t) ( _test + timer.tv_usec/1000 ) + GETPID();
-	#endif
-
-	if( _test )
-		free( _test );
-	
-	return _ret;
-}
-#endif // OAES_HAVE_ISAAC
 
 static OAES_RET oaes_key_destroy( oaes_key ** key )
 {
@@ -652,12 +583,8 @@ static OAES_RET oaes_key_gen( OAES_CTX * ctx, size_t key_size )
 		return OAES_RET_MEM;
 	}
 	
-	for( _i = 0; _i < key_size; _i++ )
-#ifdef OAES_HAVE_ISAAC
-		_key->data[_i] = (uint8_t) rand( _ctx->rctx );
-#else
-		_key->data[_i] = (uint8_t) rand();
-#endif // OAES_HAVE_ISAAC
+	// Generate cryptographically secure random bytes for the key
+	generate_random_bytes_not_thread_safe(key_size, _key->data);
 	
 	_ctx->key = _key;
 	_rc = _rc || oaes_key_expand( ctx );
@@ -898,27 +825,6 @@ OAES_CTX * oaes_alloc(void)
 	if( NULL == _ctx )
 		return NULL;
 
-#ifdef OAES_HAVE_ISAAC
-	{
-	  ub4 _i = 0;
-		char _seed[RANDSIZ + 1];
-		
-		_ctx->rctx = (randctx *) calloc( sizeof( randctx ), 1 );
-
-		if( NULL == _ctx->rctx )
-		{
-			free( _ctx );
-			return NULL;
-		}
-
-		oaes_get_seed( _seed );
-		memset( _ctx->rctx->randrsl, 0, RANDSIZ );
-		memcpy( _ctx->rctx->randrsl, _seed, RANDSIZ );
-		randinit( _ctx->rctx, TRUE);
-	}
-#else
-		srand( oaes_get_seed() );
-#endif // OAES_HAVE_ISAAC
 
 	_ctx->key = NULL;
 	oaes_set_option( _ctx, OAES_OPTION_CBC, NULL );
@@ -944,13 +850,6 @@ OAES_RET oaes_free( OAES_CTX ** ctx )
 	if( (*_ctx)->key )
 		oaes_key_destroy( &((*_ctx)->key) );
 
-#ifdef OAES_HAVE_ISAAC
-	if( (*_ctx)->rctx )
-	{
-		free( (*_ctx)->rctx );
-		(*_ctx)->rctx = NULL;
-	}
-#endif // OAES_HAVE_ISAAC
 	
 	free( *_ctx );
 	*_ctx = NULL;
@@ -980,12 +879,7 @@ OAES_RET oaes_set_option( OAES_CTX * ctx,
 				memcpy( _ctx->iv, value, OAES_BLOCK_SIZE );
 			else
 			{
-				for( _i = 0; _i < OAES_BLOCK_SIZE; _i++ )
-#ifdef OAES_HAVE_ISAAC
-					_ctx->iv[_i] = (uint8_t) rand( _ctx->rctx );
-#else
-					_ctx->iv[_i] = (uint8_t) rand();
-#endif // OAES_HAVE_ISAAC
+				generate_random_bytes_not_thread_safe(OAES_BLOCK_SIZE, _ctx->iv);
 			}
 			break;
 
